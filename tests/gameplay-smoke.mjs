@@ -130,6 +130,52 @@ check('unlocking every achievement unlocks the king badge and shows the crown', 
 const stats = await page.evaluate(() => ({ kills: RingRush.stat('kills'), rams: RingRush.stat('rams') }));
 check('lifetime stats are tracked', stats.kills >= 250 && stats.rams >= 100, JSON.stringify(stats));
 
+console.log('\n== boss: the vegetarian produce truck ==');
+const bossT = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  /* appears at the end of every 3rd lap, not before */
+  R.start(); R.nearLap(2); R.step(120); out.noBossLap2 = !R.boss().active;
+  R.start(); R.nearLap(3); R.step(120); out.bossLap3 = R.boss().active; out.hp1 = R.boss().maxHp;
+  R.start(); R.nearLap(6); R.step(120); out.hp2 = R.boss().maxHp;
+  /* a lettuce thrown at me lands in my lane and costs a heart if I stay */
+  R.start(); R.spawnBoss(); R.step(30); const l0 = R.state().lives; R.throwLettuce(); const pend = R.lettuces(); out.telegraph = pend.length === 1 && pend[0].state === 1 && pend[0].lane === R.state().lane;
+  R.step(100); out.hit = R.state().lives === l0 - 1;
+  /* ... and dodging works: switching lanes during the 1.15 s of flight avoids it */
+  R.start(); R.spawnBoss(); R.step(30); const l1 = R.state().lives; R.throwLettuce(); R.step(15); R.act.lane(1); R.step(100); out.dodged = R.state().lives === l1;
+  /* the lettuce volley can never fill all three lanes */
+  R.start(); R.spawnBoss(); let maxLanes = 0;
+  for (let i = 0; i < 300; i++) { const r = Math.random(); if (r < 0.34) R.act.lane(-1); else if (r < 0.67) R.act.lane(1); R.throwLettuce(); R.step(14); R.state(); maxLanes = Math.max(maxLanes, new Set(R.lettuces().map((q) => q.lane)).size); if (R.state().state !== 'play') R.start(); R.spawnBoss(); }
+  out.maxLanes = maxLanes;
+  return out;
+});
+check('no boss before lap 3, boss at the end of lap 3', bossT.noBossLap2 && bossT.bossLap3, JSON.stringify([bossT.noBossLap2, bossT.bossLap3]));
+check('boss health grows with every boss (10, then 13)', bossT.hp1 === 10 && bossT.hp2 === 13, `${bossT.hp1}, ${bossT.hp2}`);
+check('a lettuce is telegraphed in my lane and hits if I stay', bossT.telegraph && bossT.hit, JSON.stringify([bossT.telegraph, bossT.hit]));
+check('switching lanes while the lettuce is in the air dodges it', bossT.dodged);
+check('lettuce never fills all three lanes at once', bossT.maxLanes <= 2, 'max distinct lanes=' + bossT.maxLanes);
+const fight = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  const dodgeLane = (want) => { const bad = new Set(R.lettuces().filter((q) => q.rel > -4 && q.rel < 95).map((q) => q.lane)); if (!bad.has(want)) return want; return [-1, 0, 1].find((l) => !bad.has(l)); };
+  const run = (secs, shoot) => {
+    for (let i = 0; i < secs * 60 && R.state().state === 'play' && R.boss().active; i++) {
+      R.step(1); if (i % 2) continue;
+      const b = R.boss(), s = R.state(), want = dodgeLane(shoot ? b.lane : s.lane);
+      if (want !== undefined && want !== s.lane) R.act.lane(Math.sign(want - s.lane));
+      if (shoot && s.lane === b.lane && b.rel > 20 && b.rel < 150 && R.ammo().missiles > 0) R.fire();
+    }
+  };
+  /* beat her with missiles (ramming does not work) */
+  R.setUp('armor', 2); R.setUp('missiles', 3); R.setCar('jeep'); R.start(); R.spawnBoss(); const c0 = R.state().coins, b0 = R.stat('bosses'); run(100, true);
+  out.beaten = !R.boss().active && !R.boss().fleeing && R.stat('bosses') === b0 + 1; out.reward = R.state().coins - c0; out.ach = R.ach().includes('boss1'); out.alive = R.state().state === 'play';
+  /* ... or she escapes after ~48 s with no reward */
+  R.start(); R.spawnBoss(); const b1 = R.stat('bosses'); let fled = false; for (let i = 0; i < 60 * 70 && R.state().state === 'play'; i++) { R.step(1); if (R.boss().fleeing) fled = true; if (i % 2 === 0) { const w = dodgeLane(R.state().lane); if (w !== R.state().lane) R.act.lane(Math.sign(w - R.state().lane)); } if (!R.boss().active) break; }
+  out.fled = fled; out.noReward = R.stat('bosses') === b1; out.gone = !R.boss().active;
+  R.setCar('sport');
+  return out;
+});
+check('missiles beat the boss: reward, stat and achievement', fight.beaten && fight.reward >= 300 && fight.ach && fight.alive, JSON.stringify(fight));
+check('an ignored boss runs away after ~48 s with no reward', fight.fled && fight.gone && fight.noReward);
+
 console.log('\n== footprint on the road ==');
 const fp = await page.evaluate(() => RingRush.footprints());
 check('sausage coins (with glow) fit well inside a lane', fp.coinGlow <= fp.max, `coin=${fp.coin.toFixed(2)}m glow=${fp.coinGlow.toFixed(2)}m max=${fp.max.toFixed(2)}m lane=${fp.lane}m`);

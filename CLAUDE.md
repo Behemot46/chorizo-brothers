@@ -13,5 +13,4 @@ Single-file mobile arcade game: `index.html` (Three.js r128 from cdnjs). UI lang
   `<title>`, `<style>` and the body content; add `color-scheme:dark` to `:root` and `dir="rtl"` on `#app`.
 - Currency is the glowing sausage coin (save key stays `coins`). Bonuses are sausages (hot dog = turbo, bratwurst = power ram,
   merguez = magnet, salami = heart, chorizo queen = all). Every car material goes through `glowify()` so cars stay visible on the dark road.
-- Hosting: Vercel project `chorizo-brothers` (auto-deploys on push to `main`; static `index.html` at the repo root). The Claude artifact copy is built from the same file.
-- Vehicles (`VEHICLES`), achievements (`ACH`), FX (`FX`, `impact()`), adaptive music (`Sfx.mood`) and the dev API (`window.RingRush`) are covered by `tests/gameplay-smoke.mjs`.
+- Hosting: Vercel (static `index.html`, project `chorizo-brothers`). The Claude artifact copy is built from the same file.

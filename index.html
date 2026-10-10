@@ -59,6 +59,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 #flash{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(255,30,60,0) 35%,rgba(255,30,60,.75) 100%)}
 #flash.hit{animation:flash .55s ease-out}
 @keyframes flash{0%{opacity:1}100%{opacity:0}}
+#bossBar{position:absolute;left:50%;transform:translateX(-50%);top:calc(var(--st) + 84px);z-index:4;width:min(70vw,300px);text-align:center;pointer-events:none;direction:rtl}
+#bossBar span{font-weight:900;font-size:14px;color:#9dff8a;text-shadow:0 0 10px rgba(110,255,100,.7)}
+#bossBar .bb{height:10px;border-radius:6px;background:rgba(10,12,28,.7);border:1px solid rgba(157,255,138,.6);overflow:hidden;margin-top:3px}
+#bossBar .bb i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#2fc24f,#9dff8a);transition:width .25s}
+#bossBar small{font-size:11px;color:var(--dim)}
 #flashW{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 58%,rgba(255,255,255,.95),rgba(255,226,170,.5) 55%,rgba(255,255,255,0) 100%)}
 #flashW.go{animation:flashw .4s ease-out}
 @keyframes flashw{0%{opacity:.9}100%{opacity:0}}
@@ -189,6 +194,7 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
     </div>
   </div>
   <div id="flash"></div><div id="flashW"></div><div id="nitroGlow"></div><div id="siren"></div><div id="warn" class="hidden"><span id="warnTxt">שוטר מאחור</span></div>
+  <div id="bossBar" class="hidden"><span>משאית הירקות</span><div class="bb"><i id="bossFill"></i></div><small id="bossHp"></small></div>
   <div id="banners"></div>
   <div id="toast"></div>
   <div id="tut" class="hidden"><div>החלק או הקש בצדדים להחלפת נתיב</div><br><div>הקשה במרכז = נייטרו</div><br><div>כפתורים בפינה: טיל וחשמל</div></div>
@@ -1103,6 +1109,32 @@ const bolts = Array.from({ length: BOLT_N }, () => {
 });
 const shockRing = new THREE.Mesh(new THREE.RingGeometry(0.92, 1, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x6fd0ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
 shockRing.visible = false; shockRing.userData.t = -1; scene.add(shockRing);
+/* ---- Boss: the vegetarian produce truck that throws heads of lettuce ---- */
+const BOSS = { active: false, hp: 0, maxHp: 1, s: 0, ps: 0, lat: 0, lane: 0, speed: 0, age: 0, throwT: 2, laneT: 3, ammoT: 3, fleeing: false, rel: 0, idx: 1, hitT: 0 };
+const BOSS_LEN = 14, BOSS_WID = 3.6;
+const bx = (w, h, l, x, y, z, c) => ({ geo: new THREE.BoxGeometry(w, h, l), x, y, z, c });
+const bossMat = glowify(new THREE.MeshLambertMaterial({ vertexColors: true }), 0.5);
+const bossMesh = new THREE.Mesh(bakeGeo([
+  bx(3.2, .6, 13.5, 0, .8, 0, 0x16251a), bx(3.6, 3.9, 9.2, 0, 3.0, -1.8, 0x2fc24f), bx(3.62, .5, 9.2, 0, 2.0, -1.8, 0x1a7d33),
+  bx(3.4, 2.9, 3.2, 0, 2.2, 5.0, 0x1f9b3b), bx(3.0, 1.1, .12, 0, 2.9, 6.62, 0x0d1f12), bx(2.6, .5, .3, 0, 1.2, 6.7, 0x8aff7a),
+  bx(3.3, 3.4, .15, 0, 3.0, -6.45, 0xe9ffe0), bx(.4, .3, .1, 1.4, 1.2, -6.9, 0xff3030), bx(.4, .3, .1, -1.4, 1.2, -6.9, 0xff3030),
+  ...[[-1.55, -4], [1.55, -4], [-1.55, -1], [1.55, -1], [-1.55, 5], [1.55, 5]].map(([x, z]) => bx(.5, 1.1, 1.1, x, .55, z, 0x0a0a0c)),
+  { geo: new THREE.SphereGeometry(.95, 12, 9), x: 0, y: 3.0, z: -6.6, c: 0x4cff6a },
+  ...[[-.9, 5.6, -1], [.9, 5.6, -2.6], [-.7, 5.5, -4.4], [.8, 5.5, 0.4]].map(([x, y, z]) => ({ geo: new THREE.SphereGeometry(.8, 10, 8), x, y, z, c: 0x8cff7a })),
+  { geo: new THREE.ConeGeometry(.45, 2.2, 8), x: 0, y: 4.2, z: 5.4, rx: Math.PI / 2, c: 0xff8a1a }
+]), bossMat);
+bossMesh.rotation.order = 'YXZ'; bossMesh.visible = false; bossMesh.frustumCulled = false; scene.add(bossMesh);
+const lettuceGeo = bakeGeo([
+  { geo: new THREE.SphereGeometry(.72, 10, 8), c: 0x8cff7a }, { geo: new THREE.SphereGeometry(.52, 8, 6), c: 0x3fbf3f, x: .22, y: .18, z: .2 },
+  { geo: new THREE.SphereGeometry(.4, 8, 6), c: 0xd6ffb0, x: -.2, y: .28, z: -.15 }
+]);
+const lettuceMat = glowify(new THREE.MeshLambertMaterial({ vertexColors: true }), 0.7);
+const lettuces = Array.from({ length: 8 }, () => {
+  const m = new THREE.Mesh(lettuceGeo, lettuceMat); m.visible = false; scene.add(m);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.9, 1.25, 28).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x6aff6a, transparent: true, opacity: .8, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+  ring.visible = false; scene.add(ring);
+  return { m, ring, state: 0, t: 0, T: 1.15, s0: 0, lat0: 0, ds: 0, lat1: 0, lane: 0, sLand: 0, hold: 0 };
+});
 const expl = Array.from({ length: 6 }, () => {
   const m = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 9), new THREE.MeshBasicMaterial({ color: 0xffa23a, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
   m.visible = false; scene.add(m); return { m, t: -1, size: 1 };
@@ -1301,6 +1333,7 @@ const Sfx = (() => {
     missile() { noise(0.5, 0.3, 3500, 500, 'bandpass'); tone(300, 120, 0.4, 'sawtooth', 0.12); },
     eat() { [523, 659, 784, 1047].forEach((f, i) => tone(f, f * 1.02, 0.1, 'square', 0.09, i * 0.06)); noise(0.12, 0.15, 2600, 800, 'bandpass'); },
     zap() { api.duck(0.35); noise(0.35, 0.4, 9000, 1200, 'highpass'); tone(1400, 160, 0.3, 'sawtooth', 0.12); tone(70, 55, 0.35, 'square', 0.18); },
+    splat() { noise(0.14, 0.25, 1600, 400); tone(220, 90, 0.14, 'sine', 0.2); },
     fizzle() { tone(500, 220, 0.12, 'square', 0.06); },
     ram() { api.duck(0.4); noise(0.35, 0.5, 1800, 120); tone(110, 45, 0.3, 'square', 0.3); },
     boom() { api.duck(0.45); noise(0.5, 0.5, 2500, 90); tone(140, 40, 0.45, 'sawtooth', 0.25); },
@@ -1372,7 +1405,7 @@ const pS = () => mod(P.dist, L);
 const el = {
   hud: $('#hud'), score: $('#score'), combo: $('#combo'), kmh: $('#kmh'), nitro: $('#nitro'), nitroFill: $('#nitroFill'), lap: $('#lap'),
   coinsRun: $('#coinsRun'), hearts: $('#hearts'), mini: $('#mini'), banners: $('#banners'), flash: $('#flash'), nitroGlow: $('#nitroGlow'),
-  toast: $('#toast'), tut: $('#tut'), flashW: $('#flashW'), bstM: $('#bstM'), bstS: $('#bstS'), bCh: $('#btnChorizo'), chn: $('#chCnt'), bstK: $('#bstK'), bstB: $('#bstB'), siren: $('#siren'), warn: $('#warn'), warnTxt: $('#warnTxt'), ms: $('#msCnt'), mn: $('#shCnt'), bMs: $('#btnMissile'), bMn: $('#btnShock')
+  toast: $('#toast'), tut: $('#tut'), flashW: $('#flashW'), bossBar: $('#bossBar'), bossFill: $('#bossFill'), bossHp: $('#bossHp'), bstM: $('#bstM'), bstS: $('#bstS'), bCh: $('#btnChorizo'), chn: $('#chCnt'), bstK: $('#bstK'), bstB: $('#bstB'), siren: $('#siren'), warn: $('#warn'), warnTxt: $('#warnTxt'), ms: $('#msCnt'), mn: $('#shCnt'), bMs: $('#btnMissile'), bMn: $('#btnShock')
 };
 const heartSvg = '<svg viewBox="0 0 24 24"><path fill="#ff2e5b" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.8 4.5 6.5 4.5c2 0 3.8 1.1 5.5 3 1.7-1.9 3.5-3 5.5-3 3.700 0 5.600 3.900 4.100 7.300C19.500 16.400 12 21 12 21z"/></svg>';
 for (let i = 0; i < 5; i++) { const d = document.createElement('div'); d.className = 'heart'; d.innerHTML = heartSvg; el.hearts.appendChild(d); }
@@ -1430,6 +1463,7 @@ function resetTraffic() {
   for (const cp of cops) { cp.active = false; cp.g.visible = false; }
   for (const e of expl) { e.t = -1; e.m.visible = false; }
   FX.clear(); G.timeScale = 1; G.slowT = 0;
+  BOSS.active = false; bossMesh.visible = false; for (const l of lettuces) { l.state = 0; l.m.visible = false; l.ring.visible = false; }
   reticle.visible = false;
 }
 function startRun() {
@@ -1594,7 +1628,7 @@ function crash(c, cause) {
   frameOf(pS(), P.lat, F1); emitSparks(F1.px, 1, F1.pz, 40); FX.burst(F1.px, 1, F1.pz, 1.3, PAINTS[save.paint].c);
   Sfx.crash(); vib([70, 40, 90]);
   if (!save.calm) { el.flash.classList.remove('hit'); void el.flash.offsetWidth; el.flash.classList.add('hit'); }
-  banner(cause === 'cop' ? 'השוטר פגע בך!' : 'פגיעה!', 'bad');
+  banner(cause === 'cop' ? 'השוטר פגע בך!' : cause === 'lettuce' ? 'חסה בפרצוף!' : cause === 'boss' ? 'הבוס דרס אותך!' : 'פגיעה!', 'bad');
   if (P.lives <= 0) {
     P.alive = false; G.state = 'dying'; G.dyingT = 0;
     Sfx.crash();
@@ -1643,6 +1677,7 @@ function chorizoBlast(s, lat) {
     if (Math.abs(signedRel(c.s, s)) < 10 + c.len / 2 && Math.abs(c.lat - lat) < LANE_W * 1.6) { destroyCar(c, 'missile', true); n++; }
   }
   for (const cp of cops) if (cp.active && Math.abs(signedRel(cp.s, s)) < 10 && Math.abs(cp.lat - lat) < LANE_W * 1.6) { cp.active = false; cp.g.visible = false; n += 2; addKill(); bump('cops'); }
+  if (BOSS.active && !BOSS.fleeing && Math.abs(signedRel(BOSS.s, s)) < 10 + BOSS_LEN / 2 && Math.abs(BOSS.lat - lat) < LANE_W * 1.6 + BOSS_WID / 2) damageBoss(3);
   const pts = 250 * n; P.score += pts;
   impact({ slow: 0.8, flash: 1, shake: 0.9, punch: 1 });
   banner('צ׳וריסו! ' + ltr('+' + pts), 'big');
@@ -1714,6 +1749,80 @@ function fireShock() {
   Sfx.zap(); vib([20, 20, 20]);
   banner('מכת חשמל! ' + ltr('x' + n + ' +' + pts), 'big');
 }
+const bossRel = () => signedRel(BOSS.s, pS());
+function spawnBoss() {
+  const idx = Math.max(1, Math.round(P.lapsDone / 3)), hp = 10 + 3 * (idx - 1);
+  Object.assign(BOSS, { active: true, hp, maxHp: hp, s: mod(pS() + 190, L), lat: 0, lane: 0, speed: P.speed + 10, age: 0, throwT: 2.4, laneT: 3.5, ammoT: 3, fleeing: false, idx, hitT: 0 });
+  BOSS.ps = BOSS.s; bossMesh.visible = true;
+  banner('בוס צמחוני מתקרב!', 'bad'); Sfx.siren(1);
+}
+function damageBoss(n) {
+  if (!BOSS.active || BOSS.fleeing) return;
+  BOSS.hp = Math.max(0, BOSS.hp - n); BOSS.hitT = 0.18;
+  Track.frame(BOSS.s, F2); explode(Track.worldX(F2, BOSS.lat), 2.5, Track.worldZ(F2, BOSS.lat), 1.1, 0x7dff6a); Sfx.boom();
+  if (BOSS.hp <= 0) defeatBoss();
+}
+function defeatBoss() {
+  BOSS.active = false; bossMesh.visible = false;
+  for (let k = -3; k <= 3; k++) { Track.frame(BOSS.s + k * 2, F2); explode(Track.worldX(F2, BOSS.lat), 1.5 + Math.abs(k) * 0.3, Track.worldZ(F2, BOSS.lat), 1.6, 0x7dff6a); }
+  impact({ slow: 1.2, flash: 1, shake: 1, punch: 1, force: true });
+  for (const l of lettuces) { l.state = 0; l.m.visible = false; l.ring.visible = false; }
+  P.coins += 300; R.coins += 300; P.score += 5000; bump('bosses'); P.nitro = 100;
+  if (P.lives < P.maxLives) P.lives++;
+  G.copT = Math.max(G.copT, 12); hc.ammo = null;
+  banner('הבוס הצמחוני הובס! ' + ltr('+300'), 'big'); Sfx.lap(); checkAch();
+}
+function throwLettuce() {
+  const l = lettuces.find((q) => q.state === 0); if (!l) return;
+  const pending = new Set(lettuces.filter((q) => q.state !== 0).map((q) => q.lane));
+  let lane = P.lane;
+  /* never block all three lanes: with two lanes already holding lettuce, reuse one of them */
+  if (!pending.has(lane) && pending.size >= 2) lane = [...pending][(Math.random() * pending.size) | 0];
+  const T = 1.15, ps = pS(), sLand = mod(ps + P.speed * T + 0.5 * (P.acc || 0) * T * T, L); /* where the car will be when the lettuce lands */
+  Object.assign(l, { state: 1, t: 0, T, s0: BOSS.s, lat0: BOSS.lat, ds: signedRel(sLand, BOSS.s), lat1: lane * LANE_W, lane, sLand, hold: 0 });
+  l.m.visible = true; l.ring.visible = true;
+}
+function lettuceTick(dt, ps, dying) {
+  for (const l of lettuces) {
+    if (l.state === 0) continue;
+    if (l.state === 1) {
+      l.t += dt;
+      if (l.t >= l.T) { l.state = 2; l.hold = 0; l.ring.visible = false; Track.frame(l.sLand, F2); FX.burst(Track.worldX(F2, l.lat1), 0.6, Track.worldZ(F2, l.lat1), 0.6, 0x7dff6a); Sfx.splat(); }
+    } else {
+      l.hold += dt;
+      if (l.hold > 2.6 || signedRel(l.sLand, ps) < -40) { l.state = 0; l.m.visible = false; continue; }
+    }
+    if (l.state === 2 && !dying && P.alive && P.inv <= 0 && Math.abs(signedRel(l.sLand, ps)) < 2.5 && Math.abs(l.lat1 - P.lat) < 1.55) {
+      l.state = 0; l.m.visible = false;
+      Track.frame(l.sLand, F2); FX.burst(Track.worldX(F2, l.lat1), 0.8, Track.worldZ(F2, l.lat1), 1.0, 0x7dff6a);
+      if (P.powerT > 0) { P.score += 150; banner('סלט! ' + ltr('+150'), 'nm'); } else crash(null, 'lettuce');
+    }
+  }
+}
+function bossTick(dt, ps, dying) {
+  lettuceTick(dt, ps, dying);
+  const b = BOSS; if (!b.active) return;
+  b.ps = b.s; b.age += dt; if (b.hitT > 0) b.hitT -= dt;
+  const rel0 = signedRel(b.s, ps);
+  if (b.fleeing) b.speed += 28 * dt; else b.speed = P.speed + clamp((48 - rel0) * 0.6, -22, 22);
+  b.s = mod(b.s + b.speed * dt, L);
+  b.laneT -= dt;
+  if (b.laneT <= 0 && !b.fleeing) { const opts = [-1, 0, 1].filter((x) => x !== b.lane); b.lane = opts[(Math.random() * opts.length) | 0]; b.laneT = rnd(3.5, 5.5); }
+  b.lat = damp(b.lat, b.lane * LANE_W, 1.6, dt);
+  const rel = b.rel = signedRel(b.s, ps);
+  if (!b.fleeing && b.age > 48) { b.fleeing = true; banner('הבוס ברח!', 'bad'); }
+  if (b.fleeing && rel > 320) { b.active = false; bossMesh.visible = false; for (const l of lettuces) { if (l.state === 1) { l.state = 0; l.m.visible = false; l.ring.visible = false; } } return; }
+  b.throwT -= dt;
+  if (!b.fleeing && !dying && b.throwT <= 0 && rel > 25 && rel < 160) { throwLettuce(); b.throwT = lerp(1.0, 1.75, b.hp / b.maxHp) + rnd(0, 0.4); }
+  b.ammoT -= dt;
+  if (b.ammoT <= 0) { b.ammoT = 3.2; if (!dying && !b.fleeing && P.missiles < 3) { P.missiles++; hc.ammo = null; Sfx.ui(); } }
+  /* touching the truck always hurts (rams do not work on her), unless the bratwurst power is on */
+  const lx = (BOSS_LEN + P.len) / 2, wx = (BOSS_WID + P.wid) / 2;
+  if (!dying && P.alive && Math.abs(rel) < lx - 0.3 && Math.abs(b.lat - P.lat) < wx - 0.15) {
+    P.dist -= Math.max(0, lx + 1 - rel); P.pd = P.dist;
+    if (P.inv <= 0) { if (P.powerT > 0) { P.speed *= 0.6; P.inv = 0.6; G.shake = Math.max(G.shake, 0.6); Sfx.ram(); } else crash(null, 'boss'); }
+  }
+}
 function spawnCop() {
   const cp = cops.find((q) => !q.active); if (!cp) return;
   const s0 = mod(pS() - 150, L);
@@ -1733,7 +1842,8 @@ function weaponsTick(dt, ps, dying) {
     if (m.target) m.lat = damp(m.lat, m.target.lat, 8, dt);
     m.s = mod(m.s + m.speed * dt, L);
     let hit = false;
-    for (const c of traffic) {
+    if (BOSS.active && !BOSS.fleeing && Math.abs(signedRel(BOSS.s, m.s)) < BOSS_LEN / 2 + (big ? 3 : 0.5) && Math.abs(BOSS.lat - m.lat) < BOSS_WID / 2 + (big ? 1.8 : 0.9)) { damageBoss(big ? 3 : 1); hit = true; }
+    if (!hit) for (const c of traffic) {
       if (!c.active || c.state !== 0) continue;
       if (Math.abs(signedRel(c.s, m.s)) < c.len / 2 + 1.6 + (big ? 1.6 : 0) && Math.abs(c.lat - m.lat) < c.wid / 2 + 1.0 + (big ? 0.8 : 0)) {
         if (big) chorizoBlast(c.s, c.lat);
@@ -1747,8 +1857,11 @@ function weaponsTick(dt, ps, dying) {
   /* shock bolts live for a fraction of a second (the damage is applied when firing) */
   for (const b of bolts) if (b.active) { b.t -= dt; if (b.t <= 0) { b.active = false; b.lines.forEach((l) => { l.visible = false; }); } }
 
+  /* the boss and her lettuce */
+  bossTick(dt, ps, dying);
+
   /* police chasers */
-  if (!dying && P.lapsDone >= 1) { G.copT -= dt; if (G.copT <= 0) { G.copT = rnd(24, 36); spawnCop(); } }
+  if (!dying && P.lapsDone >= 1 && !BOSS.active) { G.copT -= dt; if (G.copT <= 0) { G.copT = rnd(24, 36); spawnCop(); } }
   G.copNear = null;
   for (const cp of cops) {
     if (!cp.active) continue;
@@ -1798,7 +1911,9 @@ function runTick(dt) {
   if (P.brake > 0) { target -= 14; P.brake -= dt; }
   if (dying) target = 0;
   const acc = dying ? 38 : target > P.speed ? (P.nitroOn || P.turboT > 0 ? 34 : 16) * VH.accel : 30;
+  const v0 = P.speed;
   P.speed += clamp(target - P.speed, -acc * dt, acc * dt);
+  P.acc = damp(P.acc || 0, (P.speed - v0) / dt, 6, dt);
   P.dist += P.speed * dt;
   R.maxKmh = Math.max(R.maxKmh, Math.round(P.speed * 3.6)); bumpMax('maxKmh', R.maxKmh);
 
@@ -1822,7 +1937,7 @@ function runTick(dt) {
 
   /* spawner */
   G.rowAcc += (P.speed - 25) * dt;
-  const gapWorld = Math.max(42, 64 - P.dist / 260);
+  const gapWorld = Math.max(42, 64 - P.dist / 260) * (BOSS.active ? 2.2 : 1);
   if (!dying && G.rowAcc >= gapWorld) { G.rowAcc -= gapWorld; spawnRow(SPAWN_DIST); }
 
   /* traffic */
@@ -1923,6 +2038,7 @@ function runTick(dt) {
     } else banner('הקפה ' + ltr(P.lapsDone), 'ok');
     if (curVeh().shield && P.shield < 1) { P.shield = 1; banner('המגן נטען', 'ok'); }
     P.lapClean = true; P.nitro = Math.min(100, P.nitro + 30); Sfx.lap(); vib([20, 30, 20]);
+    if (P.lapsDone % 3 === 0 && !BOSS.active) spawnBoss();
     P.missiles = Math.min(3 + 2 * upLvl('missiles'), P.missiles + 1); P.shocks = Math.min(3 + 2 * upLvl('shock'), P.shocks + 1); P.chorizo = Math.min(2 * upLvl('chorizo'), P.chorizo + 1); hc.ammo = null;
   }
 
@@ -2011,6 +2127,27 @@ function render(alpha, dt) {
     shockRing.position.set(pg.position.x, 0.12, pg.position.z); shockRing.scale.setScalar(2 + (1 - q) * 34); shockRing.material.opacity = q * 0.7;
     if (shockRing.userData.t <= 0) { shockRing.visible = false; shockRing.userData.t = -1; }
   }
+  if (BOSS.active) {
+    Track.frame(interp(BOSS.ps, BOSS.s, alpha), F2);
+    bossMesh.position.set(Track.worldX(F2, BOSS.lat), 0, Track.worldZ(F2, BOSS.lat));
+    bossMesh.rotation.set(0, Math.atan2(F2.tx, F2.tz), 0);
+    bossMat.emissive.setScalar(BOSS.hitT > 0 ? 0.6 : 0);
+  }
+  for (const l of lettuces) {
+    if (l.state === 0) continue;
+    if (l.state === 1) {
+      const u = clamp(l.t / l.T, 0, 1);
+      Track.frame(l.s0 + l.ds * u, F2);
+      const lt = lerp(l.lat0, l.lat1, u);
+      l.m.position.set(Track.worldX(F2, lt), 1.5 + 8 * 4 * u * (1 - u), Track.worldZ(F2, lt));
+      l.m.rotation.set(camT * 6, camT * 4, 0); l.m.scale.setScalar(1.15);
+      Track.frame(l.sLand, F3); l.ring.position.set(Track.worldX(F3, l.lat1), 0.14, Track.worldZ(F3, l.lat1));
+      l.ring.scale.setScalar(1.3 + 0.9 * (1 - u) + 0.15 * Math.sin(camT * 14)); l.ring.material.opacity = 0.35 + 0.6 * u;
+    } else {
+      Track.frame(l.sLand, F3); l.m.position.set(Track.worldX(F3, l.lat1), 0.5, Track.worldZ(F3, l.lat1));
+      l.m.scale.set(1.25, 0.7, 1.25).multiplyScalar(Math.min(1, (2.6 - l.hold) / 0.4)); l.m.rotation.set(0, l.sLand, 0);
+    }
+  }
   for (const pk of pickups) {
     if (!pk.active) { pk.g.visible = false; continue; }
     Track.frame(pk.s, F3);
@@ -2092,7 +2229,7 @@ function render(alpha, dt) {
   const fdt = dt * G.timeScale;
   updateSparks(fdt); FX.update(fdt);
   Sfx.slow(G.timeScale < 0.9);
-  Sfx.mood({ speed: clamp((P.speed - 35) / 50, 0, 1), turbo: P.nitroOn || P.turboT > 0, combo: P.combo, cop: G.copNear !== null && G.copNear < 90, boss: !!(G.boss && G.boss.active) });
+  Sfx.mood({ speed: clamp((P.speed - 35) / 50, 0, 1), turbo: P.nitroOn || P.turboT > 0, combo: P.combo, cop: G.copNear !== null && G.copNear < 90, boss: BOSS.active });
   renderer.render(scene, camera);
 
   /* audio + HUD */
@@ -2149,6 +2286,10 @@ function updateHud(dt) {
   if (hc.mt !== mt) { hc.mt = mt; el.bstM.textContent = mt; el.bstM.classList.toggle('hidden', !mt); }
   if (hc.kt !== kt) { hc.kt = kt; el.bstK.textContent = kt; el.bstK.classList.toggle('hidden', !kt); }
   if (hc.bt !== bt) { hc.bt = bt; el.bstB.textContent = bt; el.bstB.classList.toggle('hidden', !bt); }
+  if (BOSS.active && G.state !== 'menu') {
+    el.bossBar.classList.remove('hidden');
+    const bw = Math.round(BOSS.hp / BOSS.maxHp * 100) + '%'; if (hc.bw !== bw) { hc.bw = bw; el.bossFill.style.width = bw; el.bossHp.textContent = BOSS.hp + ' / ' + BOSS.maxHp; }
+  } else el.bossBar.classList.add('hidden');
   const cn = G.copNear;
   if (cn !== null && G.state === 'play') {
     el.warn.classList.remove('hidden'); el.siren.classList.add('on');
@@ -2357,7 +2498,7 @@ window.RingRush = {
   state: () => ({ state: G.state, dist: P.dist, speed: P.speed, lives: P.lives, score: P.score, lap: P.lapsDone, lane: P.lane, lat: P.lat, combo: P.combo, coins: P.coins, q: qLevel, near: R.near, inv: P.inv }),
   cars: () => traffic.filter((c) => c.active && c.state === 0).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, len: c.len, wid: c.wid, speed: c.speed, type: c.type, lane: c.lane })),
   coinsNear: () => coins.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),
-  dbg: { scene, camera, road, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo), coinGlow: footprint(sausageCoinGeo) * COIN_GLOW, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, len: P.len, wid: P.wid, shield: P.shield, maxLives: P.maxLives }), setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setLives(n) { P.lives = n; hc.hearts = null; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, chorizo: fireChorizo, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
+  dbg: { scene, camera, road, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo), coinGlow: footprint(sausageCoinGeo) * COIN_GLOW, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, len: P.len, wid: P.wid, shield: P.shield, maxLives: P.maxLives }), setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setLives(n) { P.lives = n; hc.hearts = null; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, chorizo: fireChorizo, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
   cops: () => cops.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),
   ammo: () => ({ magnet: P.magnetT, lives: P.lives, missiles: P.missiles, shocks: P.shocks, chorizo: P.chorizo, kills: P.kills, maxLives: P.maxLives, turbo: P.turboT, power: P.powerT, food: R.food }),
   setLaps(n) { P.dist = n * L; P.pd = P.dist; P.lapsDone = n; }

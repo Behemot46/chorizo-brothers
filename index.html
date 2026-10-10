@@ -261,6 +261,7 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
     </div>
     <div class="missions" id="oMissionsWrap"><h3>משימות היום</h3><div id="oMissions"></div></div>
     <div class="sfoot"><button class="btn big" id="btnAgain">עוד פעם</button>
+    <button class="btn ghost" id="btnShare">שתף תוצאה בוואטסאפ</button>
     <div class="row"><button class="btn ghost" id="btnGarage2">מוסך</button><button class="btn ghost" id="btnMenu2">תפריט</button></div></div>
   </section>
 </div>
@@ -2407,6 +2408,14 @@ fxBtns.forEach((b) => b.addEventListener('click', () => { save.calm = !save.calm
 syncFx();
 $('#btnPlay').addEventListener('click', () => { Sfx.init(); startRun(); });
 $('#btnAgain').addEventListener('click', () => startRun());
+const GAME_URL = 'https://chorizo-brothers.vercel.app';
+function shareText() {
+  return 'עשיתי ' + fmt(P.score) + ' נקודות ו-' + P.lapsDone + ' הקפות במשחק "גבי ושחר - האחים צ\'וריסו"! 🌭🔥 תצליחו לנצח אותי?\n' + GAME_URL;
+}
+$('#btnShare').addEventListener('click', () => {
+  const url = 'https://wa.me/?text=' + encodeURIComponent(shareText());
+  if (!window.open(url, '_blank', 'noopener')) location.href = url;
+});
 $('#btnPause').addEventListener('click', (e) => { e.stopPropagation(); pauseGame(); });
 $('#btnResume').addEventListener('click', resumeGame);
 $('#btnRestart').addEventListener('click', () => { Sfx.musicStop(); startRun(); });
@@ -2492,6 +2501,7 @@ requestAnimationFrame(frame);
 try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch (e) {}
 
 window.RingRush = {
+    shareText: () => shareText(),
   step(n) { for (let i = 0; i < n; i++) tick(STEP); },
   start: startRun,
   state: () => ({ state: G.state, dist: P.dist, speed: P.speed, lives: P.lives, score: P.score, lap: P.lapsDone, lane: P.lane, lat: P.lat, combo: P.combo, coins: P.coins, q: qLevel, near: R.near, inv: P.inv }),

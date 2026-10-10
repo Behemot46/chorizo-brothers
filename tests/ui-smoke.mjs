@@ -115,6 +115,11 @@ async function main() {
     const over = await page.evaluate(() => { const o = document.getElementById('over'); const t = o.querySelector('h2').getBoundingClientRect(); return { top: t.top, hidden: o.classList.contains('hidden') }; });
     check('game-over panel shows, title not clipped', !over.hidden && over.top >= -1, 'top=' + Math.round(over.top));
     check('"again" button reachable on the game-over panel', !!(await hitInfo('#btnAgain'))?.hit);
+    check('share button reachable on the game-over panel', !!(await hitInfo('#btnShare'))?.hit);
+    await page.evaluate(() => { window.__opened = null; window.open = (u) => { window.__opened = u; return {}; }; });
+    await reachAndTap('#btnShare', 'share button');
+    const shared = await page.evaluate(() => window.__opened);
+    check('share opens a WhatsApp link with the score and game URL', !!shared && shared.startsWith('https://wa.me/?text=') && decodeURIComponent(shared).includes('chorizo-brothers.vercel.app') && decodeURIComponent(shared).includes(String(await page.evaluate(() => RingRush.shareText().match(/\d[\d,.]*/)[0]))), String(shared).slice(0, 80));
     await reachAndTap('#btnGarage2', 'garage from game over');
     check('garage opens from the game-over panel', await page.evaluate(() => !document.getElementById('garage').classList.contains('hidden')));
     await reachAndTap('#btnGarageBack', 'back to game over');

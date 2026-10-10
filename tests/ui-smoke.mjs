@@ -82,15 +82,28 @@ async function main() {
     check('bought at least 7 upgrades', bought >= 7, 'bought=' + bought);
     const toastInfo = await page.evaluate(() => { const box = document.getElementById('toast'), t = box.querySelector('.toast'), g = document.getElementById('garage'); if (!t) return null; const r = t.getBoundingClientRect(); return { above: +getComputedStyle(box).zIndex > +getComputedStyle(g).zIndex, inside: r.width > 0 && r.top >= 0 && r.bottom <= innerHeight }; });
     check('purchase toast is shown above the garage', !!toastInfo && toastInfo.above && toastInfo.inside, JSON.stringify(toastInfo));
+    // ---- vehicles: buy the jeep by touch (scroll back to the top first)
+    for (let i = 0; i < 6; i++) await swipeDown(500);
+    const carBefore = await coins();
+    await reachAndTap('#gCar .cv:nth-child(2)', 'jeep card');
+    const carState = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('ringrush.v1')); return { car: s.car, owned: s.ownCars, coins: s.coins }; });
+    check('touch purchase works: vehicle (jeep)', carState.car === 'jeep' && carState.owned.includes('jeep') && carState.coins === carBefore - 600, JSON.stringify(carState));
+    // ---- back to the menu, then the achievements panel by touch
+    await reachAndTap('#btnGarageBack', 'back from garage (before achievements)');
+    await reachAndTap('#btnAch', 'achievements button');
+    const ah = await page.evaluate(() => { const a = document.getElementById('ach'); const t = a.querySelector('.ghead').getBoundingClientRect(); return { top: t.top, hidden: a.classList.contains('hidden'), rows: a.querySelectorAll('.ac').length, scrollable: a.scrollHeight > a.clientHeight + 4 }; });
+    check('achievements panel opens with all rows, header not clipped', !ah.hidden && ah.rows >= 15 && ah.top >= -1, JSON.stringify(ah));
+    if (ah.scrollable) { await swipeUp(220); const sc = await page.evaluate(() => document.getElementById('ach').scrollTop); check('achievements scroll with a real touch swipe', sc > 20, 'scrollTop=' + Math.round(sc)); }
+    await reachAndTap('#btnAchBack', 'back from achievements');
+    check('back from achievements returns to the menu', await page.evaluate(() => document.getElementById('ach').classList.contains('hidden') && !document.getElementById('menu').classList.contains('hidden')));
     // ---- back, then the purchases must take effect in a run
-    await reachAndTap('#btnGarageBack', 'back button');
     check('back returns to the menu', await page.evaluate(() => document.getElementById('garage').classList.contains('hidden') && !document.getElementById('menu').classList.contains('hidden')));
     await reachAndTap('#btnPlay', 'play button');
     await page.waitForTimeout(300);
     const run = await page.evaluate(() => ({ ammo: RingRush.ammo(), st: RingRush.state() }));
     const savedUp = await page.evaluate(() => JSON.parse(localStorage.getItem('ringrush.v1')).up);
     check('upgrades persist (one level each)', ['sight', 'ramF', 'ramS', 'missiles', 'shock', 'chorizo', 'armor'].every((k) => savedUp[k] === 1), JSON.stringify(savedUp));
-    check('upgrades apply in the run (hearts 4, missiles 5, shocks 5, chorizo 2)', run.ammo.maxLives === 4 && run.ammo.missiles === 5 && run.ammo.shocks === 5 && run.ammo.chorizo === 2, JSON.stringify(run.ammo));
+    check('upgrades apply in the run (hearts 5 incl. jeep, missiles 5, shocks 5, chorizo 2)', run.ammo.maxLives === 5 && run.ammo.missiles === 5 && run.ammo.shocks === 5 && run.ammo.chorizo === 2, JSON.stringify(run.ammo));
     // ---- pause panel
     await reachAndTap('#btnPause', 'pause button');
     check('pause panel opens', await page.evaluate(() => !document.getElementById('pause').classList.contains('hidden')));

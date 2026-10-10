@@ -358,7 +358,7 @@ const ACH = [
   { id: 'garage', n: 'אספן', d: 'קנה את כל הרכבים', goal: 4, v: () => save.ownCars.length, r: 200 },
   { id: 'boss1', n: 'הבוס הצמחוני', d: 'נצח את הבוס הצמחוני', goal: 1, v: () => st('bosses'), r: 250 }
 ];
-ACH.push({ id: 'king', n: 'המלך מרחוב שלדג', d: 'פתח את כל ההישגים וקבל כתר על הרכב', goal: ACH.length, v: () => ACH.filter((a) => save.ach[a.id]).length, r: 500 });
+ACH.push({ id: 'king', n: 'מלך הצ\'וריסו', d: 'פתח את כל ההישגים וקבל כתר על הרכב', goal: ACH.length, v: () => ACH.filter((a) => save.ach[a.id]).length, r: 500 });
 function checkAch() {
   let changed = false;
   for (const a of ACH) {
@@ -673,7 +673,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 24, 12), new THREE.Shad
 sky.renderOrder = -10; sky.frustumCulled = false;
 scene.add(sky);
 
-const SIGN_L1 = 'המשחק של', SIGN_L2 = 'שחר גרוסמן', SIGN_L3 = 'המלך מרחוב שלדג';
+const SIGN_L2 = 'גבי ושחר', SIGN_L3 = 'האחים צ\'וריסו';
 const signTex = canvasTex(1024, 560, (g, w, h) => {
   const rr = (x, y, ww, hh, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + ww, y, x + ww, y + hh, r); g.arcTo(x + ww, y + hh, x, y + hh, r); g.arcTo(x, y + hh, x, y, r); g.arcTo(x, y, x + ww, y, r); g.closePath(); };
   g.lineJoin = 'round';
@@ -688,9 +688,8 @@ const signTex = canvasTex(1024, 560, (g, w, h) => {
     for (let i = 0; i < passes; i++) { g.shadowBlur = 56 - i * 16; g.fillText(txt, w / 2, y); }
     g.shadowColor = '#ffffff'; g.shadowBlur = 8; g.fillStyle = core; g.fillText(txt, w / 2, y);
   };
-  line(SIGN_L1, 66, w - 280, h * 0.2, '#19e3ff', '#e9fdff', 2);
-  line(SIGN_L2, 200, w - 190, h * 0.5, '#ff2e93', '#fff2fa', 3);
-  line(SIGN_L3, 92, w - 190, h * 0.79, '#ff9a1f', '#fff1c2', 2);
+  line(SIGN_L2, 200, w - 190, h * 0.38, '#ff2e93', '#fff2fa', 3);
+  line(SIGN_L3, 130, w - 190, h * 0.72, '#ff9a1f', '#fff1c2', 2);
 }, false);
 const haloTex = canvasTex(128, 128, (g, w, h) => {
   const gr = g.createRadialGradient(w / 2, h / 2, 2, w / 2, h / 2, w / 2);

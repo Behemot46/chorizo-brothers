@@ -37,8 +37,10 @@ export function createApi(blob) {
     return Object.values(lb.users).filter((u) => !u.n.startsWith('_probe')).sort((a, b) => b.t - a.t || b.w - a.w || a.at - b.at).slice(0, 30);
   }
 
+  const cors = (res) => { res.setHeader('Access-Control-Allow-Origin', '*'); res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS'); res.setHeader('Access-Control-Allow-Headers', 'content-type'); };
   async function profile(req, res) {
-    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Cache-Control', 'no-store'); cors(res);
+    if (req.method === 'OPTIONS') return res.status(204).end ? res.status(204).end() : res.status(204).json({});
     try {
       if (req.method === 'GET') {
         const name = cleanName(req.query && req.query.u);
@@ -60,7 +62,8 @@ export function createApi(blob) {
     }
   }
   async function board(req, res) {
-    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Cache-Control', 'no-store'); cors(res);
+    if (req.method === 'OPTIONS') return res.status(204).end ? res.status(204).end() : res.status(204).json({});
     try { return res.status(200).json({ ok: true, rows: await leaderboard() }); }
     catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e) }); }
   }

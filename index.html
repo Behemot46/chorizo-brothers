@@ -1939,7 +1939,8 @@ function endRun(reason) {
 }
 const Net = {
   status: '', t: 0, busy: false,
-  async call(path, opt) { const r = await fetch(path, opt); if (!r.ok && r.status >= 500) throw new Error('server'); return r.json(); },
+  base: /(^|\.)vercel\.app$/.test(location.hostname) ? '' : 'https://chorizo-brothers.vercel.app',
+  async call(path, opt) { const r = await fetch(Net.base + path, opt); if (!r.ok && r.status >= 500) throw new Error('server'); return r.json(); },
   schedule() { if (!save.user) return; clearTimeout(Net.t); Net.t = setTimeout(() => Net.push(), 1500); },
   async push() {
     if (!save.user) return;

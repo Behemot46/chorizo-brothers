@@ -670,6 +670,118 @@ const GLASS = 0x0d1824, TIRE = 0x0a0a0c, DARK = 0x14161c;
 const wheelSet = (x, y, ws, w, hh) => ws.map((z) => [B(w, hh, hh, x, y, z, TIRE), B(w, hh, hh, -x, y, z, TIRE)]).flat();
 
 /* Car specs: local frame +Z forward, +X left, Y up */
+/* ---- car kit: lofted hulls, round wheels and details (replaces the box cars) ---- */
+const KIT = (() => {
+  const SIL = 0xd5dbea, TRIMC = 0x20232d, DARKC = 0x0b0c11, GLASSC = 0x0d1c2e, cc = new THREE.Color();
+  function ring(hwB, hwT, y0, y1, r, nc) {
+    const rr = Math.max(0.02, Math.min(r, hwB - 0.02, (y1 - y0) / 2 - 0.01)), pts = [[0, y0]];
+    const arc = (cx, cy, a0, a1) => { for (let i = 0; i <= nc; i++) { const a = a0 + (a1 - a0) * i / nc; pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]); } };
+    const ex = hwB - rr, h = Math.PI / 2;
+    arc(ex, y0 + rr, -h, 0); arc(ex, y1 - rr, 0, h); pts.push([0, y1]); arc(-ex, y1 - rr, h, 2 * h); arc(-ex, y0 + rr, 2 * h, 3 * h);
+    return pts.map((p) => [p[0] * (1 + (hwT / hwB - 1) * (p[1] - y0) / (y1 - y0)), p[1]]);
+  }
+  const sec = (z, hwB, hwT, y0, y1, r, sc) => {
+    const cy = (y0 + y1) / 2, pts = ring(hwB, hwT, y0, y1, r, 3).map((p) => [p[0] * sc, cy + (p[1] - cy) * sc]);
+    return { z, pts, cy };
+  };
+  function tri(o, a, b, c, ref, colFn) {
+    let ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+    let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    const cx = (a[0] + b[0] + c[0]) / 3, cy = (a[1] + b[1] + c[1]) / 3, cz = (a[2] + b[2] + c[2]) / 3;
+    if (nx * (cx - ref[0]) + ny * (cy - ref[1]) + nz * (cz - ref[2]) < 0) { const t = b; b = c; c = t; nx = -nx; ny = -ny; nz = -nz; }
+    const m = Math.hypot(nx, ny, nz) || 1; nx /= m; ny /= m; nz /= m;
+    cc.setHex(colFn({ x: nx, y: ny, z: nz }, { x: cx, y: cy, z: cz }));
+    for (const p of [a, b, c]) { o.pos.push(p[0], p[1], p[2]); o.nor.push(nx, ny, nz); o.col.push(cc.r, cc.g, cc.b); }
+  }
+  function loft(secs, colFn, o) {
+    const n = secs[0].pts.length;
+    for (let s = 0; s < secs.length - 1; s++) {
+      const A = secs[s], B = secs[s + 1], ref = [0, (A.cy + B.cy) / 2, (A.z + B.z) / 2];
+      for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n;
+        const p0 = [A.pts[i][0], A.pts[i][1], A.z], p1 = [A.pts[j][0], A.pts[j][1], A.z], p2 = [B.pts[j][0], B.pts[j][1], B.z], p3 = [B.pts[i][0], B.pts[i][1], B.z];
+        tri(o, p0, p1, p2, ref, colFn); tri(o, p0, p2, p3, ref, colFn);
+      }
+    }
+    for (const [S, dir] of [[secs[0], -1], [secs[secs.length - 1], 1]]) {
+      const ref = [0, S.cy, S.z - dir], ctr = [0, S.cy, S.z];
+      for (let i = 0; i < n; i++) { const j = (i + 1) % n; tri(o, ctr, [S.pts[i][0], S.pts[i][1], S.z], [S.pts[j][0], S.pts[j][1], S.z], ref, colFn); }
+    }
+  }
+  const finish = (o) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(o.pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(o.nor, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(o.col, 3));
+    return g;
+  };
+  function join(list) {
+    const pos = [], nor = [], col = [];
+    for (const g0 of list) {
+      const g = g0.index ? g0.toNonIndexed() : g0, P_ = g.attributes.position.array, N_ = g.attributes.normal.array, C_ = g.attributes.color.array;
+      for (let i = 0; i < P_.length; i++) { pos.push(P_[i]); nor.push(N_[i]); col.push(C_[i]); }
+    }
+    const out = new THREE.BufferGeometry();
+    out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); out.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    return out;
+  }
+  function wheelParts(r, ww, x, zs, hw) {
+    const parts = [], tire = new THREE.CylinderGeometry(r, r, ww, 18), rim = new THREE.CylinderGeometry(r * 0.64, r * 0.64, ww + 0.04, 12), hub = new THREE.CylinderGeometry(r * 0.2, r * 0.2, ww + 0.07, 8), arch = new THREE.CylinderGeometry(r * 1.2, r * 1.2, 0.05, 18);
+    for (const z of zs) for (const sd of [-1, 1]) {
+      parts.push({ geo: arch, rz: Math.PI / 2, x: sd * (hw + 0.005), y: r, z, c: DARKC }, { geo: tire, rz: Math.PI / 2, x: sd * x, y: r, z, c: 0x0a0a0c },
+        { geo: rim, rz: Math.PI / 2, x: sd * (x + 0.012), y: r, z, c: SIL }, { geo: hub, rz: Math.PI / 2, x: sd * (x + 0.02), y: r, z, c: 0x3a3f4d });
+    }
+    return parts;
+  }
+  /* a road car: smooth hull + glass cabin + wheels + a few boxes for spoilers, racks and plates */
+  function car(P, paint) {
+    const o = { pos: [], nor: [], col: [] }, hw0 = P.W / 2, pc = P.fixed != null ? P.fixed : paint, rr = P.r || 0.2;
+    const ts = [0, 0.025, 0.07, 0.2, 0.45, 0.72, 0.88, 0.965, 1], sc = [0.55, 0.86, 0.97, 1, 1, 1, 1, 0.88, 0.6];
+    const top = [P.deck - 0.06, P.deck, P.deck, (P.deck + P.belt) / 2, P.belt, P.belt, P.hood, P.nose, P.nose - 0.1];
+    const hwA = [0.9, 0.97, 1, 1, 1, 1, 1, 0.97, 0.9], y0A = [P.cl + 0.06, P.cl, P.cl, P.cl, P.cl, P.cl, P.cl, P.cl + 0.04, P.cl + 0.1];
+    const secs = ts.map((t, i) => sec((t - 0.5) * P.L, hw0 * hwA[i], hw0 * hwA[i] * 0.94, y0A[i], top[i], rr, sc[i]));
+    loft(secs, (n, c) => {
+      if (n.y < -0.5) return DARKC;
+      if (c.y < P.cl + 0.2 && Math.abs(n.y) < 0.7) return TRIMC;
+      if (n.z > 0.65 && c.y < P.nose - 0.1 && c.y > P.cl + 0.08 && Math.abs(c.x) < hw0 * 0.72) return DARKC;
+      return pc;
+    }, o);
+    if (!P.noCabin) {
+      const a = P.t0, span = P.t1 - P.t0, cts = [a, a + span * 0.22, P.t1 - span * 0.3, P.t1], cy1 = [P.belt + 0.02, P.roof, P.roof, P.belt + 0.02];
+      loft(cts.map((t, i) => sec((t - 0.5) * P.L, hw0 * 0.92, hw0 * 0.92 * P.taper, P.belt - 0.06, cy1[i], 0.14, i === 0 || i === 3 ? 0.9 : 1)),
+        P.solid ? (n) => (n.z > 0.45 && n.y > 0.05 ? GLASSC : pc) : (n) => (n.y > 0.6 && Math.abs(n.z) < 0.5 ? pc : GLASSC), o);
+    }
+    const wx = hw0 - P.ww / 2 + 0.07, geos = [finish(o), bakeGeo(wheelParts(P.wr, P.ww, wx, P.wz, hw0).concat(P.parts ? P.parts() : []))];
+    const boxes = [B(P.W * 0.34, 0.2, 0.05, 0, P.nose - 0.12, P.L / 2 + 0.01, DARKC), ...(P.extra ? P.extra(pc) : [])];
+    for (const sd of [-1, 1]) boxes.push(B(0.16, 0.1, 0.2, sd * (hw0 * 0.97 + 0.07), P.belt + 0.12, (P.t1 - 0.5) * P.L - 0.15, pc));
+    geos.push(mergeBoxes(boxes, pc));
+    return join(geos);
+  }
+  function carLights(P) {
+    const hw = P.W / 2;
+    return [...[-1, 1].flatMap((sd) => [B(P.W * 0.2, 0.1, 0.06, sd * hw * 0.62, P.nose - 0.1, P.L / 2 + 0.02, 0xeaf6ff), B(P.W * 0.22, 0.1, 0.06, sd * hw * 0.6, P.deck - 0.14, -P.L / 2 - 0.02, 0xff2030)]), B(P.W * 0.4, 0.05, 0.05, 0, P.deck - 0.14, -P.L / 2 - 0.02, 0xc01826)];
+  }
+  return { SIL, TRIMC, DARKC, GLASSC, ring, sec, loft, finish, join, wheelParts, car, carLights, newOut: () => ({ pos: [], nor: [], col: [] }) };
+})();
+const CARP = {
+  sport: { L: 4.6, W: 1.95, cl: 0.2, deck: 0.86, belt: 0.74, hood: 0.66, nose: 0.56, roof: 1.2, t0: 0.24, t1: 0.66, taper: 0.76, wr: 0.38, ww: 0.34, wz: [1.45, -1.45], r: 0.2,
+    extra: () => [B(1.7, 0.06, 0.5, 0, 1.2, -2.0, 0x0b0c11), B(0.08, 0.3, 0.12, 0.6, 1.0, -1.95, 0x0b0c11), B(0.08, 0.3, 0.12, -0.6, 1.0, -1.95, 0x0b0c11), B(0.34, 0.015, 1.6, 0, 0.7, 1.3, 0xf4f6ff), B(0.34, 0.015, 1.1, 0, 0.9, -1.6, 0xf4f6ff)] },
+  sedan: { L: 4.4, W: 1.85, cl: 0.22, deck: 0.95, belt: 0.9, hood: 0.84, nose: 0.66, roof: 1.46, t0: 0.2, t1: 0.7, taper: 0.8, wr: 0.36, ww: 0.3, wz: [1.4, -1.4], r: 0.2 },
+  taxi: { L: 4.5, W: 1.9, cl: 0.22, deck: 0.95, belt: 0.9, hood: 0.84, nose: 0.66, roof: 1.46, t0: 0.2, t1: 0.7, taper: 0.8, wr: 0.36, ww: 0.3, wz: [1.4, -1.4], r: 0.2, fixed: 0xffd32a,
+    extra: () => [0, 1, 2, 3, 4, 5].map((i) => B(1.96, 0.1, 0.5, 0, 0.56, -1.25 + i * 0.5, i % 2 ? 0x15151a : 0xfdfdfd)) },
+  cop: { L: 4.6, W: 1.9, cl: 0.22, deck: 0.95, belt: 0.9, hood: 0.84, nose: 0.66, roof: 1.46, t0: 0.2, t1: 0.7, taper: 0.8, wr: 0.36, ww: 0.3, wz: [1.4, -1.4], r: 0.2, fixed: 0xf2f4fa,
+    extra: () => [B(1.96, 0.3, 2.4, 0, 0.66, -0.1, 0x15203a)] },
+  jeep: { L: 4.7, W: 2.1, cl: 0.36, deck: 1.5, belt: 1.28, hood: 1.18, nose: 0.98, roof: 2.1, t0: 0.08, t1: 0.62, taper: 0.88, wr: 0.5, ww: 0.42, wz: [1.55, -1.55], r: 0.18,
+    extra: () => [B(1.7, 0.08, 1.9, 0, 2.18, -0.4, 0x14161c), B(0.08, 0.14, 1.9, 0.5, 2.24, -0.4, 0x14161c), B(0.08, 0.14, 1.9, -0.5, 2.24, -0.4, 0x14161c), B(2.2, 0.28, 0.3, 0, 0.62, 2.4, 0x14161c)],
+    parts: () => [{ geo: new THREE.CylinderGeometry(0.5, 0.5, 0.3, 16), rx: Math.PI / 2, x: 0, y: 1.35, z: -2.55, c: 0x0a0a0c }, { geo: new THREE.CylinderGeometry(0.28, 0.28, 0.34, 10), rx: Math.PI / 2, x: 0, y: 1.35, z: -2.55, c: KIT.SIL }] },
+  van: { L: 4.9, W: 2.0, cl: 0.3, deck: 1.62, belt: 1.6, hood: 1.28, nose: 1.0, roof: 2.12, t0: 0.02, t1: 0.74, taper: 0.9, wr: 0.42, ww: 0.34, wz: [1.5, -1.5], r: 0.24, solid: true,
+    extra: () => [B(2.04, 0.5, 1.7, 0, 1.62, -0.2, 0x0d1c2e), B(2.04, 0.5, 0.6, 0, 1.62, 1.1, 0x0d1c2e)] },
+  bus: { L: 10.5, W: 2.6, cl: 0.45, deck: 3.15, belt: 3.15, hood: 3.1, nose: 2.8, roof: 3.2, t0: 0.5, t1: 0.52, taper: 1, wr: 0.55, ww: 0.42, wz: [3.4, -3.4], r: 0.3, noCabin: true,
+    extra: () => [B(2.64, 0.85, 9.6, 0, 2.55, -0.1, 0x0d1c2e), B(2.64, 0.25, 10.0, 0, 1.2, 0, 0xf4f6ff), B(2.2, 0.85, 0.06, 0, 2.55, 5.28, 0x0d1c2e)] },
+  armored: { L: 5.0, W: 2.2, cl: 0.3, deck: 1.2, belt: 1.1, hood: 1.0, nose: 0.86, roof: 1.78, t0: 0.18, t1: 0.66, taper: 0.7, wr: 0.5, ww: 0.45, wz: [1.6, -1.6], r: 0.2,
+    extra: () => [B(0.14, 0.5, 3.7, 1.14, 0.7, 0, 0x4a5266), B(0.14, 0.5, 3.7, -1.14, 0.7, 0, 0x4a5266), B(2.3, 0.5, 0.4, 0, 0.55, 2.6, 0x4a5266), B(1.0, 0.35, 1.0, 0, 1.95, -0.45, 0x4a5266), B(0.18, 0.18, 1.5, 0, 1.98, 0.5, 0x20242e)] }
+};
+for (const k of Object.keys(CARP)) CARP[k].lights = KIT.carLights(CARP[k]);
+CARP.van.lights = KIT.carLights(CARP.van); CARP.bus.lights = KIT.carLights(CARP.bus);
+
 const SPEC = {
   sport: {
     len: 4.6, wid: 1.95,
@@ -737,7 +849,7 @@ const SPEC = {
       B(.95, .1, 2.0, 1.55, 2.55, -.9, 'paint'), B(.95, .1, 2.0, -1.55, 2.55, -.9, 'paint'), B(2.1, .1, 3.5, 0, 2.7, -.75, 'paint'),
       B(1.95, .5, 3.4, 0, 3.0, -.75, 0xe9b36a), B(1.45, 1.05, 3.6, 0, 3.7, -.75, 0xd0301c), B(1.15, .8, .3, 0, 3.7, 1.15, 0xb0261a), B(1.15, .8, .3, 0, 3.7, -2.65, 0xb0261a),
       ...[-1.4, -.6, .2, 1.0].map((z) => B(.7, .14, .5, 0, 4.28, z, 0xffd23a)), B(.5, .5, .5, 0, 3.0, 2.0, 0xffd23a), ...wheelSet(1.0, .42, [1.9, -1.6], .38, .84)],
-    lights: [B(.4, .25, .05, .8, 1.05, -2.71, 0xff2030), B(.4, .25, .05, -.8, 1.05, -2.71, 0xff2030), B(.4, .25, .05, .75, .9, 2.71, 0xe8f6ff), B(.4, .25, .05, -.75, .9, 2.71, 0xe8f6ff), B(.4, .2, .4, 0, 3.0, 2.0, 0xfff3a0)]
+    lights: [B(.4, .25, .05, .8, 1.05, -2.71, 0xff2030), B(.4, .25, .05, -.8, 1.05, -2.71, 0xff2030), B(.4, .25, .05, .75, .9, 2.71, 0xe8f6ff), B(.4, .25, .05, -.75, .9, 2.71, 0xe8f6ff), B(.4, .2, .4, 0, 2.4, 1.2, 0xfff3a0)]
   },
   cop: {
     len: 4.6, wid: 1.9,
@@ -746,6 +858,34 @@ const SPEC = {
     lights: [B(.5, .12, .05, .62, .8, -2.26, 0xff2030), B(.5, .12, .05, -.62, .8, -2.26, 0xff2030), B(.45, .1, .05, .7, .7, 2.26, 0xe8f6ff), B(.45, .1, .05, -.7, .7, 2.26, 0xe8f6ff)]
   }
 };
+function truckGeo(paint) {
+  const o = KIT.newOut(), CREAM = 0xfff2d6, BUN = 0xe9b36a, RED = 0xd0301c, hw = 1.08;
+  const cz = [-2.7, -2.58, -2.3, -1.75, -0.05, 0.5, 0.9, 0.98], cs = [0.82, 0.95, 1, 1, 1, 1, 1, 0.92];
+  KIT.loft(cz.map((z, i) => KIT.sec(z, hw, hw * 0.97, 0.62, 2.55, 0.28, cs[i])), (n) => (n.y < -0.5 ? KIT.DARKC : CREAM), o);
+  const kz = [0.85, 1.5, 1.95, 2.5, 2.72], ky = [2.0, 2.0, 1.45, 1.3, 1.02], ks = [0.95, 1, 1, 1, 0.72];
+  KIT.loft(kz.map((z, i) => KIT.sec(z, 1.02, 0.98, 0.55, ky[i], 0.22, ks[i])), (n, c) => (n.y < -0.5 ? KIT.DARKC : n.z > 0.5 && n.y > 0.25 && c.z < 2.1 ? KIT.GLASSC : CREAM), o);
+  const bz = [-2.5, -2.3, 0.7, 0.9], bs = [0.8, 1, 1, 0.85];
+  KIT.loft(bz.map((z, i) => KIT.sec(z, 0.98, 0.9, 2.6, 3.12, 0.24, bs[i])), () => BUN, o);
+  const band = new THREE.CylinderGeometry(0.645, 0.645, 0.1, 14);
+  const parts = [{ geo: capsuleGeo(0.62, 3.3, 12), rx: Math.PI / 2, y: 3.62, z: -0.8, c: RED }, ...[-2.3, -1.5, -0.7, 0.1, 0.9].map((z) => ({ geo: band, rx: Math.PI / 2, y: 3.62, z, c: 0xff7a2a })), ...KIT.wheelParts(0.5, 0.4, hw - 0.2 + 0.07, [1.9, -1.6], hw)];
+  const boxes = [B(2.24, 0.3, 3.5, 0, 1.12, -0.9, 'paint'), B(2.08, 0.3, 1.4, 0, 1.12, 1.6, 'paint'), B(0.05, 0.85, 1.7, 1.1, 1.95, -0.9, GLASS), B(0.05, 0.85, 1.7, -1.1, 1.95, -0.9, GLASS),
+    B(0.95, 0.1, 2.0, 1.55, 2.5, -0.9, 'paint'), B(0.95, 0.1, 2.0, -1.55, 2.5, -0.9, 'paint'), B(0.05, 0.55, 1.0, 1.04, 1.7, 1.35, GLASS), B(0.05, 0.55, 1.0, -1.04, 1.7, 1.35, GLASS),
+    B(2.1, 0.3, 0.2, 0, 0.55, 2.8, DARK), B(2.1, 0.3, 0.2, 0, 0.55, -2.75, DARK), B(0.5, 0.3, 0.5, 0, 2.2, 1.2, 0xffd23a), ...[-1.9, -1.1, -0.3, 0.5].map((z, i) => B(0.28, 0.12, 0.5, i % 2 ? 0.16 : -0.16, 4.27, z, 0xffd23a))];
+  return KIT.join([KIT.finish(o), bakeGeo(parts), mergeBoxes(boxes, paint)]);
+}
+for (const k of ['sport', 'sedan', 'taxi', 'cop', 'jeep', 'armored']) { SPEC[k].build = (paint) => KIT.car(CARP[k], paint); SPEC[k].lights = CARP[k].lights; }
+SPEC.chorizotruck.build = (paint) => truckGeo(paint);
+function bigTruckGeo(paint, trailer) {
+  const o = KIT.newOut(), tc = trailer || 0xe6ecf8;
+  KIT.loft([-5.75, -5.6, -5.2, 2.0, 2.2, 2.3].map((z, i) => KIT.sec(z, 1.3, 1.28, 1.05, 4.1, 0.14, [0.9, 0.98, 1, 1, 1, 0.9][i])), (n) => (n.y < -0.5 ? KIT.DARKC : tc), o);
+  KIT.loft([2.45, 4.1, 5.0, 5.75].map((z, i) => KIT.sec(z, 1.25, 1.2, 0.7, [3.05, 3.05, 2.05, 1.6][i], 0.18, [0.95, 1, 1, 0.8][i])), (n, c) => (n.y < -0.5 ? KIT.DARKC : n.z > 0.45 && n.y > 0.15 && c.y > 1.9 ? KIT.GLASSC : paint), o);
+  const wheels = KIT.wheelParts(0.55, 0.44, 1.3 - 0.22 + 0.07, [4.2, -3.2, -4.5], 1.3);
+  const boxes = [B(2.3, 0.4, 11.2, 0, 0.75, 0, DARK), B(2.4, 0.2, 7.6, 0, 1.1, -1.9, 0xaab4c8), B(0.05, 0.7, 1.2, 1.26, 2.45, 3.6, GLASS), B(0.05, 0.7, 1.2, -1.26, 2.45, 3.6, GLASS), B(2.4, 0.3, 0.2, 0, 0.7, 5.8, DARK)];
+  return KIT.join([KIT.finish(o), bakeGeo(wheels), mergeBoxes(boxes, paint)]);
+}
+SPEC.van.build = (paint) => KIT.car(CARP.van, paint); SPEC.van.lights = CARP.van.lights;
+SPEC.bus.build = (paint) => KIT.car(CARP.bus, paint); SPEC.bus.lights = CARP.bus.lights;
+SPEC.truck.build = (paint, trailer) => bigTruckGeo(paint, trailer);
 /* bright, slightly phosphorescent paints so every car reads on the dark road */
 const CAR_PAINTS = [0xff5a7a, 0x4fd6ff, 0xffd04a, 0x7dff7a, 0xc77dff, 0xff9a4a, 0xeaf2ff, 0x3dffd6, 0xff6ad5];
 const TRAILERS = [0xe6ecf8, 0xffe9b8, 0xb8d4ff];
@@ -1169,7 +1309,7 @@ function buildCar(typeKey, paint, trailer) {
   const spec = SPEC[typeKey];
   const parts = spec.parts.map((p) => (p.c === 'trailer' ? Object.assign({}, p, { c: trailer }) : p));
   const g = new THREE.Group(); g.rotation.order = 'YXZ';
-  const body = new THREE.Mesh(mergeBoxes(parts, paint), glowify(new THREE.MeshLambertMaterial({ vertexColors: true }), 0.45));
+  const body = new THREE.Mesh(spec.build ? spec.build(paint, trailer) : mergeBoxes(parts, paint), glowify(new THREE.MeshLambertMaterial({ vertexColors: true }), 0.45));
   const lights = new THREE.Mesh(mergeBoxes(lightParts(typeKey, paint), 0xffffff), lightMat);
   g.add(body, lights);
   return { g, body, lights, spec };
@@ -1194,7 +1334,7 @@ const player = (() => {
 function applyVehicle() {
   const v = curVeh(), spec = SPEC[v.spec], paint = PAINTS[save.paint].c;
   P.len = spec.len; P.wid = spec.wid;
-  player.body.geometry.dispose(); player.body.geometry = mergeBoxes(spec.parts, paint);
+  player.body.geometry.dispose(); player.body.geometry = spec.build ? spec.build(paint) : mergeBoxes(spec.parts, paint);
   player.lights.geometry.dispose(); player.lights.geometry = mergeBoxes(lightParts(v.spec, paint), 0xffffff);
   player.glow.geometry.dispose(); player.glow.geometry = mergeBoxes([B(spec.wid - .25, .03, spec.len * .83, 0, .12, 0, 0xffffff)], 0xffffff);
   player.flames[0].position.set(spec.wid * .26, .55, -spec.len / 2); player.flames[1].position.set(-spec.wid * .26, .55, -spec.len / 2);
@@ -1219,8 +1359,8 @@ function buildRams() {
     for (let k = 0; k <= f + 1; k++) parts.push(B(.2, .2, .5 + f * .15, -bw * .39 + k * (bw * .78 / (f + 1)), .5, zf + .4, col[f]));
   }
   if (sd) for (const sx of [-1, 1]) {
-    parts.push(B(.12, .5, spec.len * .6, sx * sx0, .55, .1, col[sd]));
-    if (sd >= 2) for (const z of [spec.len * .23, .1, -spec.len * .2]) parts.push(B(.45 + sd * .1, .14, .16, sx * (sx0 + .16), .6, z, col[sd]));
+    parts.push(B(.08, .18, spec.len * .62, sx * sx0, .5, .1, col[sd]));
+    for (const z of [spec.len * .24, spec.len * .08, -spec.len * .08, -spec.len * .24]) parts.push(B(.3 + sd * .22, .1, .14, sx * (sx0 + .1 + (sd * .22) / 2), .52, z, col[sd]));
   }
   ramMesh.geometry.dispose();
   ramMesh.geometry = mergeBoxes(parts, 0xffffff);
@@ -2905,6 +3045,7 @@ function render(alpha, dt) {
   camera.rotateZ(clamp(-vl * 0.004, -.05, .05));
   const fov = camera.userData.baseFov + speedF * 5 + camera.userData.boost * 10 - punch * 4 - slowK * 5;
   if (Math.abs(camera.fov - fov) > 0.05) { camera.fov = fov; camera.updateProjectionMatrix(); }
+  if (G.orbit !== undefined && G.orbit !== null) { camera.position.set(pg.position.x + Math.sin(G.orbit) * G.orbitD, G.orbitY, pg.position.z + Math.cos(G.orbit) * G.orbitD); camera.lookAt(pg.position.x, 1.1, pg.position.z); }
   sky.position.copy(camera.position); stars.position.copy(camera.position);
   camera.getWorldDirection(tmpP); tmpP.y = 0; tmpP.normalize();
   signGrp.position.set(camera.position.x + tmpP.x * 430, camera.position.y + 191, camera.position.z + tmpP.z * 430);
@@ -3403,7 +3544,7 @@ window.RingRush = {
   coinsNear: () => coins.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),
   setTrack, tracks: () => TRACKS.map((t) => ({ id: t.id, n: t.n })), trackInfo: () => ({ id: TR.id, L }), dbg: { scene, camera, get road() { return roadMesh; }, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo), coinGlow: footprint(sausageCoinGeo) * COIN_GLOW, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, len: P.len, wid: P.wid, shield: P.shield, maxLives: P.maxLives }), setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setLives(n) { P.lives = n; hc.hearts = null; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, chorizo: fireChorizo, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
   cops: () => cops.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, speed: c.speed, stun: c.stunT })),
-  noCops(v) { G.noCops = !!v; }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
+  noCops(v) { G.noCops = !!v; }, orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
   ammo: () => ({ magnet: P.magnetT, lives: P.lives, missiles: P.missiles, shocks: P.shocks, chorizo: P.chorizo, kills: P.kills, maxLives: P.maxLives, turbo: P.turboT, power: P.powerT, food: R.food }),
   setLaps(n) { P.dist = n * L; P.pd = P.dist; P.lapsDone = n; }
 };

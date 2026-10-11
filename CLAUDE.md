@@ -1,4 +1,4 @@
-# גבי ושחר - האחים צ'וריסו - המרדף אחרי הנקניקייה (code name: ring-rush)
+# צ'וריסו צ'ייס - גבי ושחר, האחים צ'וריסו (code name: ring-rush)
 
 Single-file mobile arcade game: `index.html` (Three.js r128 from cdnjs). UI language is Hebrew (RTL).
 

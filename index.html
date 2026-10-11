@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b0d1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>גבי ושחר - האחים צ'וריסו - המרדף אחרי הנקניקייה</title>
+<title>צ'וריסו צ'ייס - גבי ושחר, האחים צ'וריסו</title>
 <style>
 :root{
   --bg:#0b0d1a;--ink:#f4f6ff;--dim:#9aa3c7;--neon:#19e3ff;--hot:#ff2e93;--gold:#ffc83d;--ok:#5dff9a;
@@ -273,7 +273,7 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
   <div id="tut" class="hidden"><div>החלק או הקש בצדדים להחלפת נתיב</div><br><div>הקשה במרכז = נייטרו</div><br><div>כפתורים בפינה: טיל וחשמל</div></div>
 
   <section id="menu" class="panel">
-    <div class="logo"><small>גבי ושחר</small>האחים צ'וריסו</div>
+    <div class="logo"><small>גבי ושחר · האחים צ'וריסו</small>צ'וריסו צ'ייס</div>
     <div class="sub">המרדף אחרי הנקניקייה</div>
     <div class="chips">
       <div class="chip">🏆 שיא <b id="mBest">0</b></div>
@@ -872,7 +872,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 24, 12), new THREE.Shad
 sky.renderOrder = -10; sky.frustumCulled = false;
 scene.add(sky);
 
-const SIGN_L2 = 'גבי ושחר', SIGN_L3 = 'האחים צ\'וריסו';
+const SIGN_L2 = 'צ\'וריסו צ\'ייס', SIGN_L3 = 'גבי ושחר · האחים צ\'וריסו';
 const signTex = canvasTex(1024, 560, (g, w, h) => {
   const rr = (x, y, ww, hh, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + ww, y, x + ww, y + hh, r); g.arcTo(x + ww, y + hh, x, y + hh, r); g.arcTo(x, y + hh, x, y, r); g.arcTo(x, y, x + ww, y, r); g.closePath(); };
   g.lineJoin = 'round';
@@ -888,7 +888,7 @@ const signTex = canvasTex(1024, 560, (g, w, h) => {
     g.shadowColor = '#ffffff'; g.shadowBlur = 8; g.fillStyle = core; g.fillText(txt, w / 2, y);
   };
   line(SIGN_L2, 200, w - 190, h * 0.38, '#ff2e93', '#fff2fa', 3);
-  line(SIGN_L3, 130, w - 190, h * 0.72, '#ff9a1f', '#fff1c2', 2);
+  line(SIGN_L3, 96, w - 150, h * 0.72, '#ff9a1f', '#fff1c2', 2);
 }, false);
 const haloTex = canvasTex(128, 128, (g, w, h) => {
   const gr = g.createRadialGradient(w / 2, h / 2, 2, w / 2, h / 2, w / 2);
@@ -3235,7 +3235,7 @@ const GAME_URL = 'https://chorizo-brothers.vercel.app';
 function shareText() {
   const n = rivals.length + 1, t = RACE.finished ? ' בזמן ' + fmtT(RACE.finT) : '';
   const res = RACE.dnf ? 'התרסקתי בהקפה ' + Math.min(RACE_LAPS, P.lapsDone + 1) : RACE.place === 1 ? 'ניצחתי! 🏆' : 'סיימתי מקום ' + RACE.place + ' מתוך ' + n;
-  return res + ' ב"' + TR.n + '"' + t + ' במשחק "גבי ושחר - האחים צ\'וריסו" 🌭🔥 תצליחו לנצח אותי?\n' + GAME_URL;
+  return res + ' ב"' + TR.n + '"' + t + ' במשחק "צ\'וריסו צ\'ייס" 🌭🔥 תצליחו לנצח אותי?\n' + GAME_URL;
 }
 $('#btnShare').addEventListener('click', () => {
   const url = 'https://wa.me/?text=' + encodeURIComponent(shareText());

@@ -2216,6 +2216,7 @@ function render(alpha, dt) {
   let fl = 0.92 + 0.08 * Math.sin(camT * 3.1);
   if (!save.calm && Math.sin(camT * 1.9) * Math.sin(camT * 17.3) > 0.9) fl = 0.4;
   signMat.color.setScalar(fl);
+  signGrp.visible = $('#menu').classList.contains('hidden'); // menu already shows the title; no duplicate behind it
 
   /* speed lines */
   const pos = slGeo.attributes.position.array, ln = P.speed * 0.045;

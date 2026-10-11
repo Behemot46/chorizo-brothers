@@ -34,7 +34,7 @@ export function createApi(blob) {
   }
   async function leaderboard() {
     const lb = (await readJson(LB)) || { users: {} };
-    return Object.values(lb.users).sort((a, b) => b.t - a.t || b.w - a.w || a.at - b.at).slice(0, 30);
+    return Object.values(lb.users).filter((u) => !u.n.startsWith('_probe')).sort((a, b) => b.t - a.t || b.w - a.w || a.at - b.at).slice(0, 30);
   }
 
   async function profile(req, res) {

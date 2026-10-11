@@ -87,7 +87,7 @@ async function main() {
     const carBefore = await coins();
     await reachAndTap('#gCar .cv:nth-child(2)', 'jeep card');
     const carState = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('ringrush.v1')); return { car: s.car, owned: s.ownCars, coins: s.coins }; });
-    check('touch purchase works: vehicle (jeep)', carState.car === 'jeep' && carState.owned.includes('jeep') && carState.coins === carBefore - 600, JSON.stringify(carState));
+    check('touch purchase works: vehicle (jeep)', carState.car === 'jeep' && carState.owned.includes('jeep') && carState.coins === carBefore - 1800, JSON.stringify(carState));
     // ---- back to the menu, then the achievements panel by touch
     await reachAndTap('#btnGarageBack', 'back from garage (before achievements)');
     await reachAndTap('#btnAch', 'achievements button');
@@ -100,6 +100,12 @@ async function main() {
     check('back returns to the menu', await page.evaluate(() => document.getElementById('garage').classList.contains('hidden') && !document.getElementById('menu').classList.contains('hidden')));
     await reachAndTap('#btnPlay', 'play button');
     await page.waitForTimeout(300);
+    const tk = await page.evaluate(() => { const t = document.getElementById('tracks'); const cards = [...t.querySelectorAll('.tk')]; return { open: !t.classList.contains('hidden'), n: cards.length, locked: cards.filter((c) => c.classList.contains('lock')).length, head: t.querySelector('.ghead').getBoundingClientRect().top }; });
+    check('play opens the track list: 4 tracks, only the first is open, header not clipped', tk.open && tk.n === 4 && tk.locked === 3 && tk.head >= -1, JSON.stringify(tk));
+    await reachAndTap('#tList .tk:nth-child(1)', 'first track card');
+    await page.waitForTimeout(300);
+    const raceUp = await page.evaluate(() => ({ grid: RingRush.race().grid > 0, hud: !document.getElementById('hud').classList.contains('hidden'), count: !document.getElementById('countdown').classList.contains('hidden'), rivals: RingRush.rivals().length }));
+    check('tapping a track starts the race on the grid with a countdown and 5 rivals', raceUp.grid && raceUp.hud && raceUp.count && raceUp.rivals === 5, JSON.stringify(raceUp));
     const run = await page.evaluate(() => ({ ammo: RingRush.ammo(), st: RingRush.state() }));
     const savedUp = await page.evaluate(() => JSON.parse(localStorage.getItem('ringrush.v1')).up);
     check('upgrades persist (one level each)', ['sight', 'ramF', 'ramS', 'missiles', 'shock', 'chorizo', 'armor'].every((k) => savedUp[k] === 1), JSON.stringify(savedUp));

@@ -3,8 +3,8 @@
 Single-file mobile arcade game: `index.html` (Three.js r128 from cdnjs). UI language is Hebrew (RTL).
 
 ## Rules
-- Before every commit, artifact publish or Vercel deploy that touches `index.html`, run `node tests/ui-smoke.mjs`
-  and `node tests/gameplay-smoke.mjs`. Both must end with all checks passing. Do not publish with a failing test.
+- Before every commit, artifact publish or Vercel deploy that touches `index.html` or `api/`, run `node tests/ui-smoke.mjs`,
+  `node tests/gameplay-smoke.mjs` and `node tests/api-smoke.mjs`. Both must end with all checks passing. Do not publish with a failing test.
 - Menus (`.panel`) must stay scrollable by touch. Never add a global `touchmove` `preventDefault`;
   never center a scrollable flex container with `justify-content:center` (it clips the top).
   Primary actions in tall panels live in a sticky footer (`.sfoot`).
@@ -14,3 +14,10 @@ Single-file mobile arcade game: `index.html` (Three.js r128 from cdnjs). UI lang
 - Currency is the glowing sausage coin (save key stays `coins`). Bonuses are sausages (hot dog = turbo, bratwurst = power ram,
   merguez = magnet, salami = heart, chorizo queen = all). Every car material goes through `glowify()` so cars stay visible on the dark road.
 - Hosting: Vercel (static `index.html`, project `chorizo-brothers`). The Claude artifact copy is built from the same file.
+- Game is a 3-lap race (6 racers: you + 5 scripted rivals) on 4 tracks (`TRACKS`: ring, sausage, clover, zigzag). Steering is continuous
+  (tilt left/right, tilt forward/back = throttle, or finger drag); there are no lanes for the player (traffic and rivals still use lanes).
+  Dev API `RingRush.start(i)` skips the grid countdown (used by tests); `startRace(i)` is the real flow.
+- Accounts are username-only on purpose (no password): `api/profile.js` + `api/leaderboard.js` store JSON in a public Vercel Blob store
+  (`BLOB_READ_WRITE_TOKEN`). The static `index.html` works offline; sync is best-effort.
+- Hosting gotcha: the clean URL chorizo-brothers.vercel.app is attached to a deployment by hand (`assign_alias`) and must be re-assigned after each deploy
+  until the old project `chorizo-brothers-old` is deleted.

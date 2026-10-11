@@ -17,11 +17,11 @@ const check = (name, ok, extra = '') => { results.push({ name, ok }); console.lo
 
 const browser = await chromium.launch({ executablePath: exe, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
-await ctx.addInitScript(() => { try { localStorage.setItem('ringrush.v1', JSON.stringify({ coins: 0, tut: true })); } catch (e) {} });
+await ctx.addInitScript(() => { try { if (!localStorage.getItem('ringrush.v1')) localStorage.setItem('ringrush.v1', JSON.stringify({ coins: 0, tut: true })); } catch (e) {} });
 const page = await ctx.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+page.on('console', (m) => { if (m.type() === 'error' && !m.text().includes('/api/') && !m.text().includes('ERR_FAILED')) errors.push(m.text()); });
 if (threeLocal) await page.route('**/three.min.js', (r) => r.fulfill({ body: readFileSync(threeLocal), contentType: 'application/javascript' }));
 await page.goto(URL);
 await page.waitForFunction(() => window.RingRush, null, { timeout: 20000 });
@@ -105,7 +105,7 @@ check('reduced-flash mode: no white flash, shorter slow motion', calm.calmOn ===
 console.log('\n== adaptive music ==');
 const layerWait = async (setup) => { await page.evaluate(setup); await page.evaluate(() => RingRush.audioReset()); await page.waitForTimeout(2300); return page.evaluate(() => RingRush.audio()); };
 const mBase = await layerWait(() => { RingRush.start(); });
-check('music runs: kick + bass play, extra layers stay off at the start', mBase.running && mBase.kick > 2 && mBase.bass > 4 && mBase.arp === 0 && mBase.lead === 0 && mBase.stab === 0 && mBase.hat === 0, JSON.stringify(mBase));
+check('music runs: kick + bass play, arp / lead / alarm layers stay off at the start', mBase.running && mBase.kick > 2 && mBase.bass > 4 && mBase.arp === 0 && mBase.lead === 0 && mBase.stab === 0, JSON.stringify(mBase));
 const mTurbo = await layerWait(() => { RingRush.start(); RingRush.boost(0); });
 check('turbo adds the arpeggio and hats and speeds the tempo up', mTurbo.arp > 2 && mTurbo.hat > 2 && mTurbo.tempo > mBase.tempo + 4, `arp=${mTurbo.arp} hat=${mTurbo.hat} tempo ${mBase.tempo.toFixed(0)}->${mTurbo.tempo.toFixed(0)}`);
 const mCombo = await layerWait(() => { RingRush.start(); RingRush.setCombo(12); });
@@ -134,9 +134,9 @@ console.log('\n== boss: the vegetarian produce truck ==');
 const bossT = await page.evaluate(() => {
   const R = RingRush, out = {};
   /* appears at the end of every 3rd lap, not before */
-  R.start(); R.nearLap(2); R.step(120); out.noBossLap2 = !R.boss().active;
-  R.start(); R.nearLap(3); R.step(120); out.bossLap3 = R.boss().active; out.hp1 = R.boss().maxHp;
-  R.start(); R.nearLap(6); R.step(120); out.hp2 = R.boss().maxHp;
+  R.start(0); R.nearLap(2); R.step(120); out.noBossRing = !R.boss().active;
+  R.start(3); R.nearLap(1); R.step(120); out.noBossLap1 = !R.boss().active;
+  R.start(3); R.nearLap(2); R.step(120); out.bossLap2 = R.boss().active; out.hp1 = R.boss().maxHp;
   /* a lettuce thrown at me lands in my lane and costs a heart if I stay */
   R.start(); R.spawnBoss(); R.step(30); const l0 = R.state().lives; R.throwLettuce(); const pend = R.lettuces(); out.telegraph = pend.length === 1 && pend[0].state === 1 && pend[0].lane === R.state().lane;
   R.step(100); out.hit = R.state().lives === l0 - 1;
@@ -148,8 +148,8 @@ const bossT = await page.evaluate(() => {
   out.maxLanes = maxLanes;
   return out;
 });
-check('no boss before lap 3, boss at the end of lap 3', bossT.noBossLap2 && bossT.bossLap3, JSON.stringify([bossT.noBossLap2, bossT.bossLap3]));
-check('boss health grows with every boss (10, then 13)', bossT.hp1 === 10 && bossT.hp2 === 13, `${bossT.hp1}, ${bossT.hp2}`);
+check('the boss waits on the storm track only: not on the ring, not before the last lap, there at the end of lap 2', bossT.noBossRing && bossT.noBossLap1 && bossT.bossLap2, JSON.stringify([bossT.noBossRing, bossT.noBossLap1, bossT.bossLap2]));
+check('the boss has 10 health', bossT.hp1 === 10, String(bossT.hp1));
 check('a lettuce is telegraphed in my lane and hits if I stay', bossT.telegraph && bossT.hit, JSON.stringify([bossT.telegraph, bossT.hit]));
 check('switching lanes while the lettuce is in the air dodges it', bossT.dodged);
 check('lettuce never fills all three lanes at once', bossT.maxLanes <= 2, 'max distinct lanes=' + bossT.maxLanes);
@@ -206,6 +206,196 @@ const shock = await page.evaluate(() => {
 check('shock with nothing in range fizzles and keeps the charge', shock.fizzleKeeps);
 check('shock destroys a vehicle in range and spends one charge', shock.target ? shock.killed >= 1 && shock.spent === 1 : shock.sawTarget, JSON.stringify(shock));
 check('shock destroys a police car chasing from behind', shock.copBefore >= 1 && shock.copKills >= 1 && shock.copAfter === 0, `kills=${shock.copKills} cops ${shock.copBefore}->${shock.copAfter}`);
+
+console.log('\n== tracks ==');
+const trk = await page.evaluate(() => {
+  const R = RingRush, out = { Ls: [], ids: [] };
+  for (let i = 0; i < 4; i++) { R.start(i); R.step(200); const t = R.trackInfo(); out.Ls.push(Math.round(t.L)); out.ids.push(t.id); }
+  R.start(0);
+  return out;
+});
+check('four distinct tracks build and run (lengths 2.5-3.6 km)', trk.ids.join() === 'ring,sausage,clover,zigzag' && trk.Ls.every((l) => l > 2500 && l < 3600) && new Set(trk.Ls).size === 4, JSON.stringify(trk));
+
+console.log('\n== free steering + tilt controls ==');
+const steer = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  R.setCtl('touch'); R.start(0); R.clearTraffic(); R.step(30);
+  R.setLat(2.3); R.step(60); out.free = +R.state().lat.toFixed(2);
+  R.setLat(-4.8); R.step(60); out.edge = +R.state().lat.toFixed(2);
+  R.setLat(0); R.step(60); out.back = +R.state().lat.toFixed(2);
+  R.setLat(30); R.step(60); out.clamped = +R.state().lat.toFixed(2);
+  return out;
+});
+check('steering is continuous (not locked to 3 lanes) and clamped to the road', Math.abs(steer.free - 2.3) < 0.15 && Math.abs(steer.edge + 4.8) < 0.2 && Math.abs(steer.back) < 0.15 && steer.clamped <= 5.25, JSON.stringify(steer));
+const tilt = await page.evaluate(async () => {
+  const R = RingRush, out = {};
+  const ori = (b, g, n = 12) => { for (let i = 0; i < n; i++) window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', { alpha: 0, beta: b, gamma: g })); };
+  R.setCtl('tilt'); out.noSensor = R.ctl();
+  await R.tiltRequest(); ori(60, 0);
+  R.startRace(0); ori(60, 0); R.step(60 * 4.4); R.clearTraffic(); out.mode = R.ctl();
+  R.setLives(5);
+  ori(60, 22); R.step(90); out.right = R.state().lat;
+  ori(60, -22); R.step(90); out.left = R.state().lat;
+  ori(60, 0); R.step(90); out.level = R.state().lat;
+  ori(42, 0); R.step(60 * 6); R.clearTraffic(); out.fast = R.state().speed;
+  ori(82, 0); R.step(60 * 6); R.clearTraffic(); out.slow = R.state().speed;
+  return out;
+});
+check('without a sensor the game falls back to touch control', tilt.noSensor === 'touch');
+check('tilting the phone sideways steers: right, left and level', tilt.mode === 'tilt' && tilt.right > 3.5 && tilt.left < -3.5 && Math.abs(tilt.level) < 0.5, JSON.stringify([tilt.right, tilt.left, tilt.level].map((x) => +(+x).toFixed(2))));
+check('tilting forward speeds up and tilting back slows down', tilt.fast > tilt.slow + 15, `fast=${tilt.fast.toFixed(1)} slow=${tilt.slow.toFixed(1)} m/s`);
+
+console.log('\n== race: grid, finish line, rewards ==');
+const grid = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  R.setCtl('touch'); R.startRace(0);
+  out.rivals = R.rivals().length; out.countdown = R.race().grid > 3; out.placeStart = R.race().place;
+  R.step(60); out.still = R.state().speed === 0 && R.rivals().every((r) => r.speed === 0);
+  R.step(60 * 4); out.moving = R.state().speed > 0 && R.rivals().some((r) => r.speed > 5) && R.race().grid === 0;
+  return out;
+});
+check('the race starts on a grid: countdown, 5 rivals, player starts last, nobody moves before GO', grid.rivals === 5 && grid.countdown && grid.placeStart === 6 && grid.still && grid.moving, JSON.stringify(grid));
+const fin = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setLives(5);
+  const L = R.race().L, rivalsBefore = R.rivals().map((r) => r.dist);
+  out.unlockedBefore = R.unlocked(1);
+  R.setLaps(2); R.setDist(3 * L - 40); for (let i = 0; i < 60 * 8 && !R.race().finished; i++) R.step(1);
+  out.finished = R.race().finished; out.place = R.race().place;
+  R.step(60 * 5);
+  out.state = R.state().state; out.reward = R.race().reward; out.rows = R.race().results.length; out.unlockedAfter = R.unlocked(1);
+  out.save = { pods: R.saveState().pods, wins: R.saveState().wins, trophies: R.saveState().trophies };
+  return out;
+});
+check('crossing the line after 3 laps finishes the race and shows results', fin.finished && fin.state === 'over' && fin.rows === 6, JSON.stringify({ f: fin.finished, s: fin.state, rows: fin.rows }));
+check('winning pays place + win bonus + first-win bonus and gives trophies', fin.place === 1 && fin.reward.pay === 140 && fin.reward.winBonus === 28 && fin.reward.firstWin === 250 && fin.reward.trophies === 30, JSON.stringify(fin.reward));
+check('a podium finish unlocks the next track and saves wins and trophies', !fin.unlockedBefore && fin.unlockedAfter && fin.save.pods.ring === 1 && fin.save.wins.ring === 1 && fin.save.trophies === 30, JSON.stringify([fin.unlockedBefore, fin.unlockedAfter, fin.save]));
+const third = await page.evaluate(() => {
+  const R = RingRush;
+  R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setLives(5);
+  const L = R.race().L; R.setLaps(2); R.setDist(3 * L - 40);
+  R.setRival(0, 600, 0, 50); R.setRival(1, 600, 0, 50);
+  for (let i = 0; i < 60 * 8 && !R.race().finished; i++) R.step(1); const place = R.race().place; R.step(60 * 5);
+  return { place, reward: R.race().reward };
+});
+check('3rd place pays less, no win bonus, fewer trophies', third.place === 3 && third.reward.pay === 60 && third.reward.winBonus === 0 && third.reward.trophies === 10, JSON.stringify(third));
+const dnf = await page.evaluate(() => {
+  const R = RingRush;
+  R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setLives(1);
+  R.placeCar('sedan', 8, R.state().lat, 0); R.step(60 * 4);
+  return { state: R.state().state, race: R.race() };
+});
+check('crashing out is a DNF: token payout, trophies lost', dnf.state === 'over' && dnf.race.dnf && dnf.race.reward.pay === 5 && dnf.race.reward.trophies === -6, JSON.stringify(dnf.race.reward));
+
+console.log('\n== cleaner HUD + bonus feedback ==');
+const hud = await page.evaluate(async () => {
+  const R = RingRush, out = {};
+  R.start(0); R.step(30); R.clearTraffic();
+  const vis = (id) => { const e = document.getElementById(id); return !!e && e.offsetParent !== null; };
+  out.clutterHidden = !vis('score') && !vis('combo') && !vis('lap');
+  out.shown = ['placeN', 'lapTxt', 'prog', 'kmh', 'nitro', 'mini'].every(vis);
+  R.boost(0);
+  await new Promise((r) => setTimeout(r, 700));
+  const a = R.bonusUi();
+  R.boost(1);
+  await new Promise((r) => setTimeout(r, 700));
+  const b = R.bonusUi();
+  out.a = a; out.b = b;
+  return out;
+});
+check('score / combo / LAP clutter is gone, race info is shown', hud.clutterHidden && hud.shown, JSON.stringify([hud.clutterHidden, hud.shown]));
+check('collecting a bonus shows a banner with its name, and an icon with a timer', hud.a.banner.includes('נקניקייה') && hud.a.pills.some((p) => p.includes('טורבו')), JSON.stringify(hud.a));
+check('a second bonus stacks: both timers are shown, the banner says so', hud.b.banner.includes('בוורסט') && hud.b.banner.includes('בנוסף') && hud.b.pills.length === 2, JSON.stringify(hud.b));
+
+console.log('\n== ram markers, side blades, rear mirror and mines ==');
+const marks = await page.evaluate(async () => {
+  const R = RingRush, out = {}, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  R.setUp('ramF', 0); R.setUp('ramS', 0); R.start(0); R.clearTraffic(); R.setLat(0); R.step(120); R.clearTraffic();
+  const until = async (fn) => { for (let i = 0; i < 30; i++) { await wait(100); if (fn()) return true; } return false; };
+  const sp = R.state().speed; R.placeCar('sedan', 60, 0, sp); await wait(500); out.none = R.marks()[0];
+  R.setUp('ramF', 1); out.front = await until(() => R.marks()[0]);
+  R.setUp('ramF', 0); R.boost(1); R.clearTraffic(); R.placeCar('truck', 60, 0, sp); out.power = await until(() => R.marks()[0]);
+  R.start(0); R.clearTraffic(); R.setUp('ramF', 1); R.placeCar('sedan', 60, 3.4, sp); await wait(500); out.otherLane = R.marks()[0];
+  return out;
+});
+check('ram marker appears only on a car I can actually destroy', !marks.none && marks.front && marks.power && !marks.otherLane, JSON.stringify(marks));
+const blade = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  R.setUp('ramS', 1); R.start(0); R.clearTraffic(); R.setLat(0); R.step(150); R.clearTraffic();
+  const k0 = R.ammo().kills, l0 = R.state().lives; R.placeCar('sedan', 0, 3.4, R.state().speed); R.slam(1); R.step(40);
+  out.killed = R.ammo().kills - k0; out.livesKept = R.state().lives === l0;
+  R.setUp('ramS', 0); R.start(0); R.clearTraffic(); R.setLat(0); R.step(150); R.clearTraffic();
+  const l1 = R.state().lives; R.placeCar('sedan', 0, 3.4, R.state().speed); R.step(2); R.slam(1); R.step(40);
+  out.noBladeCrash = R.state().lives < l1;
+  R.setUp('ramS', 1); R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setLat(0); R.step(30);
+  R.setRival(0, 0, 3.4, R.state().speed); R.slam(1); let st = 0; for (let i = 0; i < 40; i++) { R.step(1); st = Math.max(st, R.rivals()[0].stun); }
+  out.rivalKnocked = st > 0;
+  return out;
+});
+check('side slam with blades destroys a car alongside without damage', blade.killed === 1 && blade.livesKept, JSON.stringify(blade));
+check('side slam without blades just crashes into the car', blade.noBladeCrash);
+check('side slam knocks a rival aside', blade.rivalKnocked);
+const mine = await page.evaluate(async () => {
+  const R = RingRush, out = {}, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  R.noCops(true); R.setUp('mines', 1); R.start(0); R.setLaps(1); R.clearTraffic(); R.step(60); R.clearTraffic();
+  out.noMirror = !R.mirrorOn(); out.stock = R.mines();
+  R.spawnCop();
+  for (let i = 0; i < 60 * 12 && !R.cops().some((c) => c.rel > -40 && c.rel < -12); i++) { R.step(1); if (i % 30 === 0) R.clearTraffic(); }
+  await wait(150); out.mirror = R.mirrorOn();
+  const p0 = R.stat('punctures'); R.act.mine('p'); R.step(60 * 2.5); R.clearTraffic();
+  out.punctured = R.stat('punctures') === p0 + 1 && R.mines().p === out.stock.p - 1;
+  out.copSlow = R.cops().length === 0 || R.cops()[0].stun > 0 || R.cops()[0].rel < -50;
+  R.step(60 * 6);
+  /* an explosive mine kills the chaser */
+  R.start(0); R.setLaps(1); R.clearTraffic(); R.step(60); R.clearTraffic(); R.spawnCop();
+  for (let i = 0; i < 60 * 12 && !R.cops().some((c) => c.rel > -40 && c.rel < -12); i++) { R.step(1); if (i % 30 === 0) R.clearTraffic(); }
+  const k0 = R.ammo().kills; R.act.mine('x'); R.step(60 * 2.5);
+  out.exploded = R.ammo().kills > k0 && R.cops().length === 0; out.xLeft = R.mines().x; R.noCops(false);
+  /* no mirror again once the cop is gone */
+  R.step(60); await wait(150); out.mirrorGone = !R.mirrorOn();
+  return out;
+});
+check('rear mirror opens only while a cop is behind', mine.noMirror && mine.mirror && mine.mirrorGone, JSON.stringify([mine.noMirror, mine.mirror, mine.mirrorGone]));
+check('puncture mine stuns the chaser and uses one mine', mine.punctured && mine.copSlow, JSON.stringify([mine.punctured, mine.copSlow, mine.stock]));
+check('explosive mines (upgrade) destroy the chaser', mine.exploded && mine.xLeft === mine.stock.x - 1, JSON.stringify([mine.exploded, mine.xLeft, mine.stock.x]));
+
+
+console.log('\n== username login, saved progress and leaderboard (mocked server) ==');
+const server = new Map();
+await page.route('**/api/**', async (route) => {
+  const u = new globalThis.URL(route.request().url()), json = (b) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(b) });
+  if (u.pathname.endsWith('/api/leaderboard')) return json({ ok: true, rows: [...server.entries()].map(([n, v]) => ({ n, t: v.trophies | 0, w: 0, r: 0, at: 0 })).sort((a, b) => b.t - a.t) });
+  if (route.request().method() === 'POST') { const b = JSON.parse(route.request().postData()); server.set(b.u, b.save); return json({ ok: true, name: b.u }); }
+  const name = u.searchParams.get('u'); return json({ ok: true, exists: server.has(name), save: server.get(name) || null, name });
+});
+await page.evaluate(() => { document.getElementById('over').classList.add('hidden'); RingRush.setCtl('touch'); const s = JSON.parse(localStorage.getItem('ringrush.v1')); s.coins = 777; s.trophies = 45; localStorage.setItem('ringrush.v1', JSON.stringify(s)); location.reload(); });
+await page.waitForFunction(() => window.RingRush, null, { timeout: 20000 });
+await page.waitForTimeout(500);
+await page.click('#mUser'); await page.fill('#loginName', 'שחר'); await page.click('#btnLogin'); await page.waitForTimeout(800);
+const lg1 = await page.evaluate(() => ({ chip: document.getElementById('mUser').textContent, user: JSON.parse(localStorage.getItem('ringrush.v1')).user, menu: !document.getElementById('menu').classList.contains('hidden') }));
+await page.waitForTimeout(500);
+check('a new username is created and shown on the menu', lg1.user === 'שחר' && lg1.chip.includes('שחר') && lg1.menu, JSON.stringify(lg1));
+check('the new player\'s progress was uploaded to the server', server.has('שחר') && server.get('שחר').trophies === 45 && !('user' in server.get('שחר')), JSON.stringify(server.get('שחר') && { c: server.get('שחר').coins, t: server.get('שחר').trophies }));
+await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('ringrush.v1')); s.coins = 12; s.trophies = 0; s.user = ''; localStorage.setItem('ringrush.v1', JSON.stringify(s)); location.reload(); });
+await page.waitForFunction(() => window.RingRush, null, { timeout: 20000 });
+await page.waitForTimeout(500);
+await page.click('#mUser'); await page.fill('#loginName', 'שחר'); await page.click('#btnLogin'); await page.waitForTimeout(900);
+const lg2 = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('ringrush.v1')); return { coins: s.coins, trophies: s.trophies, user: s.user }; });
+check('logging in with the same name on a fresh device restores coins and league', lg2.coins === 777 && lg2.trophies === 45 && lg2.user === 'שחר', JSON.stringify(lg2));
+await page.evaluate(() => { RingRush.setUp('sight', 0); RingRush.startRace(0); RingRush.step(60 * 4.4); RingRush.clearTraffic(); const L = RingRush.race().L; RingRush.setLaps(2); RingRush.setDist(3 * L - 40); for (let i = 0; i < 60 * 8 && !RingRush.race().finished; i++) RingRush.step(1); RingRush.step(60 * 5); });
+await page.waitForTimeout(2500);
+check('a finished race is synced to the server under the username', server.get('שחר') && server.get('שחר').trophies >= 75, 'server trophies=' + (server.get('שחר') && server.get('שחר').trophies));
+await page.evaluate(() => document.getElementById('btnMenu2').click());
+await page.click('#btnBoard'); await page.waitForTimeout(700);
+const board = await page.evaluate(() => ({ rows: document.querySelectorAll('#bList .br').length, me: document.querySelectorAll('#bList .br.me').length, first: document.querySelector('#bList .br')?.textContent || '' }));
+check('the leaderboard lists players and highlights me', board.rows >= 1 && board.me === 1 && board.first.includes('שחר'), JSON.stringify(board));
+await page.click('#btnBoardBack');
+await page.unroute('**/api/**');
+await page.route('**/api/**', (r) => r.abort());
+await page.click('#mUser'); await page.fill('#loginName', 'אורח'); await page.click('#btnLogin'); await page.waitForTimeout(800);
+const offMsg = await page.evaluate(() => ({ msg: document.getElementById('loginMsg').textContent, still: !document.getElementById('login').classList.contains('hidden'), user: JSON.parse(localStorage.getItem('ringrush.v1')).user }));
+check('no network: login says so, keeps local progress and the old user', offMsg.msg.includes('חיבור') && offMsg.still && offMsg.user === 'שחר', JSON.stringify(offMsg));
+await page.click('#btnLoginBack'); await page.unroute('**/api/**');
 
 console.log('\n== short bot run ==');
 const bot = await page.evaluate(() => {

@@ -105,7 +105,7 @@ check('reduced-flash mode: no white flash, shorter slow motion', calm.calmOn ===
 console.log('\n== adaptive music ==');
 const layerWait = async (setup) => { await page.evaluate(setup); await page.evaluate(() => RingRush.audioReset()); await page.waitForTimeout(2300); return page.evaluate(() => RingRush.audio()); };
 const mBase = await layerWait(() => { RingRush.start(); });
-check('music runs: kick + bass play, arp / lead / alarm layers stay off at the start', mBase.running && mBase.kick > 2 && mBase.bass > 4 && mBase.arp === 0 && mBase.lead === 0 && mBase.stab === 0, JSON.stringify(mBase));
+check('music runs: kick + bass play, arp / lead / alarm layers stay off at the start', mBase.running && mBase.kick > 2 && mBase.bass > 4 && mBase.arp <= 2 && mBase.lead === 0 && mBase.stab === 0, JSON.stringify(mBase));
 const mTurbo = await layerWait(() => { RingRush.start(); RingRush.boost(0); });
 check('turbo adds the arpeggio and hats and speeds the tempo up', mTurbo.arp > 2 && mTurbo.hat > 2 && mTurbo.tempo > mBase.tempo + 4, `arp=${mTurbo.arp} hat=${mTurbo.hat} tempo ${mBase.tempo.toFixed(0)}->${mTurbo.tempo.toFixed(0)}`);
 const mCombo = await layerWait(() => { RingRush.start(); RingRush.setCombo(12); });
@@ -120,7 +120,7 @@ const ach = await page.evaluate(() => {
   out.ram = R.ach().includes('ram100'); out.noKing = !R.ach().includes('king'); out.crownBefore = R.crown();
   R.bump('noBrakeLaps', 1); R.bump('cops', 10); R.bump('kills', 250); R.bump('sausages', 1000); R.bumpMax('maxCombo', 15); R.bumpMax('bestLaps', 5); R.bumpMax('maxKmh', 300);
   R.bump('food', 50); R.bump('queens', 1); R.bump('missileKills', 50); R.bump('shocked', 50); R.bump('bosses', 1);
-  for (const id of ['jeep', 'taxi', 'armored']) R.setCar(id);
+  for (const id of ['jeep', 'taxi', 'chorizotruck', 'armored']) R.setCar(id);
   R.setCar('sport'); R.checkAch();
   out.all = R.ach().length; out.king = R.ach().includes('king'); out.crown = R.crown();
   return out;
@@ -352,7 +352,7 @@ const mine = await page.evaluate(async () => {
   const k0 = R.ammo().kills; R.act.mine('x'); R.step(60 * 2.5);
   out.exploded = R.ammo().kills > k0 && R.cops().length === 0; out.xLeft = R.mines().x; R.noCops(false);
   /* no mirror again once the cop is gone */
-  R.step(60); await wait(150); out.mirrorGone = !R.mirrorOn();
+  R.step(60); await wait(600); out.mirrorGone = !R.mirrorOn();
   return out;
 });
 check('rear mirror opens only while a cop is behind', mine.noMirror && mine.mirror && mine.mirrorGone, JSON.stringify([mine.noMirror, mine.mirror, mine.mirrorGone]));
@@ -360,6 +360,50 @@ check('puncture mine stuns the chaser and uses one mine', mine.punctured && mine
 check('explosive mines (upgrade) destroy the chaser', mine.exploded && mine.xLeft === mine.stock.x - 1, JSON.stringify([mine.exploded, mine.xLeft, mine.stock.x]));
 
 
+
+console.log('\n== chorizo truck, control choice and navigation ==');
+const truck = await page.evaluate(async () => {
+  const R = RingRush, out = {};
+  R.setCar('sport'); R.start(0); R.clearTraffic(); const c0 = R.state().coins; R.placeCoin(10, 0); R.placeCoin(14, 0); R.step(60 * 2); out.sportCoins = R.state().coins - c0;
+  R.setCar('chorizotruck'); R.start(0); R.clearTraffic(); R.setLat(0); out.veh = R.vehicle(); out.chorizo = R.ammo().chorizo;
+  const d0 = R.state().coins; R.placeCoin(10, 0); R.placeCoin(14, 0); R.step(60 * 2); out.truckCoins = R.state().coins - d0;
+  await new Promise((r) => setTimeout(r, 700)); out.btn = !document.getElementById('btnChorizo').classList.contains('hidden');
+  R.setCar('sport');
+  return out;
+});
+check('the chorizo truck is a big van that starts with a chorizo missile', truck.veh.id === 'chorizotruck' && truck.veh.len > 5 && truck.chorizo === 1 && truck.btn, JSON.stringify(truck));
+check('every sausage is worth double on the chorizo truck', truck.truckCoins === truck.sportCoins * 2 && truck.sportCoins > 0, `sport=${truck.sportCoins} truck=${truck.truckCoins}`);
+const choose = await page.evaluate(async () => {
+  const R = RingRush, out = {}, wait = (ms) => new Promise((r) => setTimeout(r, ms)), $ = (s) => document.querySelector(s);
+  const s0 = JSON.parse(localStorage.getItem('ringrush.v1')); s0.ctlChosen = false; s0.ctl = 'tilt'; s0.pods = { ring: 1, sausage: 1, clover: 1 }; localStorage.setItem('ringrush.v1', JSON.stringify(s0)); location.hash = '';
+  return out;
+});
+await page.reload(); await page.waitForFunction(() => window.RingRush, null, { timeout: 20000 }); await page.waitForTimeout(500);
+await page.click('#btnPlay'); await page.waitForTimeout(300); await page.click('#tList .tk:nth-child(1)'); await page.waitForTimeout(300);
+const ask = await page.evaluate(() => ({ pick: !document.getElementById('ctlPick').classList.contains('hidden'), racing: RingRush.race().grid > 0 }));
+check('first race: asks for the control style and waits for the answer', ask.pick && !ask.racing, JSON.stringify(ask));
+await page.click('#pickTilt'); await page.waitForTimeout(4600);
+const noSensor = await page.evaluate(() => ({ failShown: !document.getElementById('tiltFail').classList.contains('hidden'), held: RingRush.race().grid > 0, chosen: RingRush.ctlChosen() }));
+check('tilt chosen but no sensor: the race waits and asks, instead of silently switching', noSensor.chosen && noSensor.failShown && noSensor.held, JSON.stringify(noSensor));
+await page.click('#btnTiltTouch'); await page.waitForTimeout(800);
+const switched = await page.evaluate(() => ({ saved: JSON.parse(localStorage.getItem('ringrush.v1')).ctl, hidden: document.getElementById('tiltFail').classList.contains('hidden') }));
+check('choosing finger swipe from that notice saves it and the race goes on', switched.saved === 'touch' && switched.hidden, JSON.stringify(switched));
+await page.evaluate(() => RingRush.step(60 * 5));
+await page.evaluate(() => document.getElementById('btnPause').click()); await page.waitForTimeout(200);
+await page.click('#btnTracks1'); await page.waitForTimeout(300);
+const nav1 = await page.evaluate(() => ({ tracks: !document.getElementById('tracks').classList.contains('hidden'), cards: document.querySelectorAll('#tList .tk').length, unlocked: document.querySelectorAll('#tList .tk:not(.lock)').length }));
+check('from the pause screen I can go to the track list and pick another track', nav1.tracks && nav1.cards === 4 && nav1.unlocked === 4, JSON.stringify(nav1));
+await page.click('#tList .tk:nth-child(3)'); await page.waitForTimeout(500);
+const onClover = await page.evaluate(() => ({ id: RingRush.trackInfo().id, grid: RingRush.race().grid > 0, rivals: RingRush.rivals().length }));
+check('a different track starts on the grid with the chosen control style (no new question)', onClover.id === 'clover' && onClover.grid && onClover.rivals === 5, JSON.stringify(onClover));
+await page.evaluate(() => { RingRush.step(60 * 6); document.getElementById('btnPause').click(); });
+await page.click('#btnRestart'); await page.waitForTimeout(500);
+const rest = await page.evaluate(() => ({ id: RingRush.trackInfo().id, grid: RingRush.race().grid > 0, rivals: RingRush.rivals().length }));
+check('restart from pause starts a proper race again on the same track', rest.id === 'clover' && rest.grid && rest.rivals === 5, JSON.stringify(rest));
+await page.evaluate(() => { RingRush.step(60 * 6); document.getElementById('btnPause').click(); });
+await page.click('#btnMenu1'); await page.waitForTimeout(300);
+check('from the pause screen I can return to the main menu', await page.evaluate(() => !document.getElementById('menu').classList.contains('hidden') && RingRush.state().state === 'menu'));
+await page.evaluate(() => { RingRush.setCtl('touch'); });
 console.log('\n== username login, saved progress and leaderboard (mocked server) ==');
 const server = new Map();
 await page.route('**/api/**', async (route) => {

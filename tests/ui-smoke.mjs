@@ -104,6 +104,11 @@ async function main() {
     check('play opens the track list: 4 tracks, only the first is open, header not clipped', tk.open && tk.n === 4 && tk.locked === 3 && tk.head >= -1, JSON.stringify(tk));
     await reachAndTap('#tList .tk:nth-child(1)', 'first track card');
     await page.waitForTimeout(300);
+    const pick = await page.evaluate(() => { const c = document.getElementById('ctlPick'); return { open: !c.classList.contains('hidden'), head: c.querySelector('.ghead').getBoundingClientRect().top, both: !!document.getElementById('pickTilt') && !!document.getElementById('pickTouch') }; });
+    check('the first race asks how to drive: tilt or finger swipe', pick.open && pick.both && pick.head >= -1, JSON.stringify(pick));
+    await reachAndTap('#pickTouch', 'finger-swipe choice');
+    await page.waitForTimeout(300);
+    check('the choice is saved and the race starts with it', await page.evaluate(() => { const s = JSON.parse(localStorage.getItem('ringrush.v1')); return s.ctl === 'touch' && s.ctlChosen === true; }));
     const raceUp = await page.evaluate(() => ({ grid: RingRush.race().grid > 0, hud: !document.getElementById('hud').classList.contains('hidden'), count: !document.getElementById('countdown').classList.contains('hidden'), rivals: RingRush.rivals().length }));
     check('tapping a track starts the race on the grid with a countdown and 5 rivals', raceUp.grid && raceUp.hud && raceUp.count && raceUp.rivals === 5, JSON.stringify(raceUp));
     const run = await page.evaluate(() => ({ ammo: RingRush.ammo(), st: RingRush.state() }));
@@ -121,6 +126,7 @@ async function main() {
     const over = await page.evaluate(() => { const o = document.getElementById('over'); const t = o.querySelector('h2').getBoundingClientRect(); return { top: t.top, hidden: o.classList.contains('hidden') }; });
     check('game-over panel shows, title not clipped', !over.hidden && over.top >= -1, 'top=' + Math.round(over.top));
     check('"again" button reachable on the game-over panel', !!(await hitInfo('#btnAgain'))?.hit);
+    check('"tracks", "main menu" and share are reachable on the game-over panel', !!(await hitInfo('#btnTracks2'))?.hit && !!(await hitInfo('#btnMenu2'))?.hit && !!(await hitInfo('#btnShare'))?.hit);
     check('share button reachable on the game-over panel', !!(await hitInfo('#btnShare'))?.hit);
     await page.evaluate(() => { window.__opened = null; window.open = (u) => { window.__opened = u; return {}; }; });
     await reachAndTap('#btnShare', 'share button');

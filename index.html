@@ -88,6 +88,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 #countdown span{animation:cdpop .9s ease-out forwards}
 @keyframes cdpop{0%{transform:scale(2);opacity:0}25%{transform:scale(1);opacity:1}100%{transform:scale(.8);opacity:.2}}
 
+/* ---------- Control chooser ---------- */
+button.pick{width:min(92vw,380px);padding:16px 14px;border-radius:20px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:var(--ink);font:inherit;text-align:right;display:flex;flex-direction:column;gap:6px;cursor:pointer}
+button.pick:active{transform:scale(.98)}button.pick b{font-size:22px}button.pick small{color:var(--dim);font-size:14px;line-height:1.45}
+button.pick.sel{border-color:var(--neon);background:rgba(25,227,255,.14)}
+
 /* ---------- Login / board ---------- */
 input{-webkit-user-select:text;user-select:text}
 #loginName{width:min(86vw,320px);height:56px;border-radius:16px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:var(--ink);font:inherit;font-size:22px;font-weight:800;text-align:center;padding:0 14px;outline:none}
@@ -316,8 +321,9 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
     <h2 class="t">מושהה</h2>
     <button class="btn big" id="btnResume">המשך</button>
     <div class="row">
-      <button class="btn ghost" id="btnRestart">התחל מחדש</button>
-      <button class="btn ghost" id="btnMenu1">תפריט</button>
+      <button class="btn ghost" id="btnRestart">מירוץ מחדש</button>
+      <button class="btn ghost" id="btnTracks1">מסלולים</button>
+      <button class="btn ghost" id="btnMenu1">תפריט ראשי</button>
       <button class="btn ghost" id="btnMute2">🔊</button>
       <button class="btn ghost" id="btnFx2">אפקטים</button>
       <button class="btn ghost" id="btnCtl2">היגוי</button>
@@ -342,10 +348,24 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
       <div class="stat"><b id="oNear">0</b><small>כמעט-פגיעות</small></div>
     </div>
     <div class="missions" id="oMissionsWrap"><h3>משימות היום</h3><div id="oMissions"></div></div>
-    <div class="sfoot"><button class="btn big" id="btnAgain">מירוץ חוזר</button>
-    <button class="btn ghost" id="btnShare">שתף תוצאה בוואטסאפ</button>
     <button class="btn ghost hidden" id="btnLogin2">👤 התחבר ושמור התקדמות</button>
-    <div class="row"><button class="btn ghost" id="btnGarage2">מוסך</button><button class="btn ghost" id="btnMenu2">תפריט</button></div></div>
+    <div class="sfoot"><button class="btn big" id="btnAgain">מירוץ חוזר</button>
+    <div class="row"><button class="btn ghost" id="btnTracks2">מסלולים</button><button class="btn ghost" id="btnGarage2">מוסך</button><button class="btn ghost" id="btnMenu2">תפריט ראשי</button><button class="btn ghost" id="btnShare">שתף 📤</button></div></div>
+  </section>
+
+  <section id="ctlPick" class="panel solid hidden">
+    <div class="ghead"><h2 class="t">איך תרצה לשלוט?</h2></div>
+    <p class="hint">אפשר לשנות בכל רגע: בתפריט הראשי או בהשהיה. הבחירה נשמרת.</p>
+    <button class="pick" id="pickTilt"><b>📱 הטיית הטלפון</b><small>הטה ימינה ושמאלה להיגוי, קדימה לגז ואחורה לבלימה. החזק את הטלפון זקוף.</small></button>
+    <button class="pick" id="pickTouch"><b>👆 החלקת אצבע</b><small>גרור אצבע ימינה ושמאלה בכל מקום על המסך. הרכב תמיד בגז מלא.</small></button>
+    <div class="sfoot"><button class="btn ghost" id="btnPickBack">חזרה</button></div>
+  </section>
+
+  <section id="tiltFail" class="panel solid hidden">
+    <h2 class="t">חיישן ההטיה לא מגיב</h2>
+    <p class="hint">בחרת היגוי בהטיה, אבל הדפדפן לא מעביר נתוני חיישן. אם מופיעה בקשת הרשאה, אשר אותה. אפשר לנסות שוב או לעבור להחלקת אצבע.</p>
+    <p class="hint" id="tiltDiag"></p>
+    <div class="sfoot"><button class="btn big" id="btnTiltRetry">נסה שוב</button><button class="btn ghost" id="btnTiltTouch">עבור להחלקת אצבע</button></div>
   </section>
 
   <section id="login" class="panel solid hidden">
@@ -398,7 +418,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 };
 const SAVE_DEFAULTS = {
-  track: 0, times: {}, wins: {}, pods: {}, trophies: 0, streak: 0, ctl: '', user: '', coins: 0, best: 0, bestLaps: 0, paint: 0, flame: 0, ownPaint: [0], ownFlame: [0],
+  track: 0, times: {}, wins: {}, pods: {}, trophies: 0, streak: 0, ctl: '', ctlChosen: false, user: '', coins: 0, best: 0, bestLaps: 0, paint: 0, flame: 0, ownPaint: [0], ownFlame: [0],
   muted: false, tut: false, mission: { day: '', done: [] }, runs: 0, up: {}, car: 'sport', ownCars: ['sport'], calm: false, stats: {}, ach: {}
 };
 const save = Object.assign(JSON.parse(JSON.stringify(SAVE_DEFAULTS)), store.get('ringrush.v1', {}));
@@ -546,7 +566,7 @@ const ACH = [
   { id: 'queen', n: 'הכתרת המלכה', d: 'אכול את צ׳וריסו המלכה', goal: 1, v: () => st('queens'), r: 80 },
   { id: 'missile50', n: 'טייס קרב', d: 'הרוס 50 רכבים בטילים', goal: 50, v: () => st('missileKills'), r: 150 },
   { id: 'shock50', n: 'חשמלאי', d: 'חשמל 50 רכבים', goal: 50, v: () => st('shocked'), r: 120 },
-  { id: 'garage', n: 'אספן', d: 'קנה את כל הרכבים', goal: 4, v: () => save.ownCars.length, r: 200 },
+  { id: 'garage', n: 'אספן', d: 'קנה את כל הרכבים', goal: 5, v: () => save.ownCars.length, r: 200 },
   { id: 'boss1', n: 'הבוס הצמחוני', d: 'נצח את הבוס הצמחוני', goal: 1, v: () => st('bosses'), r: 250 }
 ];
 ACH.push({ id: 'king', n: 'מלך הצ\'וריסו', d: 'פתח את כל ההישגים וקבל כתר על הרכב', goal: ACH.length, v: () => ACH.filter((a) => save.ach[a.id]).length, r: 500 });
@@ -567,6 +587,7 @@ const VEHICLES = [
   { id: 'sport', n: 'ספורט', d: 'מאוזנת: מהירה, יציבה וקלה לשליטה', cost: 0, spec: 'sport', crownY: 1.4, hearts: 0, ram: 0, steer: 1, topSpeed: 1, accel: 1, nitroRegen: 1, nearBonus: 1, shield: false, bars: [4, 3, 2] },
   { id: 'jeep', n: 'ג׳יפ', d: 'לב נוסף וניגוח חזק ברמה אחת יותר. פונה לאט ו-8% פחות מהיר', cost: 1800, spec: 'jeep', crownY: 2.35, hearts: 1, ram: 1, steer: 0.72, topSpeed: 0.92, accel: 0.95, nitroRegen: 1, nearBonus: 1, shield: false, bars: [3, 2, 4] },
   { id: 'taxi', n: 'מונית', d: 'תמיד צהובה. פונה חד, נייטרו נטען פי 1.7 ובונוס כמעט-פגיעה +50%. בלי הגנה נוספת', cost: 2800, spec: 'taxi', crownY: 1.85, hearts: 0, ram: 0, steer: 1.35, topSpeed: 1, accel: 1.05, nitroRegen: 1.7, nearBonus: 1.5, shield: false, bars: [4, 5, 2] },
+  { id: 'chorizotruck', n: 'משאית צ׳וריסו', d: 'אוטו גלידות שמוכר צ׳וריסו, עם נקניק ענק בלחמנייה על הגג. כל נקניקייה שנאספת שווה כפול ומתחילים עם טיל צ׳וריסו. כבדה: האצה איטית ו-6% פחות מהירה', cost: 3800, spec: 'chorizotruck', crownY: 4.7, hearts: 0, ram: 0, steer: 0.82, topSpeed: 0.94, accel: 0.82, nitroRegen: 1, nearBonus: 1, shield: false, coinMult: 2, bonusCh: 1, bars: [3, 3, 4] },
   { id: 'armored', n: 'שרד', d: 'מגן שסופג פגיעה אחת בכל הקפה. כבדה: האצה איטית ו-10% פחות מהירה', cost: 4500, spec: 'armored', crownY: 2.15, hearts: 0, ram: 0, steer: 0.85, topSpeed: 0.9, accel: 0.8, nitroRegen: 1, nearBonus: 1, shield: true, bars: [2, 3, 5] }
 ];
 const curVeh = () => VEHICLES.find((v) => v.id === save.car) || VEHICLES[0];
@@ -708,6 +729,15 @@ const SPEC = {
       B(1.0, .35, 1.0, 0, 1.75, -.45, 0x4a5266), B(.18, .18, 1.5, 0, 1.78, .5, 0x20242e), B(.14, .5, 3.7, 1.12, .6, 0, 0x4a5266), B(.14, .5, 3.7, -1.12, .6, 0, 0x4a5266),
       B(2.3, .5, .4, 0, .5, 2.6, 0x4a5266), ...wheelSet(1.05, .5, [1.6, -1.6], .45, 1.0)],
     lights: [B(.5, .2, .05, .8, .9, -2.51, 0xff2030), B(.5, .2, .05, -.8, .9, -2.51, 0xff2030), B(.45, .2, .05, .8, .85, 2.51, 0xe8f6ff), B(.45, .2, .05, -.8, .85, 2.51, 0xe8f6ff)]
+  },
+  chorizotruck: {
+    len: 5.4, wid: 2.2,
+    parts: [B(2.1, .5, 5.3, 0, .55, 0, DARK), B(2.2, 1.85, 3.5, 0, 1.75, -.75, 0xfff2d6), B(2.1, 1.1, 1.5, 0, 1.3, 2.0, 0xfff2d6), B(1.9, .55, .1, 0, 1.65, 2.76, GLASS),
+      B(2.22, .55, 1.0, 0, 1.6, 2.0, GLASS), B(2.24, .3, 5.0, 0, 1.12, 0, 'paint'), B(.1, .85, 1.7, 1.12, 1.95, -.9, GLASS), B(.1, .85, 1.7, -1.12, 1.95, -.9, GLASS),
+      B(.95, .1, 2.0, 1.55, 2.55, -.9, 'paint'), B(.95, .1, 2.0, -1.55, 2.55, -.9, 'paint'), B(2.1, .1, 3.5, 0, 2.7, -.75, 'paint'),
+      B(1.95, .5, 3.4, 0, 3.0, -.75, 0xe9b36a), B(1.45, 1.05, 3.6, 0, 3.7, -.75, 0xd0301c), B(1.15, .8, .3, 0, 3.7, 1.15, 0xb0261a), B(1.15, .8, .3, 0, 3.7, -2.65, 0xb0261a),
+      ...[-1.4, -.6, .2, 1.0].map((z) => B(.7, .14, .5, 0, 4.28, z, 0xffd23a)), B(.5, .5, .5, 0, 3.0, 2.0, 0xffd23a), ...wheelSet(1.0, .42, [1.9, -1.6], .38, .84)],
+    lights: [B(.4, .25, .05, .8, 1.05, -2.71, 0xff2030), B(.4, .25, .05, -.8, 1.05, -2.71, 0xff2030), B(.4, .25, .05, .75, .9, 2.71, 0xe8f6ff), B(.4, .25, .05, -.75, .9, 2.71, 0xe8f6ff), B(.4, .2, .4, 0, 3.0, 2.0, 0xfff3a0)]
   },
   cop: {
     len: 4.6, wid: 1.9,
@@ -1890,10 +1920,11 @@ function startRun(trackIdx, grid) {
   missions = todaysMissions();
   const VH0 = curVeh(), maxL = 3 + upLvl('armor') + VH0.hearts;
   Object.assign(P, { dist: 0, pd: 0, lat: 0, plat: 0, lane: 0, vlat: 0, latB: 0, latT: 0, slamOff: 0, slamT: 0, slamCd: 0, thr: 1, speed: 30, lives: maxL, maxLives: maxL, inv: 1.2, alive: true, nitro: 60, nitroOn: false, brake: 0,
-    combo: 0, comboT: 0, score: 0, coins: 0, lapsDone: 0, lapClean: true, missiles: 3 + 2 * upLvl('missiles'), shocks: 3 + 2 * upLvl('shock'), kills: 0, chorizo: 2 * upLvl('chorizo'), turboT: 0, powerT: 0, magnetT: 0, shield: VH0.shield ? 1 : 0, mines: mineStock('p'), minesX: mineStock('x') });
+    combo: 0, comboT: 0, score: 0, coins: 0, lapsDone: 0, lapClean: true, missiles: 3 + 2 * upLvl('missiles'), shocks: 3 + 2 * upLvl('shock'), kills: 0, chorizo: 2 * upLvl('chorizo') + (VH0.bonusCh || 0), turboT: 0, powerT: 0, magnetT: 0, shield: VH0.shield ? 1 : 0, mines: mineStock('p'), minesX: mineStock('x') });
   Object.assign(R, { maxCombo: 0, coins: 0, cleanLaps: 0, laps: 0, maxKmh: 0, score: 0, nitroUses: 0, near: 0, kills: 0, food: 0 });
   Object.assign(G, { state: 'play', time: 0, rowAcc: 0, prevOpen: [-1, 0, 1], dyingT: 0, shake: 0, missionTick: 0, tutT: 0, wCool: 0, target: null, copT: rnd(14, 22), sirenT: 0, copNear: null });
-  Object.assign(RACE, { grid: 0, lastCount: 99, t: 0, finished: false, finT: 0, endT: 0, place: 1, dnf: false, results: null, reward: null });
+  Object.assign(RACE, { grid: 0, lastCount: 99, t: 0, finished: false, finT: 0, endT: 0, place: 1, dnf: false, results: null, reward: null, tiltAsk: false });
+  G.tiltWarned = false;
   resetTraffic();
   if (grid) {
     const slot = placeOnGrid();
@@ -1903,7 +1934,7 @@ function startRun(trackIdx, grid) {
     rivals.forEach((r) => { r.active = false; r.g.visible = false; });
     for (const d of [100, 150, 200]) spawnRow(d);
   }
-  show('menu', false); show('over', false); show('pause', false); show('garage', false); show('tracks', false);
+  show('menu', false); show('over', false); show('pause', false); show('garage', false); show('tracks', false); show('ctlPick', false); show('tiltFail', false);
   el.hud.classList.remove('hidden');
   el.banners.innerHTML = '';
   save.runs++; bump('runs'); P.brakedLap = false; persist();
@@ -1953,7 +1984,7 @@ const Net = {
   async login(name) {
     const r = await Net.call('/api/profile?u=' + encodeURIComponent(name));
     if (!r.ok) throw new Error(r.error || 'bad');
-    const keep = { muted: save.muted, ctl: save.ctl, calm: save.calm, tut: save.tut };
+    const keep = { muted: save.muted, ctl: save.ctl, ctlChosen: save.ctlChosen, calm: save.calm, tut: save.tut };
     if (r.exists) {
       Object.keys(save).forEach((k) => delete save[k]);
       Object.assign(save, JSON.parse(JSON.stringify(SAVE_DEFAULTS)), r.save, keep);
@@ -1980,7 +2011,7 @@ function toMenu() {
 }
 function pauseGame() {
   if (G.state !== 'play') return;
-  G.state = 'paused'; show('pause', true); Sfx.suspend(); Sfx.musicStop();
+  G.state = 'paused'; show('pause', true); syncCtl(); Sfx.suspend(); Sfx.musicStop();
 }
 function resumeGame() { if (G.state !== 'paused') return; show('pause', false); G.state = 'play'; Sfx.resume(); Sfx.musicStart(); }
 
@@ -1993,6 +2024,12 @@ function gridTick(dt) {
   P.pd = P.dist; P.plat = P.lat;
   for (const r of rivals) { r.pd = r.dist; r.plat = r.lat; }
   RACE.grid -= dt; Tilt.calStep(); RACE.place = myPlace();
+  if (RACE.tiltAsk && Tilt.live()) { show('tiltFail', false); RACE.tiltAsk = false; }
+  if (RACE.grid <= 0.62 && RACE.lastCount !== 0 && save.ctl === 'tilt' && !Tilt.live()) { /* never fall back silently: ask the player */
+    RACE.grid = 0.62;
+    if (!RACE.tiltAsk) { RACE.tiltAsk = true; const d = Tilt.debug(); $('#tiltDiag').textContent = 'אירועי חיישן שהתקבלו: ' + d.seen + (d.listening ? '' : ' (ההאזנה לא פעילה, נסה שוב)'); show('tiltFail', true); }
+    return;
+  }
   const n = Math.ceil(RACE.grid - 0.6);
   if (RACE.grid > 0.6 && n !== RACE.lastCount) { RACE.lastCount = n; showCount(String(n)); Sfx.beep(false); }
   if (RACE.grid <= 0.6 && RACE.lastCount !== 0) { RACE.lastCount = 0; showCount('צא!', true); Sfx.beep(true); Tilt.freeze(); P.speed = 1; G.shake = 0.3; showTutorial(); }
@@ -2050,6 +2087,7 @@ function ctlThrottle() {
 }
 function ctlSteer(dt) {
   if (G.state === 'dying' || RACE.finished) { P.latB = damp(P.latB, 0, 1.2, dt); return; }
+  if (save.ctl === 'tilt' && !Tilt.live() && !G.tiltWarned) { G.tiltWarned = true; toast('חיישן ההטיה הפסיק להגיב: עברנו להחלקת אצבע. אפשר לחזור בהשהיה'); }
   if (ctlMode() === 'tilt') P.latB = Tilt.steer() * LAT_MAX;
   else if (kbd.l || kbd.r) P.latB = clamp(P.latB + ((kbd.r ? 1 : 0) - (kbd.l ? 1 : 0)) * 9 * dt, -LAT_MAX, LAT_MAX);
 }
@@ -2661,7 +2699,7 @@ function runTick(dt) {
     const mag = P.magnetT > 0;
     if (mag && rel > -3 && rel < 45 && Math.abs(co.lat - P.lat) < 8) { co.lat = damp(co.lat, P.lat, 7, dt); co.s = mod(co.s - 35 * dt, L); }
     if (Math.abs(signedRel(co.s, ps)) < (mag ? 3.2 : 2.2) && Math.abs(co.lat - P.lat) < (mag ? 2.4 : 1.7)) {
-      co.active = false; P.coins++; R.coins++; bump('sausages'); P.score += 25; Sfx.coin(P.coins);
+      const cm = curVeh().coinMult || 1; co.active = false; P.coins += cm; R.coins += cm; bump('sausages', cm); P.score += 25; Sfx.coin(P.coins);
     }
   }
 
@@ -2678,7 +2716,7 @@ function runTick(dt) {
       if (curVeh().shield && P.shield < 1) { P.shield = 1; banner('המגן נטען', 'ok'); }
       P.lapClean = true; P.nitro = Math.min(100, P.nitro + 30); Sfx.lap(); vib([20, 30, 20]);
       if (TR.boss && P.lapsDone === RACE_LAPS - 1 && !BOSS.active) spawnBoss();
-      P.missiles = Math.min(3 + 2 * upLvl('missiles'), P.missiles + 1); P.shocks = Math.min(3 + 2 * upLvl('shock'), P.shocks + 1); P.chorizo = Math.min(2 * upLvl('chorizo'), P.chorizo + 1); hc.ammo = null;
+      P.missiles = Math.min(3 + 2 * upLvl('missiles'), P.missiles + 1); P.shocks = Math.min(3 + 2 * upLvl('shock'), P.shocks + 1); P.chorizo = Math.min(2 * upLvl('chorizo') + (curVeh().bonusCh || 0), P.chorizo + 1); hc.ammo = null;
     }
   }
   if (RACE.finished) { RACE.endT += dt; if (RACE.endT > 3.4 && G.state === 'play') endRun('finish'); }
@@ -2994,7 +3032,7 @@ function updateHud(dt) {
   const lives = P.lives, hk = lives + '/' + P.maxLives;
   if (hc.hearts !== hk) { hc.hearts = hk; heartEls.forEach((h, i) => { h.style.display = i < P.maxLives ? '' : 'none'; h.classList.toggle('off', i >= lives); }); }
   const ak = P.missiles + ':' + P.shocks + ':' + P.chorizo + ':' + upLvl('chorizo') + ':' + P.mines + ':' + P.minesX;
-  if (hc.ammo !== ak) { hc.ammo = ak; el.chn.textContent = P.chorizo; el.bCh.classList.toggle('hidden', upLvl('chorizo') === 0); el.bCh.classList.toggle('empty', P.chorizo <= 0); el.ms.textContent = P.missiles; el.mn.textContent = P.shocks; el.bMs.classList.toggle('empty', P.missiles <= 0); el.bMn.classList.toggle('empty', P.shocks <= 0);
+  if (hc.ammo !== ak) { hc.ammo = ak; el.chn.textContent = P.chorizo; el.bCh.classList.toggle('hidden', upLvl('chorizo') === 0 && !(curVeh().bonusCh)); el.bCh.classList.toggle('empty', P.chorizo <= 0); el.ms.textContent = P.missiles; el.mn.textContent = P.shocks; el.bMs.classList.toggle('empty', P.missiles <= 0); el.bMn.classList.toggle('empty', P.shocks <= 0);
     el.mpCnt.textContent = P.mines; el.mxCnt.textContent = P.minesX; $('#btnMineP').classList.toggle('empty', P.mines <= 0); $('#btnMineX').classList.toggle('empty', P.minesX <= 0); $('#btnMineX').classList.toggle('hidden', upLvl('mines') === 0); }
   BUFF_DEFS.forEach((d, i) => {
     const v = P[d.key], on = v > 0.05 && G.state !== 'menu', b = buffEls[i];
@@ -3162,16 +3200,24 @@ const fxBtns = [$('#btnFx1'), $('#btnFx2')];
 const syncFx = () => { fxBtns.forEach((b) => (b.textContent = save.calm ? 'הבהובים: מופחתים' : 'הבהובים: מלאים')); };
 fxBtns.forEach((b) => b.addEventListener('click', () => { save.calm = !save.calm; persist(); syncFx(); Sfx.ui(); }));
 syncFx();
-function ctlLabel() { return save.ctl === 'tilt' ? 'היגוי: הטיה' : 'היגוי: מגע'; }
+function ctlLabel() { return save.ctl === 'tilt' ? (Tilt.live() ? 'היגוי: הטיה ✓' : 'היגוי: הטיה (אין חיישן)') : 'היגוי: החלקה'; }
 const ctlBtns = [$('#btnCtl1'), $('#btnCtl2')];
 const syncCtl = () => ctlBtns.forEach((b) => { b.textContent = ctlLabel(); });
 if (!save.ctl) save.ctl = ('ontouchstart' in window && Tilt.supported()) ? 'tilt' : 'touch';
-ctlBtns.forEach((b) => b.addEventListener('click', () => { save.ctl = save.ctl === 'tilt' ? 'touch' : 'tilt'; persist(); syncCtl(); Sfx.ui(); if (save.ctl === 'tilt') Tilt.request().then((ok) => { if (!ok) { toast('אין גישה לחיישן ההטיה'); } }); }));
+ctlBtns.forEach((b) => b.addEventListener('click', () => { save.ctl = save.ctl === 'tilt' ? 'touch' : 'tilt'; save.ctlChosen = true; persist(); syncCtl(); Sfx.ui(); if (save.ctl === 'tilt') Tilt.request().then((ok) => { if (!ok) { toast('אין גישה לחיישן ההטיה'); } setTimeout(syncCtl, 600); }); }));
 syncCtl();
+if (save.ctl === 'tilt' && Tilt.supported() && typeof DeviceOrientationEvent.requestPermission !== 'function') Tilt.request();
+document.addEventListener('click', () => { if (save.ctl === 'tilt' && !Tilt.debug().listening) Tilt.request(); }, true);
 $('#btnCal').addEventListener('click', () => { Tilt.recal(); toast('הטיה כוילה למצב הנוכחי'); Sfx.ui(); });
+let pendingTrack = 0, pickFrom = 'tracks';
+function setCtl(m) { save.ctl = m; save.ctlChosen = true; persist(); syncCtl(); }
 function beginRace(i) {
   if (!trackUnlocked(i)) { toast('סיים בטופ 3 במסלול הקודם כדי לפתוח'); return; }
   Sfx.init();
+  if (!save.ctlChosen) { /* first race: let the player choose how to drive */
+    pendingTrack = i; pickFrom = ['tracks', 'over', 'pause'].find((id) => !$('#' + id).classList.contains('hidden')) || 'tracks';
+    show('ctlPick', true); show(pickFrom, false); return;
+  }
   const go = () => startRun(i, true);
   if (save.ctl === 'tilt') Tilt.request().then(go, go); else go();
 }
@@ -3196,6 +3242,16 @@ function renderTracks() {
 }
 $('#btnPlay').addEventListener('click', () => { Sfx.init(); renderTracks(); show('tracks', true); show('menu', false); });
 $('#btnTracksBack').addEventListener('click', () => { show('tracks', false); show('menu', true); });
+function pickDone(m) { setCtl(m); show('ctlPick', false); beginRace(pendingTrack); }
+$('#pickTilt').addEventListener('click', () => pickDone('tilt'));
+$('#pickTouch').addEventListener('click', () => pickDone('touch'));
+$('#btnPickBack').addEventListener('click', () => { show('ctlPick', false); show(pickFrom, true); });
+$('#btnTiltRetry').addEventListener('click', () => { Tilt.request().then((ok) => { $('#tiltDiag').textContent = ok ? 'ההרשאה אושרה. הטה מעט את הטלפון כדי שנזהה אותו' : 'ההרשאה נדחתה או שאין חיישן במכשיר'; }); });
+$('#btnTiltTouch').addEventListener('click', () => { setCtl('touch'); show('tiltFail', false); RACE.tiltAsk = false; });
+function bankRace() { save.coins += P.coins; save.best = Math.max(save.best, Math.floor(P.score)); P.coins = 0; persist(); }
+function openTracks() { renderTracks(); show('tracks', true); show('menu', false); show('over', false); show('pause', false); }
+$('#btnTracks1').addEventListener('click', () => { bankRace(); toMenu(); openTracks(); });
+$('#btnTracks2').addEventListener('click', () => { toMenu(); openTracks(); });
 $('#btnAgain').addEventListener('click', () => { Sfx.init(); beginRace(TRACKS.indexOf(TR)); });
 function openLogin(from) { openLogin.from = from; $('#loginName').value = save.user || ''; $('#loginMsg').textContent = ''; show('login', true); show(from, false); }
 $('#mUser').addEventListener('click', () => { Sfx.init(); Sfx.ui(); openLogin('menu'); });
@@ -3243,8 +3299,8 @@ $('#btnShare').addEventListener('click', () => {
 });
 $('#btnPause').addEventListener('click', (e) => { e.stopPropagation(); pauseGame(); });
 $('#btnResume').addEventListener('click', resumeGame);
-$('#btnRestart').addEventListener('click', () => { Sfx.musicStop(); startRun(); });
-$('#btnMenu1').addEventListener('click', () => { save.coins += P.coins; save.best = Math.max(save.best, Math.floor(P.score)); P.coins = 0; persist(); toMenu(); });
+$('#btnRestart').addEventListener('click', () => { Sfx.musicStop(); bankRace(); beginRace(TRACKS.indexOf(TR)); });
+$('#btnMenu1').addEventListener('click', () => { bankRace(); toMenu(); });
 $('#btnMenu2').addEventListener('click', toMenu);
 function openGarage(from) { Sfx.init(); Sfx.ui(); renderGarage(); show('garage', true); show(from, false); openGarage.from = from; }
 $('#btnGarage').addEventListener('click', () => openGarage('menu'));
@@ -3338,10 +3394,10 @@ window.RingRush = {
     shareText: () => shareText(),
   step(n) { for (let i = 0; i < n; i++) tick(STEP); },
   start: (i, grid) => startRun(i, !!grid), startRace: (i) => startRun(i, true), rivals: () => rivals.map((r) => ({ n: r.n, dist: r.dist, lat: r.lat, speed: r.speed, fin: r.fin, finT: r.finT, stun: r.stunT })), race: () => ({ grid: RACE.grid, t: RACE.t, finished: RACE.finished, place: RACE.place, dnf: RACE.dnf, reward: RACE.reward, results: RACE.results, laps: P.lapsDone, L }), placeCar(type, ahead, lat, speed) { const c = acquire(type) || acquire('sedan'); c.s = mod(pS() + ahead, L); c.active = true; c.state = 0; c.g.visible = true; c.lane = Math.round(lat / LANE_W); c.lat = c.plat = lat; c.ps = c.s; c.base = c.speed = speed === undefined ? 22 : speed; c.passed = false; c.rel = ahead; c.y = 0; c.rx = c.rz = 0; c.cs = 0; c.swT = 0; c.swDir = 0; c.stunT = 0; c.sw = 0; c.sl.visible = c.sr.visible = false; return c.type; },
-  clearTraffic() { for (const c of traffic) { c.active = false; c.g.visible = false; } for (const pk of pickups) { pk.active = false; pk.g.visible = false; } },
+  clearTraffic() { for (const co of coins) co.active = false; for (const c of traffic) { c.active = false; c.g.visible = false; } for (const pk of pickups) { pk.active = false; pk.g.visible = false; } },
   setRival(i, ahead, lat, speed) { const r = rivals[i]; r.active = true; r.g.visible = true; r.dist = r.pd = P.dist + ahead; r.lat = r.plat = r.latT = lat; r.stunT = 0; if (speed !== undefined) r.speed = speed; },
   bonusUi: () => ({ banner: el.bonusBanner.textContent, pills: buffEls.filter((b) => b.on).map((b) => b.n.title) }),
-  tilt: () => Tilt.debug(), tiltRequest: () => Tilt.request(), ctl: ctlMode, setCtl(m) { save.ctl = m; }, mines: () => ({ p: P.mines, x: P.minesX, active: mines.filter((m) => m.active).length }), dropMine, slam: (d) => act.slam(d), marks: () => rmarks.map((m) => m.visible), mirrorOn: () => !!hc.mirror, setLat(v) { P.latB = v; }, setDist(v) { P.dist = P.pd = v; }, place: () => myPlace(),
+  tilt: () => Tilt.debug(), ctlChosen: () => !!save.ctlChosen, tiltRequest: () => Tilt.request(), ctl: ctlMode, setCtl(m) { save.ctl = m; }, mines: () => ({ p: P.mines, x: P.minesX, active: mines.filter((m) => m.active).length }), dropMine, slam: (d) => act.slam(d), marks: () => rmarks.map((m) => m.visible), mirrorOn: () => !!hc.mirror, setLat(v) { P.latB = v; }, setDist(v) { P.dist = P.pd = v; }, place: () => myPlace(),
   state: () => ({ state: G.state, dist: P.dist, speed: P.speed, lives: P.lives, score: P.score, lap: P.lapsDone, lane: P.lane, lat: P.lat, combo: P.combo, coins: P.coins, q: qLevel, near: R.near, inv: P.inv }),
   cars: () => traffic.filter((c) => c.active && c.state === 0).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, len: c.len, wid: c.wid, speed: c.speed, type: c.type, lane: c.lane })),
   coinsNear: () => coins.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),

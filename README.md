@@ -8,7 +8,7 @@ A 3-lap race against 5 rivals on 4 tracks (ring, sausage, clover, zigzag). You s
 
 - **Steering (default on phones):** tilt the phone left/right to steer, forward to speed up, back to brake. Or switch to finger-drag steering in the menu.
 - **Tap** the middle of the screen for nitro; tap the left/right side for a **side slam** (blades lunge sideways, wrecking cars alongside; needs the side-blades upgrade).
-- **Green arrows** mark only the cars you can destroy right now.
+- **Green halos** ring only the cars you can destroy right now.
 - **Rear mirror** opens when a cop is behind; drop **puncture mines** (always) or **explosive mines** (upgrade) to stop chasers.
 - **Currency:** glowing chorizo sausages. **Bonuses** (stack with each other, same type refreshes its timer): hot dog (turbo), bratwurst (power ram), merguez (magnet), salami (+heart), chorizo queen (all).
 - **Weapons:** missiles (optional lock-on sight), electric shock, chorizo missiles, front/side blades, mines.

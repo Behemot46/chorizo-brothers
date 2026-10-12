@@ -1665,20 +1665,19 @@ function rivalKnock(r, side) {
   frameOf(mod(r.dist, L), r.lat, F2); emitSparks(F2.px, 1, F2.pz, 14); Sfx.ram(); bump('rivalHits');
   banner('פגעת ב' + r.n + '!', 'nm');
 }
-/* ram markers: shown ONLY on cars the player can destroy right now (front and side) */
-const markTex = canvasTex(64, 64, (g, w, h) => {
-  g.clearRect(0, 0, w, h); g.lineJoin = 'round';
-  g.shadowColor = '#39ff88'; g.shadowBlur = 10; g.fillStyle = '#39ff88'; g.strokeStyle = '#eaffef'; g.lineWidth = 4;
-  g.beginPath(); g.moveTo(12, 14); g.lineTo(52, 14); g.lineTo(32, 52); g.closePath(); g.fill(); g.stroke();
+/* ram halos: a green ring on the road around every car the player can destroy right now; nothing on the others */
+const ramHaloTex = canvasTex(128, 128, (g, w, h) => {
+  g.clearRect(0, 0, w, h);
+  const r = g.createRadialGradient(64, 64, 20, 64, 64, 62);
+  r.addColorStop(0, 'rgba(57,255,136,0)'); r.addColorStop(.55, 'rgba(57,255,136,.16)'); r.addColorStop(.82, 'rgba(57,255,136,.55)'); r.addColorStop(1, 'rgba(57,255,136,0)');
+  g.fillStyle = r; g.fillRect(0, 0, w, h);
+  g.strokeStyle = '#b6ffd2'; g.lineWidth = 8; g.shadowColor = '#39ff88'; g.shadowBlur = 12;
+  g.beginPath(); g.arc(64, 64, 49, 0, Math.PI * 2); g.stroke();
 }, false);
-const sideTex = canvasTex(64, 64, (g, w, h) => {
-  g.clearRect(0, 0, w, h); g.lineJoin = 'round';
-  g.shadowColor = '#39ff88'; g.shadowBlur = 10; g.fillStyle = '#39ff88'; g.strokeStyle = '#eaffef'; g.lineWidth = 4;
-  g.beginPath(); g.moveTo(10, 32); g.lineTo(52, 12); g.lineTo(52, 52); g.closePath(); g.fill(); g.stroke();
-}, false);
-const rmarks = Array.from({ length: 4 }, (_, i) => {
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), new THREE.MeshBasicMaterial({ map: i < 2 ? markTex : sideTex, transparent: true, depthTest: false, depthWrite: false, fog: false, side: THREE.DoubleSide }));
-  m.renderOrder = 8; m.visible = false; m.frustumCulled = false; scene.add(m); return m;
+const HALO_N = 8;
+const rmarks = Array.from({ length: HALO_N }, () => {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: ramHaloTex, transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+  m.rotation.order = 'YXZ'; m.renderOrder = 8; m.visible = false; m.frustumCulled = false; scene.add(m); return m;
 });
 const ramOK = (c, kind) => P.powerT > 0 || (kind === 'front' ? ramF() >= RAM_F[c.type] : ramS() >= RAM_S[c.type]);
 
@@ -3087,22 +3086,19 @@ function render(alpha, dt) {
 }
 
 function updateMarks(sR) {
-  let nf = 0, ns = 0;
+  let n = 0;
   const on = G.state === 'play' && RACE.grid <= 0 && !RACE.finished;
   if (on) for (const c of traffic) {
+    if (n >= HALO_N) break;
     if (!c.active || c.state !== 0) continue;
-    const rel = signedRel(c.s, pS()), dlat = c.lat - P.lat, gapx = Math.abs(dlat) - (c.wid + P.wid) / 2;
-    if (nf < 2 && rel > 5 && rel < 80 && gapx < 1.3 && ramOK(c, 'front')) {
-      const m = rmarks[nf++]; frameOf(c.s, c.lat, F3);
-      const h = c.len > 8 ? 4.4 : 2.9;
-      m.position.set(F3.px, h + Math.sin(camT * 8) * 0.18, F3.pz); m.scale.setScalar(clamp(rel / 12, 1, 2.6) * (c.len > 8 ? 1.4 : 1)); m.lookAt(camera.position); m.visible = true;
-    } else if (ns < 2 && Math.abs(rel) < 9 && gapx > -0.1 && gapx < 3.4 && ramOK(c, 'side') && P.slamCd <= 0) {
-      const m = rmarks[2 + ns++]; frameOf(c.s, c.lat, F3);
-      m.position.set(F3.px, 1.9 + Math.sin(camT * 8) * 0.12, F3.pz); m.lookAt(camera.position); m.scale.set(dlat > 0 ? 1.1 : -1.1, 1.1, 1.1); m.visible = true;
-    }
+    const rel = signedRel(c.s, pS());
+    if (rel < -8 || rel > 110 || !(ramOK(c, 'front') || ramOK(c, 'side'))) continue;
+    const m = rmarks[n++]; frameOf(c.s, c.lat, F3);
+    const k = 1 + Math.sin(camT * 6) * 0.05;
+    m.position.set(F3.px, 0.14, F3.pz); m.rotation.set(-Math.PI / 2, Math.atan2(F3.tx, F3.tz), 0);
+    m.scale.set((c.wid + 3.8) * k, (c.len + 3.8) * k, 1); m.visible = true;
   }
-  for (let i = nf; i < 2; i++) rmarks[i].visible = false;
-  for (let i = ns; i < 2; i++) rmarks[2 + i].visible = false;
+  for (let i = n; i < HALO_N; i++) rmarks[i].visible = false;
 }
 /* ---- HUD ---- */
 const miniCtx = el.mini.getContext('2d');

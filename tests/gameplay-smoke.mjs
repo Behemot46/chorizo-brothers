@@ -315,10 +315,10 @@ const marks = await page.evaluate(async () => {
   const sp = R.state().speed; R.placeCar('sedan', 60, 0, sp); await wait(500); out.none = R.marks()[0];
   R.setUp('ramF', 1); out.front = await until(() => R.marks()[0]);
   R.setUp('ramF', 0); R.boost(1); R.clearTraffic(); R.placeCar('truck', 60, 0, sp); out.power = await until(() => R.marks()[0]);
-  R.start(0); R.clearTraffic(); R.setUp('ramF', 1); R.placeCar('sedan', 60, 3.4, sp); await wait(500); out.otherLane = R.marks()[0];
+  R.start(0); R.clearTraffic(); R.setUp('ramF', 1); R.setUp('ramS', 1); R.placeCar('truck', 60, 3.4, sp); await wait(500); out.tooStrong = R.marks().some(Boolean); R.clearTraffic(); R.placeCar('sedan', 60, 3.4, sp); out.otherLane = await until(() => R.marks()[0]);
   return out;
 });
-check('ram marker appears only on a car I can actually destroy', !marks.none && marks.front && marks.power && !marks.otherLane, JSON.stringify(marks));
+check('green halo appears only around cars I can actually destroy', !marks.none && marks.front && marks.power && !marks.tooStrong && marks.otherLane, JSON.stringify(marks));
 const blade = await page.evaluate(() => {
   const R = RingRush, out = {};
   R.setUp('ramS', 1); R.start(0); R.clearTraffic(); R.setLat(0); R.step(150); R.clearTraffic();

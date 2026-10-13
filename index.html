@@ -162,10 +162,18 @@ button.chip{font:inherit;color:var(--ink);cursor:pointer}
 .ghead h2{margin:0}
 .sfoot{position:sticky;bottom:0;z-index:3;width:100%;display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 0 4px;background:linear-gradient(0deg,rgba(8,9,26,.97) 72%,rgba(8,9,26,0))}
 .panel.solid{background:rgba(8,9,26,.86);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.logo small{display:block;font-size:.4em;letter-spacing:3px;margin-bottom:4px;-webkit-text-fill-color:#9ff6ff;text-shadow:0 0 14px rgba(25,227,255,.7)}
-.logo{font-size:clamp(40px,14vw,68px);font-weight:900;font-style:italic;letter-spacing:0;line-height:1.02;direction:rtl;
-  background:linear-gradient(180deg,#fff 10%,#19e3ff 55%,#ff2e93);-webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 4px 18px rgba(25,227,255,.35))}
+.logo{position:relative;display:flex;flex-direction:column;align-items:center;direction:rtl;font-weight:900;font-style:italic;line-height:.92;margin:0;padding:6px 0 2px;isolation:isolate}
+.logo::before{content:"";position:absolute;z-index:-1;left:50%;top:52%;width:120%;height:90%;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(255,60,40,.32),rgba(255,46,147,.16) 55%,transparent);filter:blur(10px);animation:logoGlow 3.2s ease-in-out infinite}
+@keyframes logoGlow{50%{opacity:.55;transform:translate(-50%,-50%) scale(.94)}}
+.logo small{order:-1;font-size:11px;font-weight:700;font-style:normal;letter-spacing:2px;color:#b8f8ff;padding:3px 12px;margin-bottom:8px;border-radius:999px;border:1px solid rgba(159,246,255,.28);background:rgba(25,227,255,.07)}
+.logo .l1,.logo .l2{display:block;font-size:clamp(52px,21vw,92px);letter-spacing:-1px;padding:0 .08em;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.28)}
+.logo .l1{background-image:linear-gradient(180deg,#fff0cf 0%,#ffb347 26%,#ff3b2f 62%,#a3081f 100%);filter:drop-shadow(0 3px 0 #5a0615) drop-shadow(0 0 20px rgba(255,70,40,.6));transform:rotate(-2deg)}
+.logo .l2{margin-top:-.04em;background-image:linear-gradient(180deg,#eaffff 0%,#19e3ff 45%,#2a6bff 100%);filter:drop-shadow(0 3px 0 #06284d) drop-shadow(0 0 20px rgba(25,227,255,.65));transform:rotate(-2deg) translateX(-.12em)}
+.logo .bar{display:flex;gap:6px;margin-top:8px;transform:skewX(-24deg)}
+.logo .bar i{display:block;height:6px;border-radius:2px;animation:barSlide 2.4s ease-in-out infinite}
+.logo .bar i:nth-child(1){width:46px;background:#ff2e93}.logo .bar i:nth-child(2){width:84px;background:#ffc83d;animation-delay:.2s}.logo .bar i:nth-child(3){width:30px;background:#19e3ff;animation-delay:.4s}
+@keyframes barSlide{50%{transform:translateX(7px)}}
+@media (prefers-reduced-motion:reduce){.logo::before,.logo .bar i{animation:none}}
 .sub{color:var(--dim);font-size:16px;margin-top:-4px}
 .chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .chip{padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
@@ -235,7 +243,7 @@ button.btn.ghost{background:rgba(255,255,255,.1);color:var(--ink);box-shadow:non
 button.buy{appearance:none;border:0;cursor:pointer;font:inherit;font-weight:900;font-size:15px;min-height:48px;min-width:88px;border-radius:14px;color:#1a1200;background:linear-gradient(180deg,#ffd978,#ffc83d);display:flex;align-items:center;justify-content:center;gap:6px}
 button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
 .maxed{color:var(--ok);font-weight:900;font-size:13px;min-width:88px;text-align:center}
-@media (max-height:640px){.logo{font-size:44px}.panel{gap:8px}button.btn.big{min-height:60px}.speedo b{font-size:40px}}
+@media (max-height:640px){.logo .l1,.logo .l2{font-size:clamp(44px,15vw,60px)}.logo .bar{margin-top:4px}.logo small{margin-bottom:4px}.panel{gap:8px}button.btn.big{min-height:60px}.speedo b{font-size:40px}}
 @media (max-width:360px){#mini{width:70px;height:70px}.hud-side{top:calc(var(--st) + 70px)}}
 @media (orientation:landscape) and (max-height:520px){.hud-side{top:calc(var(--st) + 56px)}#mini{width:64px;height:64px}.speedo{bottom:calc(var(--sb) + 40px)}#placeN{font-size:40px}#mirror{top:calc(var(--st) + 70px);height:60px}}
 </style>
@@ -278,7 +286,7 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
   <div id="tut" class="hidden"><div>החלק או הקש בצדדים להחלפת נתיב</div><br><div>הקשה במרכז = נייטרו</div><br><div>כפתורים בפינה: טיל וחשמל</div></div>
 
   <section id="menu" class="panel">
-    <div class="logo"><small>גבי ושחר · האחים צ'וריסו</small>צ'וריסו צ'ייס</div>
+    <div class="logo" role="heading" aria-level="1" aria-label="צ'וריסו צ'ייס"><small>גבי ושחר · האחים צ'וריסו</small><span class="l1">צ'וריסו</span><span class="l2">צ'ייס</span><div class="bar"><i></i><i></i><i></i></div></div>
     <div class="sub">המרדף אחרי הנקניקייה</div>
     <div class="chips">
       <div class="chip">🏆 שיא <b id="mBest">0</b></div>
@@ -2205,7 +2213,7 @@ function syncUser() { $('#mUser').textContent = save.user ? '👤 ' + save.user 
 function toMenu() {
   G.state = 'menu'; resetTraffic();
   Sfx.musicStop(); Sfx.engine(0, false, false);
-  P.speed = 40; P.dist = P.pd = 0; P.lat = P.plat = P.latB = P.latT = 0; P.lane = 0; P.inv = 0; P.nitroOn = false; P.alive = true; P.lives = 3; P.slamOff = 0; P.slamT = 0;
+  P.speed = 40; P.dist = P.pd = 260; P.lat = P.plat = P.latB = P.latT = 0; P.lane = 0; P.inv = 0; P.nitroOn = false; P.alive = true; P.lives = 3; P.slamOff = 0; P.slamT = 0;
   RACE.grid = 0; RACE.finished = false; rivals.forEach((r) => { r.active = false; r.g.visible = false; }); el.mirror.classList.add('hidden'); el.countdown.classList.add('hidden');
   el.hud.classList.add('hidden'); el.tut.classList.add('hidden'); el.siren.classList.remove('on'); el.warn.classList.add('hidden');
   show('over', false); show('pause', false); show('garage', false); show('tracks', false); show('menu', true);

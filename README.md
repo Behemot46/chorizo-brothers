@@ -23,3 +23,7 @@ Open `index.html` in a browser. Tests (Playwright + Chromium, real touch events)
 ## Looks
 - Paints: solid colours plus four patterns drawn in the shader (leopard, giraffe, camo, zebra). Racing stripes and underglow are extra look options.
 - The user named Gabi (גבי / gabi) pays 10% of upgrade and look-option prices (cars are full price). Client-side only, by design of the username-only accounts.
+
+## Fighting
+- Missile upgrade levels 4-5 add the chorizo warhead (wide blast, the old separate chorizo missile is gone). Rivals have health (24+), show a name tag with a health bar and a ring, hit back, and pay 20 chorizo when wrecked. Ramming traffic pays chorizo by car size plus random bonuses.
+- Founder discount: Shachar / Shachar Grossman pay 50% on everything; Gabi pays 10% on upgrades and looks.

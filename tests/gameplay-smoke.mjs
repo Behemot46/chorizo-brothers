@@ -233,12 +233,13 @@ const tilt = await page.evaluate(async () => {
   R.setCtl('tilt'); out.noSensor = R.ctl();
   await R.tiltRequest(); ori(60, 0);
   R.startRace(0); ori(60, 0); R.step(60 * 4.4); R.clearTraffic(); out.mode = R.ctl();
-  R.setLives(5);
+  R.setLives(5); R.noRivalHits(true);
   ori(60, 22); R.step(90); out.right = R.state().lat;
   ori(60, -22); R.step(90); out.left = R.state().lat;
   ori(60, 0); R.step(90); out.level = R.state().lat;
+  R.rivalsOff();
   ori(42, 0); R.step(60 * 6); R.clearTraffic(); out.fast = R.state().speed;
-  ori(82, 0); R.step(60 * 6); R.clearTraffic(); out.slow = R.state().speed;
+  ori(82, 0); R.step(60 * 6); R.clearTraffic(); out.slow = R.state().speed; R.noRivalHits(false);
   return out;
 });
 check('without a sensor the game falls back to touch control', tilt.noSensor === 'touch');
@@ -365,20 +366,20 @@ console.log('\n== chorizo truck, control choice and navigation ==');
 const truck = await page.evaluate(async () => {
   const R = RingRush, out = {};
   R.setCar('sport'); R.start(0); R.clearTraffic(); const c0 = R.state().coins; R.placeCoin(10, 0); R.placeCoin(14, 0); R.step(60 * 2); out.sportCoins = R.state().coins - c0;
-  R.setCar('chorizotruck'); R.start(0); R.clearTraffic(); R.setLat(0); out.veh = R.vehicle(); out.chorizo = R.ammo().chorizo;
+  R.setCar('chorizotruck'); R.start(0); R.clearTraffic(); R.setLat(0); out.veh = R.vehicle(); out.warhead = R.ammo().warhead;
   const d0 = R.state().coins; R.placeCoin(10, 0); R.placeCoin(14, 0); R.step(60 * 2); out.truckCoins = R.state().coins - d0;
-  await new Promise((r) => setTimeout(r, 700)); out.btn = !document.getElementById('btnChorizo').classList.contains('hidden');
+  await new Promise((r) => setTimeout(r, 700)); out.btn = !document.getElementById('btnChorizo');
   R.setCar('sport');
   return out;
 });
-check('the chorizo truck is a big van that starts with a chorizo missile', truck.veh.id === 'chorizotruck' && truck.veh.len > 5 && truck.chorizo === 1 && truck.btn, JSON.stringify(truck));
+check('the chorizo truck is a big van whose missiles carry a chorizo warhead (no separate chorizo button)', truck.veh.id === 'chorizotruck' && truck.veh.len > 5 && truck.warhead === 1 && truck.btn, JSON.stringify(truck));
 check('every sausage is worth double on the chorizo truck', truck.truckCoins === truck.sportCoins * 2 && truck.sportCoins > 0, `sport=${truck.sportCoins} truck=${truck.truckCoins}`);
-const choose = await page.evaluate(async () => {
-  const R = RingRush, out = {}, wait = (ms) => new Promise((r) => setTimeout(r, ms)), $ = (s) => document.querySelector(s);
+await Promise.all([page.waitForNavigation(), page.evaluate(() => {
+  /* edit the save and reload in one go, so no timer can write the old state back in between */
   const s0 = JSON.parse(localStorage.getItem('ringrush.v1')); s0.ctlChosen = false; s0.ctl = 'tilt'; s0.pods = { ring: 1, sausage: 1, clover: 1 }; localStorage.setItem('ringrush.v1', JSON.stringify(s0)); location.hash = '';
-  return out;
-});
-await page.reload(); await page.waitForFunction(() => window.RingRush, null, { timeout: 20000 }); await page.waitForTimeout(500);
+  window.addEventListener('beforeunload', (e) => e.stopImmediatePropagation(), true); location.reload();
+})]);
+await page.waitForFunction(() => window.RingRush, null, { timeout: 20000 }); await page.waitForTimeout(500);
 await page.click('#btnPlay'); await page.waitForTimeout(300); await page.click('#tList .tk:nth-child(1)'); await page.waitForTimeout(300);
 const ask = await page.evaluate(() => ({ pick: !document.getElementById('ctlPick').classList.contains('hidden'), racing: RingRush.race().grid > 0 }));
 check('first race: asks for the control style and waits for the answer', ask.pick && !ask.racing, JSON.stringify(ask));
@@ -484,6 +485,42 @@ const shareHome = await page.evaluate(() => {
   return { got, vis: !!document.querySelector('#btnShareHome').offsetParent || true };
 });
 check('home screen has a WhatsApp share button that opens wa.me with the game link', !!shareHome.got && shareHome.got.startsWith('https://wa.me/?text=') && decodeURIComponent(shareHome.got).includes('chorizo-brothers.vercel.app') && decodeURIComponent(shareHome.got).includes('Chorizo Chase'), String(shareHome.got).slice(0, 120));
+
+console.log('\n== rivals fight, ram loot, chorizo warhead, founder discount ==');
+const war = await page.evaluate(async () => {
+  const R = RingRush, out = {}, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const fresh = (car) => { R.setCar(car || 'sport'); R.start(0); R.clearTraffic(); R.setLat(0); R.step(150); R.clearTraffic(); };
+  /* loot for a ram: coins by size, doubled on the chorizo truck */
+  fresh('sport'); let c = R.state().coins; const l1 = R.ramLoot('sedan'); out.lootSedan = R.state().coins - c; c = R.state().coins; R.ramLoot('truck'); out.lootTruck = R.state().coins - c;
+  fresh('chorizotruck'); c = R.state().coins; R.ramLoot('bus'); out.lootBusTruckCar = R.state().coins - c;
+  /* a real ram pays more than the old flat 3 */
+  fresh('sport'); R.setUp('ramF', 1); c = R.state().coins; const sp = R.state().speed; R.placeCar('sedan', 12, 0, 8); R.step(60 * 2); out.realRam = R.state().coins - c;
+  /* rivals are sturdy and wreck for a big payout */
+  fresh('sport'); R.setRival(0, 40, 0, 20); const r0 = R.rivals()[0]; out.hp = r0.maxHp; R.rivalHit(0, 5); out.afterHit = R.rivals()[0].hp; out.alive = R.rivals()[0].wreck === 0;
+  c = R.state().coins; R.rivalHit(0, 100); out.wreck = R.rivals()[0].wreck > 0; out.wreckLoot = R.state().coins - c;
+  /* a rival that lunges at the player costs a heart */
+  fresh('sport'); const l0 = R.ammo().lives; R.setRival(1, 0, 0.8, R.state().speed); R.rivalHitMe(1); R.step(30); out.livesBefore = l0; out.livesAfter = R.ammo().lives;
+  /* a front ram on a slow rival damages it */
+  fresh('sport'); R.setUp('ramF', 1); R.setRival(2, 4.2, 0, 8); const h0 = R.rivals()[2].hp; R.step(20); out.frontDmg = h0 - R.rivals()[2].hp;
+  /* name tag and ring while racing */
+  fresh('sport'); R.setRival(3, 30, 0, 20); R.step(5); for (let i = 0; i < 30 && !(R.rivalTags()[3].tag && R.rivalTags()[3].ring); i++) await wait(100); out.tags = R.rivalTags()[3];
+  /* the chorizo warhead is the advanced level of the missile */
+  fresh('sport'); R.setUp('missiles', 4); R.start(0); R.clearTraffic(); R.setLat(0); R.step(120); R.clearTraffic(); out.warhead = R.ammo().warhead; const k0 = R.ammo().kills;
+  R.placeCar('sedan', 40, 0, R.state().speed); R.placeCar('van', 44, 3.4, R.state().speed); R.fire(); R.step(60 * 3); out.blastKills = R.ammo().kills - k0;
+  R.setUp('missiles', 0); fresh('sport'); out.plain = R.ammo().warhead;
+  /* the founder pays half on everything, Gabi only on upgrades */
+  R.setUser('שחר גרוסמן'); out.fUp = R.price(1000); out.fCar = R.price(1000, 'car'); R.setUser('שחר'); out.fShort = R.price(1000, 'car'); R.setUser('Shachar'); out.fLatin = R.price(1000);
+  R.setUser('גבי'); out.gUp = R.price(1000); out.gCar = R.price(1000, 'car'); R.setUser('');
+  return out;
+});
+check('a ram pays chorizo by car size (sedan 2, truck 10) and double on the chorizo truck', war.lootSedan === 2 && war.lootTruck === 10 && war.lootBusTruckCar === 12, JSON.stringify(war));
+check('a real ram pays more than the old flat reward', war.realRam >= 5, 'got ' + war.realRam);
+check('rivals are sturdy (24+ hp), survive a hit, and a wreck pays 20 chorizo', war.hp >= 24 && war.afterHit === war.hp - 5 && war.alive && war.wreck && war.wreckLoot >= 20, JSON.stringify(war));
+check('a rival that lunges at the player costs one heart', war.livesAfter === war.livesBefore - 1, JSON.stringify([war.livesBefore, war.livesAfter]));
+check('ramming a slow rival from behind damages it', war.frontDmg >= 5, 'dmg ' + war.frontDmg);
+check('every rival wears a name tag and a ring while racing', war.tags && war.tags.tag && war.tags.ring, JSON.stringify(war.tags));
+check('missile level 4 is the chorizo warhead: a wide blast, no separate chorizo weapon', war.warhead === 1 && war.blastKills >= 2 && war.plain === 0, JSON.stringify([war.warhead, war.blastKills, war.plain]));
+check('founder pays 50% on everything; Gabi 10% only on upgrades', war.fUp === 500 && war.fCar === 500 && war.fShort === 500 && war.fLatin === 500 && war.gUp === 100 && war.gCar === 1000, JSON.stringify(war));
 
 check('no page errors / shader errors', errors.length === 0, errors.slice(0, 3).join(' / '));
 await browser.close();

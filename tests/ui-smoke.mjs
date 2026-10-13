@@ -113,8 +113,8 @@ async function main() {
     check('tapping a track starts the race on the grid with a countdown and 5 rivals', raceUp.grid && raceUp.hud && raceUp.count && raceUp.rivals === 5, JSON.stringify(raceUp));
     const run = await page.evaluate(() => ({ ammo: RingRush.ammo(), st: RingRush.state() }));
     const savedUp = await page.evaluate(() => JSON.parse(localStorage.getItem('ringrush.v1')).up);
-    check('upgrades persist (one level each)', ['sight', 'ramF', 'ramS', 'missiles', 'shock', 'chorizo', 'armor'].every((k) => savedUp[k] === 1), JSON.stringify(savedUp));
-    check('upgrades apply in the run (hearts 5 incl. jeep, missiles 5, shocks 5, chorizo 2)', run.ammo.maxLives === 5 && run.ammo.missiles === 5 && run.ammo.shocks === 5 && run.ammo.chorizo === 2, JSON.stringify(run.ammo));
+    check('upgrades persist (one level each)', ['sight', 'ramF', 'ramS', 'missiles', 'shock', 'armor'].every((k) => savedUp[k] === 1), JSON.stringify(savedUp));
+    check('upgrades apply in the run (hearts 5 incl. jeep, missiles 5, shocks 5, no warhead yet)', run.ammo.maxLives === 5 && run.ammo.missiles === 5 && run.ammo.shocks === 5 && run.ammo.warhead === 0, JSON.stringify(run.ammo));
     // ---- pause panel
     await reachAndTap('#btnPause', 'pause button');
     check('pause panel opens', await page.evaluate(() => !document.getElementById('pause').classList.contains('hidden')));

@@ -181,6 +181,7 @@ button.btn{appearance:none;border:0;cursor:pointer;font:inherit;font-weight:900;
   background:linear-gradient(180deg,#5af0ff,#19b7ff);box-shadow:0 8px 26px rgba(25,183,255,.45),inset 0 -3px 0 rgba(0,0,0,.18)}
 button.btn:active{transform:translateY(2px) scale(.985)}
 button.btn.big{min-height:72px;min-width:min(78vw,320px);font-size:28px;border-radius:22px;background:linear-gradient(180deg,#ff5fb0,#ff2e93);color:#fff;box-shadow:0 10px 32px rgba(255,46,147,.5),inset 0 -4px 0 rgba(0,0,0,.2)}
+button.wb.wh{box-shadow:0 0 0 2px #ff5a3a,0 0 16px rgba(255,90,58,.7)}
 button.btn.wa{background:linear-gradient(180deg,#43e67f,#12a84b);color:#04200f;min-height:50px;font-size:17px;box-shadow:0 5px 0 #0b6e30,0 0 18px rgba(67,230,127,.35)}
 button.btn.ghost{background:rgba(255,255,255,.1);color:var(--ink);box-shadow:none;border:1px solid rgba(255,255,255,.22);font-size:17px}
 .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
@@ -272,7 +273,6 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
       <button class="mnb" id="btnMineP" aria-label="מוקש פנצ'ר">📍 פנצ'ר<b id="mpCnt">0</b></button>
     </div>
     <div class="wbtns">
-      <button class="wb c hidden" id="btnChorizo" aria-label="טיל צ׳וריסו"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><rect x="2.5" y="8.5" width="19" height="7.5" rx="3.75" fill="#c2301f" stroke="#fff" transform="rotate(-28 12 12)"/><path d="M8 8.500l1.800 6.500M13 6.500l1.800 6.800" stroke="#ffb27a"/></svg><b id="chCnt">2</b></button>
       <button class="wb z" id="btnShock" aria-label="מכת חשמל"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linejoin="round"><path d="M13.500 2 5 13.500h6L9.500 22 19 9.500h-6z" fill="#ffe14a" stroke="#fff"/></svg><b id="shCnt">3</b></button>
       <button class="wb m" id="btnMissile" aria-label="טיל"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2c3 2.500 4.500 6 4.500 10v4l-2 2h-5l-2-2v-4C7.500 8 9 4.500 12 2z" fill="#19e3ff" stroke="#fff"/><circle cx="12" cy="9.500" r="1.600" fill="#06101a" stroke="none"/><path d="M7.500 14l-3 3.500V20l3-1.500M16.500 14l3 3.500V20l-3-1.500" stroke="#ff2e93"/></svg><b id="msCnt">3</b></button>
     </div>
@@ -438,6 +438,11 @@ const SAVE_DEFAULTS = {
 const save = Object.assign(JSON.parse(JSON.stringify(SAVE_DEFAULTS)), store.get('ringrush.v1', {}));
 let netHook = null;
 const persist = () => { store.set('ringrush.v1', save); if (netHook) netHook(); };
+if (!save.migChz) { /* the separate chorizo missile became the advanced levels of the missile upgrade: keep what was bought */
+  const c = save.up && save.up.chorizo | 0;
+  if (c > 0) { save.up.missiles = Math.max(save.up.missiles | 0, 3 + Math.min(2, c)); delete save.up.chorizo; }
+  save.migChz = true; persist();
+}
 if (!save.migShock) { /* the old mines upgrade became the shock weapon: keep the purchase (runs once; 'mines' is a real upgrade again) */
   if (save.up && save.up.mines !== undefined) { if (!save.up.shock) save.up.shock = save.up.mines; delete save.up.mines; }
   save.migShock = true; persist();
@@ -568,17 +573,22 @@ const UPGRADES = [
   { id: 'sight', n: 'כוונת', d: ['נועלת על המכונית שלפניך ומנווטת אליה את הטיל', 'נועלת גם על הנתיבים הסמוכים', 'נועלת על כל הכביש, טילים מהירים יותר'], cost: [300, 900, 2200] },
   { id: 'ramF', n: 'פרונט ניגוח', d: ['מנפץ רכבים קטנים בהתנגשות חזיתית, בלי נזק', 'מנפץ גם אוטובוסים', 'מנפץ גם משאיות'], cost: [400, 1100, 2600] },
   { id: 'ramS', n: 'להבי צד', d: ['הקשה על צד המסך מזנקת הצידה עם להבים רחבים שמנפצים רכבים קטנים (וגם רכבים שנוגעים בצד)', 'מנפצים גם ואנים, והזינוק חזק יותר', 'מנפצים גם אוטובוסים ומשאיות'], cost: [400, 1100, 2600] },
-  { id: 'missiles', n: 'מחסנית טילים', d: ['מתחילים עם 5 טילים', 'מתחילים עם 7 טילים', 'מתחילים עם 9 טילים'], cost: [100, 300, 700] },
+  { id: 'missiles', n: 'מחסנית טילים', d: ['מתחילים עם 5 טילים', 'מתחילים עם 7 טילים', 'מתחילים עם 9 טילים', 'ראש נפץ צ׳וריסו: כל טיל מתפוצץ בפיצוץ רחב ומשמיד כל מה שסביבו', 'ראש נפץ ענק: נועל לבד על מטרה (גם בלי כוונת), פיצוץ גדול יותר ופוגע גם ביריבים'], cost: [100, 300, 700, 1800, 3600] },
   { id: 'shock', n: 'מכת חשמל', d: ['פריקה לטווח קרוב ובינוני: מחסלת רכבים קטנים, מאטה גדולים ומפילה שוטרים. 5 מטענים', '7 מטענים, וגם אוטובוסים נופלים', '9 מטענים, וגם משאיות נופלות'], cost: [200, 600, 1500] },
   { id: 'mines', n: 'מוקשי נפץ', d: ['פתח 2 מוקשי נפץ (בנוסף לפנצ׳ר) שמשמידים רודפים. פנצ׳ר: 5', '3 מוקשי נפץ ו-6 פנצ׳ר', '4 מוקשי נפץ ו-7 פנצ׳ר'], cost: [150, 450, 1200] },
-  { id: 'chorizo', n: 'טילי צ׳וריסו', d: ['פיצוץ רחב שמשמיד כל מה שסביבו ונועל לבד על מטרה. מתחילים עם 2', 'מתחילים עם 4 טילי צ׳וריסו', 'מתחילים עם 6 טילי צ׳וריסו'], cost: [500, 1400, 3000] },
   { id: 'armor', n: 'שריון', d: ['לב נוסף בכל מירוץ', 'עוד לב נוסף'], cost: [600, 1800] }
 ];
 const upLvl = (id) => (save.up && save.up[id]) | 0;
-/* the user named Gabi pays 10% of the price on upgrades and look options (cars themselves are full price) */
-const isGabi = () => { const u = String(save.user || '').trim().toLowerCase(); return u === 'גבי' || u === 'gabi'; };
-const price = (p) => (isGabi() && p > 0 ? Math.max(1, Math.round(p * 0.1)) : p);
-const priceHtml = (p) => (isGabi() && p > 0 ? '<s style="opacity:.55">' + p + '</s> ' + price(p) : String(p));
+const missileAmmo = () => 3 + 2 * Math.min(3, upLvl('missiles'));
+const warhead = () => Math.max(Math.max(0, upLvl('missiles') - 3), curVeh().warhead || 0); /* 0 = plain missile, 1 = chorizo warhead, 2 = giant warhead */
+/* discounts: the founder (Shachar / Shachar Grossman) pays 50% on every purchase; the user named Gabi pays 10% of the price on upgrades and look options */
+const FOUNDERS = ['שחר', 'שחר גרוסמן', 'shachar', 'shahar', 'shachar grossman', 'shahar grossman'];
+const userKey = () => String(save.user || '').trim().replace(/\s+/g, ' ').toLowerCase();
+const isGabi = () => { const u = userKey(); return u === 'גבי' || u === 'gabi'; };
+const isFounder = () => FOUNDERS.includes(userKey());
+/* kind 'car' = buying a vehicle; anything else = upgrades and look options */
+const price = (p, kind) => { if (!(p > 0)) return p; const f = isFounder() ? 0.5 : isGabi() && kind !== 'car' ? 0.1 : 1; return Math.max(1, Math.round(p * f)); };
+const priceHtml = (p, kind) => (price(p, kind) < p ? '<s style="opacity:.55">' + p + '</s> ' + price(p, kind) : String(p));
 /* lifetime stats (saved) and achievements */
 const st = (k) => (save.stats && save.stats[k]) || 0;
 const bump = (k, n) => { save.stats[k] = st(k) + (n === undefined ? 1 : n); };
@@ -617,7 +627,7 @@ const VEHICLES = [
   { id: 'sport', n: 'ספורט', d: 'מאוזנת: מהירה, יציבה וקלה לשליטה', cost: 0, spec: 'sport', crownY: 1.4, hearts: 0, ram: 0, steer: 1, topSpeed: 1, accel: 1, nitroRegen: 1, nearBonus: 1, shield: false, bars: [4, 3, 2] },
   { id: 'jeep', n: 'ג׳יפ', d: 'לב נוסף וניגוח חזק ברמה אחת יותר. פונה לאט ו-8% פחות מהיר', cost: 1800, spec: 'jeep', crownY: 2.35, hearts: 1, ram: 1, steer: 0.72, topSpeed: 0.92, accel: 0.95, nitroRegen: 1, nearBonus: 1, shield: false, bars: [3, 2, 4] },
   { id: 'taxi', n: 'מונית', d: 'תמיד צהובה. פונה חד, נייטרו נטען פי 1.7 ובונוס כמעט-פגיעה +50%. בלי הגנה נוספת', cost: 2800, spec: 'taxi', crownY: 1.85, hearts: 0, ram: 0, steer: 1.35, topSpeed: 1, accel: 1.05, nitroRegen: 1.7, nearBonus: 1.5, shield: false, bars: [4, 5, 2] },
-  { id: 'chorizotruck', n: 'משאית צ׳וריסו', d: 'אוטו גלידות שמוכר צ׳וריסו, עם נקניק ענק בלחמנייה על הגג. כל נקניקייה שנאספת שווה כפול ומתחילים עם טיל צ׳וריסו. כבדה: האצה איטית, אבל שיא מהירות גבוה ב-30%', cost: 3800, spec: 'chorizotruck', crownY: 4.7, hearts: 0, ram: 0, steer: 0.82, topSpeed: 1.222, accel: 0.82, nitroRegen: 1, nearBonus: 1, shield: false, coinMult: 2, bonusCh: 1, bars: [5, 3, 4] },
+  { id: 'chorizotruck', n: 'משאית צ׳וריסו', d: 'אוטו גלידות שמוכר צ׳וריסו, עם נקניק ענק בלחמנייה על הגג. כל נקניקייה שנאספת שווה כפול והטילים שלה עם ראש נפץ צ׳וריסו מההתחלה. כבדה: האצה איטית, אבל שיא מהירות גבוה ב-30%', cost: 3800, spec: 'chorizotruck', crownY: 4.7, hearts: 0, ram: 0, steer: 0.82, topSpeed: 1.222, accel: 0.82, nitroRegen: 1, nearBonus: 1, shield: false, coinMult: 2, warhead: 1, bars: [5, 3, 4] },
   { id: 'armored', n: 'שרד', d: 'מגן שסופג פגיעה אחת בכל הקפה. כבדה: האצה איטית ו-10% פחות מהירה', cost: 4500, spec: 'armored', crownY: 2.15, hearts: 0, ram: 0, steer: 0.85, topSpeed: 0.9, accel: 0.8, nitroRegen: 1, nearBonus: 1, shield: true, bars: [2, 3, 5] }
 ];
 const curVeh = () => VEHICLES.find((v) => v.id === save.car) || VEHICLES[0];
@@ -1497,7 +1507,7 @@ const sausageCoinGeo = bakeGeo([
   { geo: CAPS_COIN, c: 0xff4a26, rz: Math.PI / 2 },
   { geo: RING_COIN, c: 0xffb04a, rz: Math.PI / 2, x: -.14 }, { geo: RING_COIN, c: 0xffb04a, rz: Math.PI / 2, x: .14 }
 ]);
-const COIN_N = 60, COIN_GLOW = 1.5;
+const COIN_N = 60, COIN_GLOW = 1.5, COIN_SCALE = 1.1; /* sausage coins are 10% bigger than before */
 const MAX_SAUSAGE_EXTENT = LANE_W * 0.7; /* nothing collectible may be wider than ~70% of a lane, even while spinning */
 const footprint = (g) => { g.computeBoundingBox(); const b = g.boundingBox; return Math.max(b.max.x - b.min.x, b.max.z - b.min.z); };
 const coins = Array.from({ length: COIN_N }, () => ({ active: false, s: 0, lat: 0 }));
@@ -1531,7 +1541,7 @@ function makeChorizo() {
   g.add(fl); g.visible = false; scene.add(g);
   return { kind: 'ch', g, fl, active: false, s: 0, ps: 0, lat: 0, speed: 0, life: 0, target: null };
 }
-const chorizos = Array.from({ length: 3 }, makeChorizo);
+const chorizos = Array.from({ length: 6 }, makeChorizo);
 missiles.forEach((m) => { m.kind = 'ms'; });
 const projectiles = missiles.concat(chorizos);
 
@@ -1664,8 +1674,9 @@ const rivals = RIVAL_DEFS.map((d) => {
   const car = buildCar(d.spec, d.c);
   const blob = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 6.4).rotateX(-Math.PI / 2), sharedBlob); blob.position.y = 0.05; car.g.add(blob);
   car.g.visible = false; scene.add(car.g);
-  return Object.assign({ g: car.g, len: SPEC[d.spec].len, wid: SPEC[d.spec].wid, active: false, dist: 0, pd: 0, lat: 0, plat: 0, latT: 0, speed: 0, stunT: 0, fin: false, finT: 0, laneCd: 0, spinA: 0 }, d);
+  return Object.assign({ g: car.g, len: SPEC[d.spec].len, wid: SPEC[d.spec].wid, active: false, dist: 0, pd: 0, lat: 0, plat: 0, latT: 0, speed: 0, stunT: 0, fin: false, finT: 0, laneCd: 0, spinA: 0, hp: 24, maxHp: 24, wreckT: 0, hitCd: 0, atkCd: 8, atkT: 0, hitT: 0 }, d);
 });
+const RIVAL_HP = 24; /* a traffic car dies in one hit; a rival takes several */
 const RACE = { grid: 0, lastCount: 99, t: 0, finished: false, finT: 0, endT: 0, place: 1, dnf: false, results: null, reward: null, goFlash: 0 };
 const GRID_SLOTS = [[-8, -2.2], [-8, 2.2], [-16, -2.2], [-16, 2.2], [-24, -2.2], [-26, 2.2]];
 const PLAYER_SLOT = 5; /* the player starts last: nobody sits between the camera and the car, and the climb is the fun part */
@@ -1673,7 +1684,8 @@ function placeOnGrid() {
   const order = [0, 1, 2, 3, 4];
   rivals.forEach((r, i) => {
     const sl = GRID_SLOTS[order[i]];
-    Object.assign(r, { active: true, dist: sl[0], pd: sl[0], lat: sl[1], plat: sl[1], latT: sl[1], speed: 0, stunT: 0, fin: false, finT: 0, laneCd: 0, spinA: 0 });
+    const hp = RIVAL_HP + 4 * Math.max(0, TRACKS.indexOf(TR));
+    Object.assign(r, { active: true, dist: sl[0], pd: sl[0], lat: sl[1], plat: sl[1], latT: sl[1], speed: 0, stunT: 0, fin: false, finT: 0, laneCd: 0, spinA: 0, hp, maxHp: hp, wreckT: 0, hitCd: 0, atkCd: rnd(7, 13), atkT: 0, hitT: 0, tagHp: -1 });
     r.g.visible = true;
   });
   return GRID_SLOTS[PLAYER_SLOT];
@@ -1690,6 +1702,10 @@ function rivalTick(r, dt, dying) {
   if (!r.active) return;
   if (r.stunT > 0) r.stunT -= dt;
   if (r.laneCd > 0) r.laneCd -= dt;
+  if (r.hitCd > 0) r.hitCd -= dt;
+  if (r.hitT > 0) r.hitT -= dt;
+  if (r.atkT > 0) r.atkT -= dt;
+  if (r.wreckT > 0) { r.wreckT -= dt; if (r.wreckT <= 0) { r.hp = Math.ceil(r.maxHp * 0.5); r.stunT = 0; r.tagHp = -1; } }
   const rs = mod(r.dist, L), ps = pS();
   let want = TR.vTop * TR.rival * r.skill;
   const gap = r.dist - P.dist;
@@ -1716,30 +1732,58 @@ function rivalTick(r, dt, dying) {
     }
     if (bd < 26) want = Math.min(want, blocker.speed * (bd < 12 ? 0.85 : 0.97));
   }
+  /* rivals fight back: now and then one lunges at the player when they are side by side */
+  if (!dying && P.alive && !RACE.finished && r.wreckT <= 0 && r.stunT <= 0 && !G.noRivalHits) {
+    r.atkCd -= dt;
+    const relA = signedRel(rs, ps);
+    if (r.atkCd <= 0 && Math.abs(relA) < 12 && Math.abs(r.lat - P.lat) < 6.5 && (G.rivalHitCd || 0) <= 0) { r.atkT = 0.9; r.atkCd = rnd(9, 15); }
+    if (r.atkT > 0) { r.latT = clamp(P.lat, -LAT_MAX, LAT_MAX); want *= 1.05; }
+  }
   if (r.stunT > 0) want *= 0.3;
+  if (r.wreckT > 0) want = 0;
   const acc = r.stunT > 0 ? 8 : 14;
   r.speed += clamp(want - r.speed, -24 * dt, acc * dt);
-  r.lat = clamp(damp(r.lat, r.latT, 2.6, dt), -LAT_MAX, LAT_MAX);
+  r.lat = clamp(damp(r.lat, r.latT, r.atkT > 0 ? 6 : 2.6, dt), -LAT_MAX, LAT_MAX);
   r.dist += r.speed * dt;
   r.spinA = r.stunT > 0 ? r.spinA + dt * 9 : r.spinA * (1 - Math.min(1, dt * 6));
   if (!r.fin && r.dist >= RACE_LAPS * L) { r.fin = true; r.finT = RACE.t; }
-  /* contact with the player: a shoulder bump, both lose a little speed */
+  /* contact with the player: whoever hits harder damages the other */
   if (!dying && P.alive && !RACE.finished) {
     const rel = signedRel(rs, ps), dl = r.lat - P.lat;
     if (Math.abs(rel) < (r.len + P.len) / 2 - 0.3 && Math.abs(dl) < (r.wid + P.wid) / 2 - 0.1) {
       const sg = dl >= 0 ? 1 : -1;
       r.lat = clamp(P.lat + sg * ((r.wid + P.wid) / 2 + 0.05), -LAT_MAX, LAT_MAX); r.latT = r.lat;
-      if (P.slamT > 0 || P.powerT > 0) { rivalKnock(r, sg); }
+      if (r.wreckT > 0) { P.speed *= 0.985; }
+      else if (P.powerT > 0) rivalKnock(r, sg, 14);
+      else if (P.slamT > 0) rivalKnock(r, sg, 5 + 2 * ramS());
+      else if (!G.noRivalHits && (r.atkT > 0 || (rel < -0.5 && r.speed > P.speed + 2))) {
+        if (P.inv <= 0 && (G.rivalHitCd || 0) <= 0) { G.rivalHitBy = r.n; G.rivalHitCd = 5; r.atkT = 0; crash(null, 'rival'); rivalDamage(r, 2); r.speed *= 0.8; }
+        else { P.speed *= 0.985; r.speed *= 0.985; }
+      }
+      else if (rel > 0.3 && P.speed > r.speed + 3) rivalKnock(r, sg, 3 + 2 * ramF());
       else { P.speed *= 0.985; r.speed *= 0.985; }
       if (G.shake < 0.25) G.shake = 0.25;
     }
   }
 }
-function rivalKnock(r, side) {
-  if (r.stunT > 0.6) return;
-  r.stunT = 2.2; r.speed *= 0.55; r.latT = clamp(r.lat + side * 2.5, -LAT_MAX, LAT_MAX);
-  frameOf(mod(r.dist, L), r.lat, F2); emitSparks(F2.px, 1, F2.pz, 14); Sfx.ram(); bump('rivalHits');
-  banner('פגעת ב' + r.n + '!', 'nm');
+function rivalDamage(r, dmg) {
+  if (!r.active || r.wreckT > 0 || dmg <= 0) return;
+  r.hp = Math.max(0, r.hp - dmg); r.hitT = 0.35; r.tagHp = -1; bump('rivalHits');
+  frameOf(mod(r.dist, L), r.lat, F2); emitSparks(F2.px, 1, F2.pz, 10 + Math.round(dmg));
+  if (r.hp <= 0) {
+    r.wreckT = 7; r.stunT = 7; r.speed *= 0.25; r.atkT = 0;
+    explode(F2.px, 1.4, F2.pz, 2.2, r.c); Sfx.boom(); bump('rivalWrecks');
+    impact({ slow: 0.6, flash: 0.7, shake: 0.8, punch: 1 });
+    const loot = ramLoot('rival');
+    banner('ניפצת את ' + r.n + '! ' + ltr('+' + loot.n) + ' צ׳וריסו', 'big');
+  }
+}
+function rivalKnock(r, side, dmg) {
+  if (r.hitCd > 0 || r.wreckT > 0) return;
+  r.hitCd = 0.7; r.stunT = Math.max(r.stunT, 1.3); r.speed *= 0.7; r.latT = clamp(r.lat + side * 2.5, -LAT_MAX, LAT_MAX);
+  Sfx.ram();
+  rivalDamage(r, dmg);
+  if (r.wreckT <= 0) banner('פגעת ב' + r.n + '! ' + ltr(r.hp + '/' + r.maxHp), 'nm');
 }
 /* ram halos: a green ring on the road around every car the player can destroy right now; nothing on the others */
 const ramHaloTex = canvasTex(128, 128, (g, w, h) => {
@@ -1755,6 +1799,54 @@ const rmarks = Array.from({ length: HALO_N }, () => {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: ramHaloTex, transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
   m.rotation.order = 'YXZ'; m.renderOrder = 8; m.visible = false; m.frustumCulled = false; scene.add(m); return m;
 });
+/* rivals are easy to tell apart from traffic: a name tag with a health bar floating above each one, plus a ring of their own colour on the road */
+const rivalRingTex = canvasTex(128, 128, (g, w, h) => {
+  g.clearRect(0, 0, w, h);
+  g.strokeStyle = '#ffffff'; g.lineWidth = 9; g.shadowColor = '#ffffff'; g.shadowBlur = 14;
+  g.beginPath(); g.arc(64, 64, 52, 0, Math.PI * 2); g.stroke();
+  g.lineWidth = 3; g.globalAlpha = .7; g.beginPath(); g.arc(64, 64, 38, 0, Math.PI * 2); g.stroke();
+}, false);
+const hexCss = (c) => '#' + c.toString(16).padStart(6, '0');
+rivals.forEach((r) => {
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 76;
+  const tex = new THREE.CanvasTexture(cv);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, fog: false }));
+  sp.renderOrder = 9; sp.visible = false; sp.frustumCulled = false; scene.add(sp);
+  const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: rivalRingTex, color: r.c, transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
+  ring.rotation.order = 'YXZ'; ring.renderOrder = 8; ring.visible = false; ring.frustumCulled = false; scene.add(ring);
+  r.tag = { cv, tex, sp, ring };
+});
+function drawRivalTag(r) {
+  const g = r.tag.cv.getContext('2d'), w = 256, h = 76, col = hexCss(r.c), wreck = r.wreckT > 0;
+  g.clearRect(0, 0, w, h);
+  g.fillStyle = 'rgba(8,9,26,.86)'; g.strokeStyle = col; g.lineWidth = 5;
+  g.beginPath(); g.moveTo(14, 2); g.arcTo(w - 2, 2, w - 2, h - 2, 14); g.arcTo(w - 2, h - 2, 2, h - 2, 14); g.arcTo(2, h - 2, 2, 2, 14); g.arcTo(2, 2, w - 2, 2, 14); g.closePath(); g.fill(); g.stroke();
+  g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffffff';
+  g.font = '900 30px "Arial Hebrew","Noto Sans Hebrew","Segoe UI",system-ui,Arial,sans-serif';
+  g.fillText(wreck ? r.n + ' · מנופץ' : r.n, w / 2, 27);
+  g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(20, 50, w - 40, 14);
+  const f = clamp(r.hp / r.maxHp, 0, 1);
+  g.fillStyle = f > 0.5 ? '#ff9a2a' : f > 0.25 ? '#ff5a3a' : '#ff1f4a'; g.fillRect(20, 50, (w - 40) * f, 14);
+  g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 2; g.strokeRect(20, 50, w - 40, 14);
+  r.tag.tex.needsUpdate = true; r.tagHp = r.hp;
+}
+function updateRivalTags() {
+  const on = G.state === 'play';
+  for (const r of rivals) {
+    const t = r.tag;
+    if (!on || !r.active || !r.g.visible) { t.sp.visible = t.ring.visible = false; continue; }
+    const rs = mod(r.dist, L);
+    frameOf(rs, r.lat, F3);
+    const dx = F3.px - camera.position.x, dz = F3.pz - camera.position.z, d = Math.hypot(dx, dz);
+    if (d > 190) { t.sp.visible = t.ring.visible = false; continue; }
+    if (r.tagHp !== r.hp || t.wreckShown !== (r.wreckT > 0)) { drawRivalTag(r); t.wreckShown = r.wreckT > 0; }
+    const k = clamp(d * 0.07, 2.4, 8) * (1 + (r.hitT > 0 ? 0.25 : 0));
+    t.sp.position.set(F3.px, SPEC[r.spec].len > 8 ? 4.6 : 3.7, F3.pz); t.sp.scale.set(k * 3.37, k, 1); t.sp.visible = true;
+    t.ring.position.set(F3.px, 0.16, F3.pz); t.ring.rotation.set(-Math.PI / 2, Math.atan2(F3.tx, F3.tz), 0);
+    const pulse = 1 + Math.sin(camT * 7 + r.hp) * 0.05;
+    t.ring.scale.set((r.wid + 3.4) * pulse, (r.len + 3.4) * pulse, 1); t.ring.material.opacity = r.wreckT > 0 ? 0.25 : 0.95; t.ring.visible = true;
+  }
+}
 const ramOK = (c, kind) => P.powerT > 0 || (kind === 'front' ? ramF() >= RAM_F[c.type] : ramS() >= RAM_S[c.type]);
 
 /* Speed lines */
@@ -2005,7 +2097,7 @@ const Sfx = (() => {
    ===================================================================== */
 const P = {
   dist: 0, pd: 0, lat: 0, plat: 0, lane: 0, vlat: 0, latB: 0, latT: 0, slamOff: 0, slamT: 0, slamCd: 0, slamDir: 1, thr: 1, mines: 0, minesX: 0, speed: 0, lives: 3, inv: 0, alive: true,
-  nitro: 100, nitroOn: false, brake: 0, combo: 0, comboT: 0, score: 0, coins: 0, lapsDone: 0, lapClean: true, missiles: 3, shocks: 3, maxLives: 3, kills: 0, chorizo: 0, turboT: 0, powerT: 0, magnetT: 0, len: 4.6, wid: 1.95, shield: 0, brakedLap: false
+  nitro: 100, nitroOn: false, brake: 0, combo: 0, comboT: 0, score: 0, coins: 0, lapsDone: 0, lapClean: true, missiles: 3, shocks: 3, maxLives: 3, kills: 0, turboT: 0, powerT: 0, magnetT: 0, len: 4.6, wid: 1.95, shield: 0, brakedLap: false
 };
 const R = { maxCombo: 0, coins: 0, cleanLaps: 0, laps: 0, maxKmh: 0, score: 0, nitroUses: 0, near: 0, kills: 0, food: 0 };
 const G = { mineCd: 0, state: 'menu', time: 0, rowAcc: 0, prevOpen: [-1, 0, 1], dyingT: 0, shake: 0, camLat: 0, coinIdx: 0, missionTick: 0, tutT: 0, menuT: 0, wCool: 0, target: null, copT: 15, sirenT: 0, sirenPh: 0, copNear: null, timeScale: 1, slowT: 0, slowDur: 1, impactCd: 0 };
@@ -2015,7 +2107,7 @@ const pS = () => mod(P.dist, L);
 const el = {
   hud: $('#hud'), score: $('#score'), combo: $('#combo'), kmh: $('#kmh'), nitro: $('#nitro'), nitroFill: $('#nitroFill'), lap: $('#lap'),
   coinsRun: $('#coinsRun'), hearts: $('#hearts'), mini: $('#mini'), placeN: $('#placeN'), placeOf: $('#placeOf'), lapTxt: $('#lapTxt'), progFill: $('#progFill'), buffs: $('#buffs'), mirror: $('#mirror'), mineBox: $('#mineBox'), mxCnt: $('#mxCnt'), mpCnt: $('#mpCnt'), finishWarn: $('#finishWarn'), finishWarnTxt: $('#finishWarnTxt'), countdown: $('#countdown'), cdTxt: $('#cdTxt'), bonusBanner: $('#bonusBanner'), slamPips: $('#slamPips'), banners: $('#banners'), flash: $('#flash'), nitroGlow: $('#nitroGlow'),
-  toast: $('#toast'), tut: $('#tut'), flashW: $('#flashW'), bossBar: $('#bossBar'), bossFill: $('#bossFill'), bossHp: $('#bossHp'), bCh: $('#btnChorizo'), chn: $('#chCnt'), siren: $('#siren'), warn: $('#warn'), warnTxt: $('#warnTxt'), ms: $('#msCnt'), mn: $('#shCnt'), bMs: $('#btnMissile'), bMn: $('#btnShock')
+  toast: $('#toast'), tut: $('#tut'), flashW: $('#flashW'), bossBar: $('#bossBar'), bossFill: $('#bossFill'), bossHp: $('#bossHp'), siren: $('#siren'), warn: $('#warn'), warnTxt: $('#warnTxt'), ms: $('#msCnt'), mn: $('#shCnt'), bMs: $('#btnMissile'), bMn: $('#btnShock')
 };
 const heartSvg = '<svg viewBox="0 0 24 24"><path fill="#ff2e5b" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.8 4.5 6.5 4.5c2 0 3.8 1.1 5.5 3 1.7-1.9 3.5-3 5.5-3 3.700 0 5.600 3.900 4.100 7.300C19.500 16.400 12 21 12 21z"/></svg>';
 for (let i = 0; i < 5; i++) { const d = document.createElement('div'); d.className = 'heart'; d.innerHTML = heartSvg; el.hearts.appendChild(d); }
@@ -2135,7 +2227,7 @@ function startRun(trackIdx, grid) {
   missions = todaysMissions();
   const VH0 = curVeh(), maxL = 3 + upLvl('armor') + VH0.hearts;
   Object.assign(P, { dist: 0, pd: 0, lat: 0, plat: 0, lane: 0, vlat: 0, latB: 0, latT: 0, slamOff: 0, slamT: 0, slamCd: 0, thr: 1, speed: 30, lives: maxL, maxLives: maxL, inv: 1.2, alive: true, nitro: 60, nitroOn: false, brake: 0,
-    combo: 0, comboT: 0, score: 0, coins: 0, lapsDone: 0, lapClean: true, missiles: 3 + 2 * upLvl('missiles'), shocks: 3 + 2 * upLvl('shock'), kills: 0, chorizo: 2 * upLvl('chorizo') + (VH0.bonusCh || 0), turboT: 0, powerT: 0, magnetT: 0, shield: VH0.shield ? 1 : 0, mines: mineStock('p'), minesX: mineStock('x') });
+    combo: 0, comboT: 0, score: 0, coins: 0, lapsDone: 0, lapClean: true, missiles: missileAmmo(), shocks: 3 + 2 * upLvl('shock'), kills: 0, turboT: 0, powerT: 0, magnetT: 0, shield: VH0.shield ? 1 : 0, mines: mineStock('p'), minesX: mineStock('x') });
   Object.assign(R, { maxCombo: 0, coins: 0, cleanLaps: 0, laps: 0, maxKmh: 0, score: 0, nitroUses: 0, near: 0, kills: 0, food: 0 });
   Object.assign(G, { state: 'play', time: 0, rowAcc: 0, prevOpen: [-1, 0, 1], dyingT: 0, shake: 0, missionTick: 0, tutT: 0, wCool: 0, target: null, copT: rnd(14, 22), sirenT: 0, copNear: null });
   Object.assign(RACE, { grid: 0, lastCount: 99, t: 0, finished: false, finT: 0, endT: 0, place: 1, dnf: false, results: null, reward: null, tiltAsk: false });
@@ -2211,7 +2303,7 @@ const Net = {
   async board() { return (await Net.call('/api/leaderboard')).rows || []; }
 };
 netHook = Net.schedule;
-function syncUser() { $('#mUser').textContent = save.user ? '👤 ' + save.user : '👤 התחבר'; $('#btnLogin2').classList.toggle('hidden', !!save.user); }
+function syncUser() { $('#mUser').textContent = save.user ? '👤 ' + save.user + (isFounder() ? ' 👑 מייסד' : '') : '👤 התחבר'; $('#btnLogin2').classList.toggle('hidden', !!save.user); }
 function toMenu() {
   G.state = 'menu'; resetTraffic();
   Sfx.musicStop(); Sfx.engine(0, false, false);
@@ -2384,7 +2476,6 @@ const act = {
   },
   brake() { if (G.state === 'play') { P.brake = 0.6; P.brakedLap = true; } },
   missile() { fireMissile(); },
-  chorizo() { fireChorizo(); },
   shock() { fireShock(); },
   mine(kind) { dropMine(kind); }
 };
@@ -2431,7 +2522,7 @@ function crash(c, cause) {
   frameOf(pS(), P.lat, F1); emitSparks(F1.px, 1, F1.pz, 40); FX.burst(F1.px, 1, F1.pz, 1.3, PAINTS[save.paint].c);
   Sfx.crash(); vib([70, 40, 90]);
   if (!save.calm) { el.flash.classList.remove('hit'); void el.flash.offsetWidth; el.flash.classList.add('hit'); }
-  banner(cause === 'cop' ? 'השוטר פגע בך!' : cause === 'lettuce' ? 'חסה בפרצוף!' : cause === 'boss' ? 'הבוס דרס אותך!' : 'פגיעה!', 'bad');
+  banner(cause === 'rival' ? (G.rivalHitBy || 'יריב') + ' פגע בך!' : cause === 'cop' ? 'השוטר פגע בך!' : cause === 'lettuce' ? 'חסה בפרצוף!' : cause === 'boss' ? 'הבוס דרס אותך!' : 'פגיעה!', 'bad');
   if (P.lives <= 0) {
     P.alive = false; G.state = 'dying'; G.dyingT = 0;
     Sfx.crash();
@@ -2444,7 +2535,8 @@ function ram(c, kind) {
   const pts = 200 * (c.len > 8 ? 2 : 1); P.score += pts; P.nitro = Math.min(100, P.nitro + 8);
   G.shake = Math.max(G.shake, 0.5); Sfx.ram(); vib(25);
   if (c.len > 8) impact({ slow: 0.55, flash: 0.6, shake: 0.8, punch: 1 }); else impact({ punch: 0.55, shake: 0.5 });
-  banner((kind === 'front' ? 'ניגוח חזית! ' : 'ניגוח צד! ') + ltr('+' + pts), 'big');
+  const loot = ramLoot(c.type);
+  banner((kind === 'front' ? 'ניגוח חזית! ' : 'ניגוח צד! ') + ltr('+' + pts) + ' · ' + ltr('+' + loot.n) + ' צ׳וריסו', 'big');
 }
 function pickTarget(force) {
   const lv = force ? 3 : upLvl('sight'); if (!lv) return null;
@@ -2460,27 +2552,23 @@ function pickTarget(force) {
 }
 function fireMissile() {
   if (G.state !== 'play' || P.missiles <= 0 || G.wCool > 0) return;
-  const m = missiles.find((q) => !q.active); if (!m) return;
-  const tgt = pickTarget(), s0 = pS() + 3.2;
-  Object.assign(m, { active: true, s: s0, ps: s0, lat: P.lat, speed: P.speed + 55 + upLvl('sight') * 10, life: 3.2, target: tgt });
-  m.g.visible = true; P.missiles--; G.wCool = 0.22; hc.ammo = null; Sfx.missile(); vib(15);
+  const wh = warhead(), m = (wh ? chorizos : missiles).find((q) => !q.active); if (!m) return;
+  const tgt = pickTarget(wh >= 2), s0 = pS() + 3.2;
+  Object.assign(m, { active: true, s: s0, ps: s0, lat: P.lat, speed: wh ? P.speed + 48 : P.speed + 55 + upLvl('sight') * 10, life: wh ? 3.6 : 3.2, target: tgt, wh });
+  m.g.visible = true; P.missiles--; G.wCool = wh ? 0.32 : 0.22; hc.ammo = null; Sfx.missile(); vib(wh ? 25 : 15);
 }
-function fireChorizo() {
-  if (G.state !== 'play' || P.chorizo <= 0 || G.wCool > 0) return;
-  const m = chorizos.find((q) => !q.active); if (!m) return;
-  const s0 = pS() + 3.6;
-  Object.assign(m, { active: true, s: s0, ps: s0, lat: P.lat, speed: P.speed + 48, life: 3.6, target: pickTarget(true) });
-  m.g.visible = true; P.chorizo--; G.wCool = 0.4; hc.ammo = null; Sfx.missile(); vib(25);
-}
-function chorizoBlast(s, lat) {
-  frameOf(s, lat, F2); explode(F2.px, 1.2, F2.pz, 2.6); Sfx.boom(); G.shake = Math.max(G.shake, 0.6);
+function chorizoBlast(s, lat, wh) {
+  wh = wh || 1;
+  const rad = wh >= 2 ? 14 : 10, wid = LANE_W * (wh >= 2 ? 2.2 : 1.6);
+  frameOf(s, lat, F2); explode(F2.px, 1.2, F2.pz, wh >= 2 ? 3.4 : 2.6); Sfx.boom(); G.shake = Math.max(G.shake, 0.6);
   let n = 0;
   for (const c of traffic) {
     if (!c.active || c.state !== 0) continue;
-    if (Math.abs(signedRel(c.s, s)) < 10 + c.len / 2 && Math.abs(c.lat - lat) < LANE_W * 1.6) { destroyCar(c, 'missile', true); n++; }
+    if (Math.abs(signedRel(c.s, s)) < rad + c.len / 2 && Math.abs(c.lat - lat) < wid) { destroyCar(c, 'missile', true); n++; }
   }
-  for (const cp of cops) if (cp.active && Math.abs(signedRel(cp.s, s)) < 10 && Math.abs(cp.lat - lat) < LANE_W * 1.6) { cp.active = false; cp.g.visible = false; n += 2; addKill(); bump('cops'); }
-  if (BOSS.active && !BOSS.fleeing && Math.abs(signedRel(BOSS.s, s)) < 10 + BOSS_LEN / 2 && Math.abs(BOSS.lat - lat) < LANE_W * 1.6 + BOSS_WID / 2) damageBoss(3);
+  for (const cp of cops) if (cp.active && Math.abs(signedRel(cp.s, s)) < rad && Math.abs(cp.lat - lat) < wid) { cp.active = false; cp.g.visible = false; n += 2; addKill(); bump('cops'); }
+  for (const r of rivals) if (r.active && r.wreckT <= 0 && Math.abs(signedRel(mod(r.dist, L), s)) < rad && Math.abs(r.lat - lat) < wid) { rivalDamage(r, wh >= 2 ? 10 : 7); r.stunT = Math.max(r.stunT, 1.5); r.speed *= 0.6; n += 2; }
+  if (BOSS.active && !BOSS.fleeing && Math.abs(signedRel(BOSS.s, s)) < rad + BOSS_LEN / 2 && Math.abs(BOSS.lat - lat) < wid + BOSS_WID / 2) damageBoss(wh >= 2 ? 4 : 3);
   const pts = 250 * n; P.score += pts;
   impact({ slow: 0.8, flash: 1, shake: 0.9, punch: 1 });
   banner('צ׳וריסו! ' + ltr('+' + pts), 'big');
@@ -2513,10 +2601,9 @@ function bonusBanner(kind) {
   el.bonusBanner.innerHTML = '<div class="bb2" style="--bc:' + b.col + '"><span class="bi">' + b.ico + '</span><div><b>' + b.n + '</b><small>' + (note || b.d) + '</small></div></div>';
   const n = el.bonusBanner.firstChild; setTimeout(() => { if (n.parentNode) n.remove(); }, 1900);
 }
-function collectPickup(pk) {
-  pk.active = false; R.food++; bump('food'); P.score += 100; Sfx.eat(); vib(20);
-  bonusBanner(pk.kind);
-  switch (pk.kind) {
+function applyBonus(kind) {
+  bonusBanner(kind);
+  switch (kind) {
     case 0: P.turboT = 4.5; P.nitro = Math.min(100, P.nitro + 30); break;
     case 1: P.powerT = 8; break;
     case 2: P.magnetT = 9; break;
@@ -2528,6 +2615,34 @@ function collectPickup(pk) {
       bump('queens'); P.turboT = 6; P.powerT = 7; P.magnetT = 10; P.score += 500; G.shake = Math.max(G.shake, 0.5);
       frameOf(pS(), P.lat, F1); emitSparks(F1.px, 1.6, F1.pz, 36);
   }
+}
+function collectPickup(pk) {
+  pk.active = false; R.food++; bump('food'); P.score += 100; Sfx.eat(); vib(20);
+  applyBonus(pk.kind);
+}
+/* every car wrecked by a ram pays chorizo (sausage coins) and sometimes a random bonus; the sturdier the car, the better the loot */
+const RAM_COINS = { sedan: 2, moto: 2, van: 3, bus: 6, truck: 10, rival: 20 };
+const RAM_LOOT = { sedan: 0.16, moto: 0.16, van: 0.25, bus: 0.45, truck: 0.65, rival: 1 };
+function ramLoot(type) {
+  const cm = curVeh().coinMult || 1, n = (RAM_COINS[type] || 2) * cm;
+  P.coins += n; R.coins += n; bump('sausages', n); Sfx.coin(P.coins);
+  let extra = null;
+  if (Math.random() < (RAM_LOOT[type] || 0.16)) {
+    const opts = ['bonus', 'bonus', 'bonus'];
+    if (P.missiles < missileAmmo()) opts.push('missile');
+    if (P.shocks < 3 + 2 * upLvl('shock')) opts.push('shock');
+    if (P.nitro < 80) opts.push('nitro');
+    const pick = opts[(Math.random() * opts.length) | 0];
+    if (pick === 'bonus') { const k = pickBonus(); applyBonus(k); extra = BONUS_TXT[k].n; }
+    else {
+      const t = pick === 'missile' ? ['🚀', 'טיל נוסף'] : pick === 'shock' ? ['⚡', 'מטען חשמל נוסף'] : ['🔥', 'נייטרו +40'];
+      if (pick === 'missile') P.missiles++; else if (pick === 'shock') P.shocks++; else P.nitro = Math.min(100, P.nitro + 40);
+      hc.ammo = null; extra = t[1];
+      el.bonusBanner.innerHTML = '<div class="bb2" style="--bc:#ffc83d"><span class="bi">' + t[0] + '</span><div><b>' + t[1] + '</b><small>שלל מניגוח</small></div></div>';
+      const nd = el.bonusBanner.firstChild; setTimeout(() => { if (nd && nd.parentNode) nd.remove(); }, 1900);
+    }
+  }
+  return { n, extra };
 }
 const SHOCK_FRONT = 34, SHOCK_BACK = 16, SHOCK_SIDE = LANE_W * 2.3;
 function fireShock() {
@@ -2545,6 +2660,12 @@ function fireShock() {
     if (rel < -SHOCK_BACK - 4 || rel > SHOCK_FRONT || dl > SHOCK_SIDE) continue;
     cand.push({ o: cp, kind: 'cop', d: Math.hypot(rel, dl * 1.5) - 10 });
   }
+  for (const r of rivals) {
+    if (!r.active || r.wreckT > 0) continue;
+    const rel = signedRel(mod(r.dist, L), ps), dl = Math.abs(r.lat - P.lat);
+    if (rel < -SHOCK_BACK || rel > SHOCK_FRONT || dl > SHOCK_SIDE) continue;
+    cand.push({ o: r, kind: 'rival', d: Math.hypot(rel, dl * 1.5) + 4 });
+  }
   if (!cand.length) { G.wCool = 0.25; Sfx.fizzle(); banner('אין מטרות בטווח', 'nm'); return; }
   cand.sort((a, b) => a.d - b.d);
   let n = 0, pts = 0;
@@ -2556,6 +2677,7 @@ function fireShock() {
       const cp = h.o; cp.active = false; cp.g.visible = false; boomAt(cp.s, cp.lat);
       pts += 500; addKill(); bump('cops'); bump('shocked'); P.coins += 10; R.coins += 10; continue;
     }
+    if (h.kind === 'rival') { const r = h.o; rivalDamage(r, 4 + 2 * lv); r.stunT = Math.max(r.stunT, 2); r.speed *= 0.5; pts += 80; continue; }
     const c = h.o, big = c.type === 'bus' || c.type === 'truck';
     if (!big || (c.type === 'bus' && lv >= 2) || (c.type === 'truck' && lv >= 3)) { destroyCar(c, 'shock', true); pts += 120; }
     else { c.stunT = 3; c.speed *= 0.4; pts += 60; carWorld(c, F2); emitSparks(F2.px, 1.5, F2.pz, 12); }
@@ -2672,7 +2794,7 @@ function mineBlast(s, lat) {
   let n = 0;
   for (const cp of cops) if (cp.active && Math.abs(signedRel(cp.s, s)) < 8 && Math.abs(cp.lat - lat) < 5) { cp.active = false; cp.g.visible = false; n += 2; addKill(); bump('cops'); P.coins += 10; R.coins += 10; }
   for (const c of traffic) if (c.active && c.state === 0 && Math.abs(signedRel(c.s, s)) < 7 + c.len / 2 && Math.abs(c.lat - lat) < 5) { destroyCar(c, 'missile', true); n++; }
-  for (const r of rivals) if (r.active && Math.abs(signedRel(mod(r.dist, L), s)) < 8 && Math.abs(r.lat - lat) < 5) { r.stunT = 3.2; r.speed *= 0.3; n++; bump('rivalHits'); }
+  for (const r of rivals) if (r.active && Math.abs(signedRel(mod(r.dist, L), s)) < 8 && Math.abs(r.lat - lat) < 5) { r.stunT = Math.max(r.stunT, 2.4); r.speed *= 0.4; n++; rivalDamage(r, 5); }
   P.score += 300 * n;
   if (n) banner('מוקש! ' + ltr('+' + 300 * n), 'big');
 }
@@ -2694,7 +2816,7 @@ function minesTick(dt) {
     if (!hit) for (const r of rivals) {
       if (!r.active || Math.abs(signedRel(mod(r.dist, L), m.s)) > r.len / 2 + 0.8 || Math.abs(r.lat - m.lat) > r.wid / 2 + hitR) continue;
       hit = true;
-      if (m.kind === 'p') { r.stunT = 2.0; r.speed *= 0.4; frameOf(mod(r.dist, L), r.lat, F2); emitSparks(F2.px, 0.6, F2.pz, 14); banner(r.n + ' ספג פנצ׳ר!', 'nm'); Sfx.splat(); bump('punctures'); }
+      if (m.kind === 'p') { r.stunT = Math.max(r.stunT, 2.0); r.speed *= 0.4; frameOf(mod(r.dist, L), r.lat, F2); emitSparks(F2.px, 0.6, F2.pz, 14); banner(r.n + ' ספג פנצ׳ר!', 'nm'); Sfx.splat(); bump('punctures'); rivalDamage(r, 3); }
       else mineBlast(m.s, m.lat);
       break;
     }
@@ -2722,8 +2844,17 @@ function weaponsTick(dt, ps, dying) {
     if (!hit) for (const c of traffic) {
       if (!c.active || c.state !== 0) continue;
       if (Math.abs(signedRel(c.s, m.s)) < c.len / 2 + 1.6 + (big ? 1.6 : 0) && Math.abs(c.lat - m.lat) < c.wid / 2 + 1.0 + (big ? 0.8 : 0)) {
-        if (big) chorizoBlast(c.s, c.lat);
+        if (big) chorizoBlast(c.s, c.lat, m.wh);
         else { destroyCar(c, 'missile', true); P.score += 150; Sfx.boom(); banner('פגיעה בטיל! ' + ltr('+150'), 'nm'); }
+        hit = true; break;
+      }
+    }
+    if (!hit) for (const r of rivals) {
+      if (!r.active || r.wreckT > 0) continue;
+      const rs2 = mod(r.dist, L);
+      if (Math.abs(signedRel(rs2, m.s)) < r.len / 2 + 1.6 + (big ? 1.6 : 0) && Math.abs(r.lat - m.lat) < r.wid / 2 + 1.0 + (big ? 0.8 : 0)) {
+        if (big) chorizoBlast(rs2, r.lat, m.wh);
+        else { frameOf(rs2, r.lat, F2); explode(F2.px, 1, F2.pz, 1.2); Sfx.boom(); rivalDamage(r, 6); r.stunT = Math.max(r.stunT, 1.2); banner('טיל פגע ב' + r.n + '! ' + ltr(r.hp + '/' + r.maxHp), 'nm'); }
         hit = true; break;
       }
     }
@@ -2897,6 +3028,7 @@ function runTick(dt) {
   }
 
   weaponsTick(dt, ps, dying);
+  if (G.rivalHitCd > 0) G.rivalHitCd -= dt;
   for (const r of rivals) rivalTick(r, dt, quiet);
   if (!RACE.finished) { RACE.t += dt; const pl = myPlace(); RACE.place = pl; }
   if (!dying) for (const pk of pickups) {
@@ -2931,7 +3063,7 @@ function runTick(dt) {
       if (curVeh().shield && P.shield < 1) { P.shield = 1; banner('המגן נטען', 'ok'); }
       P.lapClean = true; P.nitro = Math.min(100, P.nitro + 30); Sfx.lap(); vib([20, 30, 20]);
       if (TR.boss && P.lapsDone === RACE_LAPS - 1 && !BOSS.active) spawnBoss();
-      P.missiles = Math.min(3 + 2 * upLvl('missiles'), P.missiles + 1); P.shocks = Math.min(3 + 2 * upLvl('shock'), P.shocks + 1); P.chorizo = Math.min(2 * upLvl('chorizo') + (curVeh().bonusCh || 0), P.chorizo + 1); hc.ammo = null;
+      P.missiles = Math.min(missileAmmo(), P.missiles + 1); P.shocks = Math.min(3 + 2 * upLvl('shock'), P.shocks + 1); hc.ammo = null;
     }
   }
   if (RACE.finished) { RACE.endT += dt; if (RACE.endT > 3.4 && G.state === 'play') endRun('finish'); }
@@ -3008,7 +3140,7 @@ function render(alpha, dt) {
     Track.frame(m.s, F2); m.g.position.set(Track.worldX(F2, m.lat), 0.03, Track.worldZ(F2, m.lat)); m.g.rotation.y = Math.atan2(F2.tx, F2.tz);
     m.g.visible = m.age < 14 || Math.floor(camT * 8) % 2 === 0;
   }
-  updateMarks(sR);
+  updateMarks(sR); updateRivalTags();
 
   /* weapons */
   for (const m of projectiles) {
@@ -3101,7 +3233,7 @@ function render(alpha, dt) {
     Track.frame(co.s, F3);
     tmpP.set(Track.worldX(F3, co.lat), 0.95 + Math.sin(camT * 4 + i) * 0.1, Track.worldZ(F3, co.lat));
     tmpQ.setFromAxisAngle(UP, Math.atan2(F3.tx, F3.tz) + camT * 5 + i);
-    tmpM.compose(tmpP, tmpQ, tmpS); coinMesh.setMatrixAt(i, tmpM); tmpM.compose(tmpP, tmpQ, tmpS2.set(COIN_GLOW, COIN_GLOW, COIN_GLOW)); coinGlow.setMatrixAt(i, tmpM); co.shown = true; cm = true;
+    tmpM.compose(tmpP, tmpQ, tmpS2.set(COIN_SCALE, COIN_SCALE, COIN_SCALE)); coinMesh.setMatrixAt(i, tmpM); tmpM.compose(tmpP, tmpQ, tmpS2.set(COIN_GLOW * COIN_SCALE, COIN_GLOW * COIN_SCALE, COIN_GLOW * COIN_SCALE)); coinGlow.setMatrixAt(i, tmpM); co.shown = true; cm = true;
   }
   if (cm) { coinMesh.instanceMatrix.needsUpdate = true; coinGlow.instanceMatrix.needsUpdate = true; }
 
@@ -3244,8 +3376,8 @@ function updateHud(dt) {
   if (fw) setText('fw', el.finishWarnTxt, 'קו הגמר בעוד ' + ltr(Math.round(rem / 10) * 10 + 'מ׳'));
   const lives = P.lives, hk = lives + '/' + P.maxLives;
   if (hc.hearts !== hk) { hc.hearts = hk; heartEls.forEach((h, i) => { h.style.display = i < P.maxLives ? '' : 'none'; h.classList.toggle('off', i >= lives); }); }
-  const ak = P.missiles + ':' + P.shocks + ':' + P.chorizo + ':' + upLvl('chorizo') + ':' + P.mines + ':' + P.minesX;
-  if (hc.ammo !== ak) { hc.ammo = ak; el.chn.textContent = P.chorizo; el.bCh.classList.toggle('hidden', upLvl('chorizo') === 0 && !(curVeh().bonusCh)); el.bCh.classList.toggle('empty', P.chorizo <= 0); el.ms.textContent = P.missiles; el.mn.textContent = P.shocks; el.bMs.classList.toggle('empty', P.missiles <= 0); el.bMn.classList.toggle('empty', P.shocks <= 0);
+  const ak = P.missiles + ':' + P.shocks + ':' + warhead() + ':' + P.mines + ':' + P.minesX;
+  if (hc.ammo !== ak) { hc.ammo = ak; el.bMs.classList.toggle('wh', warhead() > 0); el.ms.textContent = P.missiles; el.mn.textContent = P.shocks; el.bMs.classList.toggle('empty', P.missiles <= 0); el.bMn.classList.toggle('empty', P.shocks <= 0);
     el.mpCnt.textContent = P.mines; el.mxCnt.textContent = P.minesX; $('#btnMineP').classList.toggle('empty', P.mines <= 0); $('#btnMineX').classList.toggle('empty', P.minesX <= 0); $('#btnMineX').classList.toggle('hidden', upLvl('mines') === 0); }
   BUFF_DEFS.forEach((d, i) => {
     const v = P[d.key], on = v > 0.05 && G.state !== 'menu', b = buffEls[i];
@@ -3384,7 +3516,6 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'e' || k === 'E') act.slam(1);
   else if (k === 'm' || k === 'M' || k === 'f' || k === 'F') act.missile();
   else if (k === 'x' || k === 'X' || k === 'z' || k === 'Z') act.shock();
-  else if (k === 'c' || k === 'C') act.chorizo();
   else if (k === 'b' || k === 'B') act.mine('p');
   else if (k === 'n' || k === 'N') act.mine('x');
   else if (k === 'p' || k === 'P' || k === 'Escape') { G.state === 'paused' ? resumeGame() : pauseGame(); }
@@ -3403,7 +3534,6 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) { pau
 const wbind = (node, fn) => node.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); Sfx.init(); fn(); });
 wbind($('#btnMissile'), () => act.missile());
 wbind($('#btnShock'), () => act.shock());
-wbind($('#btnChorizo'), () => act.chorizo());
 function show(id, on) { $('#' + id).classList.toggle('hidden', !on); }
 const muteBtns = [$('#btnMute1'), $('#btnMute2')];
 const syncMute = () => muteBtns.forEach((b) => (b.textContent = save.muted ? '🔇' : '🔊'));
@@ -3565,9 +3695,9 @@ function renderGarage() {
     const own = save.ownCars.includes(v.id), b = document.createElement('button');
     b.className = 'cv' + (save.car === v.id ? ' sel' : '') + (own ? '' : ' lock');
     const bar = (label, n) => '<span>' + label + '</span><span class="bar"><i style="width:' + n * 20 + '%"></i></span>';
-    b.innerHTML = '<b>' + v.n + '</b><small>' + v.d + '</small><div class="bars">' + bar('מהירות', v.bars[0]) + bar('היגוי', v.bars[1]) + bar('הגנה', v.bars[2]) + '</div><span class="pr">' + (own ? (save.car === v.id ? 'נבחר' : 'בבעלותך') : '<span class="coin"></span>' + v.cost) + '</span>';
+    b.innerHTML = '<b>' + v.n + '</b><small>' + v.d + '</small><div class="bars">' + bar('מהירות', v.bars[0]) + bar('היגוי', v.bars[1]) + bar('הגנה', v.bars[2]) + '</div><span class="pr">' + (own ? (save.car === v.id ? 'נבחר' : 'בבעלותך') : '<span class="coin"></span>' + priceHtml(v.cost, 'car')) + '</span>';
     b.addEventListener('click', () => {
-      if (!own) { if (save.coins < v.cost) { toast('אין מספיק צ׳וריסו'); return; } save.coins -= v.cost; save.ownCars.push(v.id); toast('נקנה: ' + v.n); }
+      if (!own) { if (save.coins < price(v.cost, 'car')) { toast('אין מספיק צ׳וריסו'); return; } save.coins -= price(v.cost, 'car'); save.ownCars.push(v.id); toast('נקנה: ' + v.n); }
       save.car = v.id; persist(); refreshPlayerLook(); Sfx.ui(); renderGarage();
     });
     cars.appendChild(b);
@@ -3619,7 +3749,7 @@ try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock
 window.RingRush = {
     shareText: () => shareText(),
   step(n) { for (let i = 0; i < n; i++) tick(STEP); },
-  start: (i, grid) => startRun(i, !!grid), startRace: (i) => startRun(i, true), rivals: () => rivals.map((r) => ({ n: r.n, dist: r.dist, lat: r.lat, speed: r.speed, fin: r.fin, finT: r.finT, stun: r.stunT })), race: () => ({ grid: RACE.grid, t: RACE.t, finished: RACE.finished, place: RACE.place, dnf: RACE.dnf, reward: RACE.reward, results: RACE.results, laps: P.lapsDone, L }), placeCar(type, ahead, lat, speed) { const c = acquire(type) || acquire('sedan'); c.s = mod(pS() + ahead, L); c.active = true; c.state = 0; c.g.visible = true; c.lane = Math.round(lat / LANE_W); c.lat = c.plat = lat; c.ps = c.s; c.base = c.speed = speed === undefined ? 22 : speed; c.passed = false; c.rel = ahead; c.y = 0; c.rx = c.rz = 0; c.cs = 0; c.swT = 0; c.swDir = 0; c.stunT = 0; c.sw = 0; c.sl.visible = c.sr.visible = false; return c.type; },
+  start: (i, grid) => startRun(i, !!grid), startRace: (i) => startRun(i, true), rivals: () => rivals.map((r) => ({ hp: r.hp, maxHp: r.maxHp, wreck: r.wreckT, atk: r.atkT, n: r.n, dist: r.dist, lat: r.lat, speed: r.speed, fin: r.fin, finT: r.finT, stun: r.stunT })), race: () => ({ grid: RACE.grid, t: RACE.t, finished: RACE.finished, place: RACE.place, dnf: RACE.dnf, reward: RACE.reward, results: RACE.results, laps: P.lapsDone, L }), placeCar(type, ahead, lat, speed) { const c = acquire(type) || acquire('sedan'); c.s = mod(pS() + ahead, L); c.active = true; c.state = 0; c.g.visible = true; c.lane = Math.round(lat / LANE_W); c.lat = c.plat = lat; c.ps = c.s; c.base = c.speed = speed === undefined ? 22 : speed; c.passed = false; c.rel = ahead; c.y = 0; c.rx = c.rz = 0; c.cs = 0; c.swT = 0; c.swDir = 0; c.stunT = 0; c.sw = 0; c.sl.visible = c.sr.visible = false; return c.type; },
   clearTraffic() { for (const co of coins) co.active = false; for (const c of traffic) { c.active = false; c.g.visible = false; } for (const pk of pickups) { pk.active = false; pk.g.visible = false; } },
   setRival(i, ahead, lat, speed) { const r = rivals[i]; r.active = true; r.g.visible = true; r.dist = r.pd = P.dist + ahead; r.lat = r.plat = r.latT = lat; r.stunT = 0; if (speed !== undefined) r.speed = speed; },
   bonusUi: () => ({ banner: el.bonusBanner.textContent, pills: buffEls.filter((b) => b.on).map((b) => b.n.title) }),
@@ -3627,10 +3757,10 @@ window.RingRush = {
   state: () => ({ state: G.state, dist: P.dist, speed: P.speed, lives: P.lives, score: P.score, lap: P.lapsDone, lane: P.lane, lat: P.lat, combo: P.combo, coins: P.coins, q: qLevel, near: R.near, inv: P.inv }),
   cars: () => traffic.filter((c) => c.active && c.state === 0).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, len: c.len, wid: c.wid, speed: c.speed, type: c.type, lane: c.lane })),
   coinsNear: () => coins.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),
-  setTrack, tracks: () => TRACKS.map((t) => ({ id: t.id, n: t.n })), trackInfo: () => ({ id: TR.id, L }), dbg: { scene, camera, get road() { return roadMesh; }, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo), coinGlow: footprint(sausageCoinGeo) * COIN_GLOW, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, topSpeed: curVeh().topSpeed, len: P.len, wid: P.wid, shield: P.shield, maxLives: P.maxLives }), setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setLives(n) { P.lives = n; hc.hearts = null; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, chorizo: fireChorizo, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
+  setTrack, tracks: () => TRACKS.map((t) => ({ id: t.id, n: t.n })), trackInfo: () => ({ id: TR.id, L }), dbg: { scene, camera, get road() { return roadMesh; }, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo) * COIN_SCALE, coinGlow: footprint(sausageCoinGeo) * COIN_GLOW * COIN_SCALE, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, topSpeed: curVeh().topSpeed, len: P.len, wid: P.wid, shield: P.shield, maxLives: P.maxLives }), setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setLives(n) { P.lives = n; hc.hearts = null; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
   cops: () => cops.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, speed: c.speed, stun: c.stunT })),
-  noCops(v) { G.noCops = !!v; }, homeShare: () => homeShareText(), setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p) => price(p), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
-  ammo: () => ({ magnet: P.magnetT, lives: P.lives, missiles: P.missiles, shocks: P.shocks, chorizo: P.chorizo, kills: P.kills, maxLives: P.maxLives, turbo: P.turboT, power: P.powerT, food: R.food }),
+  noCops(v) { G.noCops = !!v; }, rivalsOff() { rivals.forEach((r) => { r.active = false; r.g.visible = false; }); }, noRivalHits(v) { G.noRivalHits = !!v; }, homeShare: () => homeShareText(), rivalTags: () => rivals.map((r) => ({ tag: r.tag.sp.visible, ring: r.tag.ring.visible })), ramLoot: (t) => ramLoot(t), rivalHit: (i, d) => rivalDamage(rivals[i], d), setHp(i, v) { rivals[i].hp = v; }, rivalHitMe(i) { const r = rivals[i]; r.atkT = 1; r.atkCd = 99; G.rivalHitCd = 0; },  setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p, k) => price(p, k), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
+  ammo: () => ({ magnet: P.magnetT, lives: P.lives, missiles: P.missiles, shocks: P.shocks, warhead: warhead(), kills: P.kills, maxLives: P.maxLives, turbo: P.turboT, power: P.powerT, food: R.food }),
   setLaps(n) { P.dist = n * L; P.pd = P.dist; P.lapsDone = n; }
 };
 })();

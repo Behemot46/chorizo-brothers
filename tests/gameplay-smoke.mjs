@@ -460,6 +460,23 @@ const bot = await page.evaluate(() => {
 check('bot survives 60 seconds with armor', bot.state === 'play', JSON.stringify(bot));
 check('bot collected sausage coins and made kills', bot.coins > 0 && bot.kills > 0);
 
+
+console.log('\n== truck speed, animal paints, look options and the Gabi discount ==');
+const look = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  R.setCar('sport'); const sport = R.vehicle().topSpeed; R.setCar('chorizotruck'); out.truckVsOld = R.vehicle().topSpeed / 0.94;
+  out.sport = sport;
+  out.pats = [6, 7, 8, 9].map((p) => { R.setLook(p, 0, 0); const l = R.look(); return l.pat * 1000 + (l.marked > 100 ? 1 : 0); });
+  R.setCar('sport'); R.setLook(0, 2, 3); out.stripe = R.look();
+  R.setUser(''); out.full = R.price(2600); R.setUser('גבי'); out.gabi = R.price(2600); out.gabiSmall = R.price(60); out.gabiLatin = (R.setUser('Gabi'), R.price(1000)); R.setUser('גבי2'); out.other = R.price(1000); R.setUser('');
+  R.setLook(0, 0, 0);
+  return out;
+});
+check('chorizo truck is 30% faster than before', Math.abs(look.truckVsOld - 1.3) < 0.01 && look.sport === 1, JSON.stringify(look));
+check('four animal/camo paints are painted through the shader', look.pats.join() === '1001,2001,3001,4001', JSON.stringify(look.pats));
+check('racing stripes are applied', look.stripe.st === 2, JSON.stringify(look.stripe));
+check('the user Gabi pays 10% of upgrade prices, everyone else full price', look.full === 2600 && look.gabi === 260 && look.gabiSmall === 6 && look.gabiLatin === 100 && look.other === 1000, JSON.stringify(look));
+
 check('no page errors / shader errors', errors.length === 0, errors.slice(0, 3).join(' / '));
 await browser.close();
 const failed = results.filter((r) => !r.ok);

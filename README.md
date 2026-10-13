@@ -19,3 +19,7 @@ A 3-lap race against 5 rivals on 4 tracks (ring, sausage, clover, zigzag). You s
 
 ## Develop
 Open `index.html` in a browser. Tests (Playwright + Chromium, real touch events): see `tests/README.md`.
+
+## Looks
+- Paints: solid colours plus four patterns drawn in the shader (leopard, giraffe, camo, zebra). Racing stripes and underglow are extra look options.
+- The user named Gabi (גבי / gabi) pays 10% of upgrade and look-option prices (cars are full price). Client-side only, by design of the username-only accounts.

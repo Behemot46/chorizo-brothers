@@ -306,6 +306,10 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
     <div class="garage-grid" id="gPaint"></div>
     <h3 style="margin:0;color:var(--dim);font-size:14px">להבת נייטרו</h3>
     <div class="garage-grid" id="gFlame"></div>
+    <h3 style="margin:0;color:var(--dim);font-size:14px">פסי מרוץ</h3>
+    <div class="garage-grid" id="gStripe"></div>
+    <h3 style="margin:0;color:var(--dim);font-size:14px">תאורת תחתית</h3>
+    <div class="garage-grid" id="gGlowU"></div>
     <h3 style="margin:0;color:var(--dim);font-size:14px">שדרוגים לרכב ולנשק</h3>
     <div class="uplist" id="gUp"></div>
     <div class="sfoot"><button class="btn" id="btnGarageBack">חזרה</button></div>
@@ -418,7 +422,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 };
 const SAVE_DEFAULTS = {
-  track: 0, times: {}, wins: {}, pods: {}, trophies: 0, streak: 0, ctl: '', ctlChosen: false, user: '', coins: 0, best: 0, bestLaps: 0, paint: 0, flame: 0, ownPaint: [0], ownFlame: [0],
+  track: 0, times: {}, wins: {}, pods: {}, trophies: 0, streak: 0, ctl: '', ctlChosen: false, user: '', coins: 0, best: 0, bestLaps: 0, paint: 0, flame: 0, ownPaint: [0], ownFlame: [0], stripe: 0, ownStripe: [0], glowU: 0, ownGlowU: [0],
   muted: false, tut: false, mission: { day: '', done: [] }, runs: 0, up: {}, car: 'sport', ownCars: ['sport'], calm: false, stats: {}, ach: {}
 };
 const save = Object.assign(JSON.parse(JSON.stringify(SAVE_DEFAULTS)), store.get('ringrush.v1', {}));
@@ -520,7 +524,19 @@ const RACE_LAPS = 3, LAT_MAX = ROAD_HALF - 1.2;
 
 const PAINTS = [
   { n: 'ניאון', c: 0x19e3ff, cost: 0 }, { n: 'אדום', c: 0xff2e4d, cost: 60 }, { n: 'צהוב', c: 0xffc83d, cost: 60 },
-  { n: 'סגול', c: 0x9b5cff, cost: 120 }, { n: 'פנינה', c: 0xf1f3ff, cost: 150 }, { n: 'ירוק חומצה', c: 0x8dff3a, cost: 200 }
+  { n: 'סגול', c: 0x9b5cff, cost: 120 }, { n: 'פנינה', c: 0xf1f3ff, cost: 150 }, { n: 'ירוק חומצה', c: 0x8dff3a, cost: 200 },
+  { n: 'נמר', c: 0xe0a030, cost: 400, pat: 1, css: 'radial-gradient(circle at 30% 35%,#1a0d04 0 12%,transparent 14%),radial-gradient(circle at 68% 60%,#1a0d04 0 14%,transparent 16%),#e0a030' },
+  { n: 'ג׳ירפה', c: 0xc8944a, cost: 400, pat: 2, css: 'linear-gradient(90deg,#f2dfa0 0 10%,#8a4a16 10% 45%,#f2dfa0 45% 55%,#8a4a16 55% 90%,#f2dfa0 90%)' },
+  { n: 'הסוואה', c: 0x4a5a2a, cost: 500, pat: 3, css: 'radial-gradient(circle at 25% 30%,#1c2a10 0 28%,transparent 30%),radial-gradient(circle at 70% 65%,#8a6a30 0 25%,transparent 27%),#4a5a2a' },
+  { n: 'זברה', c: 0xf4f4f4, cost: 500, pat: 4, css: 'repeating-linear-gradient(135deg,#f6f6f6 0 5px,#0a0a0a 5px 10px)' }
+];
+const STRIPES = [
+  { n: 'ללא', c: 0x555a6a, cost: 0, st: 0 }, { n: 'לבן', c: 0xf4f6ff, cost: 80, st: 1 }, { n: 'זהב כפול', c: 0xffc83d, cost: 120, st: 2 },
+  { n: 'ורוד', c: 0xff2e93, cost: 80, st: 1 }, { n: 'שחור כפול', c: 0x15151a, cost: 150, st: 2 }
+];
+const UNDERGLOWS = [
+  { n: 'כצבע הרכב', c: 0xffffff, cost: 0, css: 'conic-gradient(#19e3ff,#ff2e4d,#ffc83d,#8dff3a,#19e3ff)', same: true }, { n: 'ירוק חומצה', c: 0x8dff3a, cost: 100 },
+  { n: 'אדום', c: 0xff2e4d, cost: 100 }, { n: 'זהב', c: 0xffc83d, cost: 150 }, { n: 'סגול', c: 0x9b5cff, cost: 150 }, { n: 'לבן', c: 0xffffff, cost: 200 }
 ];
 const FLAMES = [
   { n: 'כחול', c: 0x3aa0ff, cost: 0 }, { n: 'ורוד', c: 0xff2e93, cost: 80 },
@@ -549,6 +565,10 @@ const UPGRADES = [
   { id: 'armor', n: 'שריון', d: ['לב נוסף בכל מירוץ', 'עוד לב נוסף'], cost: [600, 1800] }
 ];
 const upLvl = (id) => (save.up && save.up[id]) | 0;
+/* the user named Gabi pays 10% of the price on upgrades and look options (cars themselves are full price) */
+const isGabi = () => { const u = String(save.user || '').trim().toLowerCase(); return u === 'גבי' || u === 'gabi'; };
+const price = (p) => (isGabi() && p > 0 ? Math.max(1, Math.round(p * 0.1)) : p);
+const priceHtml = (p) => (isGabi() && p > 0 ? '<s style="opacity:.55">' + p + '</s> ' + price(p) : String(p));
 /* lifetime stats (saved) and achievements */
 const st = (k) => (save.stats && save.stats[k]) || 0;
 const bump = (k, n) => { save.stats[k] = st(k) + (n === undefined ? 1 : n); };
@@ -587,7 +607,7 @@ const VEHICLES = [
   { id: 'sport', n: 'ספורט', d: 'מאוזנת: מהירה, יציבה וקלה לשליטה', cost: 0, spec: 'sport', crownY: 1.4, hearts: 0, ram: 0, steer: 1, topSpeed: 1, accel: 1, nitroRegen: 1, nearBonus: 1, shield: false, bars: [4, 3, 2] },
   { id: 'jeep', n: 'ג׳יפ', d: 'לב נוסף וניגוח חזק ברמה אחת יותר. פונה לאט ו-8% פחות מהיר', cost: 1800, spec: 'jeep', crownY: 2.35, hearts: 1, ram: 1, steer: 0.72, topSpeed: 0.92, accel: 0.95, nitroRegen: 1, nearBonus: 1, shield: false, bars: [3, 2, 4] },
   { id: 'taxi', n: 'מונית', d: 'תמיד צהובה. פונה חד, נייטרו נטען פי 1.7 ובונוס כמעט-פגיעה +50%. בלי הגנה נוספת', cost: 2800, spec: 'taxi', crownY: 1.85, hearts: 0, ram: 0, steer: 1.35, topSpeed: 1, accel: 1.05, nitroRegen: 1.7, nearBonus: 1.5, shield: false, bars: [4, 5, 2] },
-  { id: 'chorizotruck', n: 'משאית צ׳וריסו', d: 'אוטו גלידות שמוכר צ׳וריסו, עם נקניק ענק בלחמנייה על הגג. כל נקניקייה שנאספת שווה כפול ומתחילים עם טיל צ׳וריסו. כבדה: האצה איטית ו-6% פחות מהירה', cost: 3800, spec: 'chorizotruck', crownY: 4.7, hearts: 0, ram: 0, steer: 0.82, topSpeed: 0.94, accel: 0.82, nitroRegen: 1, nearBonus: 1, shield: false, coinMult: 2, bonusCh: 1, bars: [3, 3, 4] },
+  { id: 'chorizotruck', n: 'משאית צ׳וריסו', d: 'אוטו גלידות שמוכר צ׳וריסו, עם נקניק ענק בלחמנייה על הגג. כל נקניקייה שנאספת שווה כפול ומתחילים עם טיל צ׳וריסו. כבדה: האצה איטית, אבל שיא מהירות גבוה ב-30%', cost: 3800, spec: 'chorizotruck', crownY: 4.7, hearts: 0, ram: 0, steer: 0.82, topSpeed: 1.222, accel: 0.82, nitroRegen: 1, nearBonus: 1, shield: false, coinMult: 2, bonusCh: 1, bars: [5, 3, 4] },
   { id: 'armored', n: 'שרד', d: 'מגן שסופג פגיעה אחת בכל הקפה. כבדה: האצה איטית ו-10% פחות מהירה', cost: 4500, spec: 'armored', crownY: 2.15, hearts: 0, ram: 0, steer: 0.85, topSpeed: 0.9, accel: 0.8, nitroRegen: 1, nearBonus: 1, shield: true, bars: [2, 3, 5] }
 ];
 const curVeh = () => VEHICLES.find((v) => v.id === save.car) || VEHICLES[0];
@@ -1300,6 +1320,49 @@ function glowify(mat, k) {
   mat.customProgramCacheKey = () => 'glow' + k.toFixed(2);
   return mat;
 }
+/* player paint: vertices marked with the magenta sentinel become 'paint' (solid, animal pattern or racing stripes) in the shader */
+const PSENT = 0xff00ff;
+const PU = { uBase: { value: new THREE.Color(0x19e3ff) }, uPat: { value: 0 }, uSCol: { value: new THREE.Color(0xffffff) }, uSSt: { value: 0 } };
+const PAT_GLSL = `uniform vec3 uBase; uniform float uPat; uniform vec3 uSCol; uniform float uSSt;
+varying float vPaint; varying vec3 vOP; varying vec3 vON;
+float h21(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+float vn(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.0-2.0*f); return mix(mix(h21(i),h21(i+vec2(1.0,0.0)),f.x),mix(h21(i+vec2(0.0,1.0)),h21(i+vec2(1.0,1.0)),f.x),f.y); }
+vec3 vor(vec2 p){ vec2 i=floor(p),f=fract(p); float d1=9.0,d2=9.0,id=0.0;
+  for(int y=-1;y<=1;y++){ for(int x=-1;x<=1;x++){ vec2 g=vec2(float(x),float(y)); vec2 o=vec2(h21(i+g),h21(i+g+vec2(31.7,17.3))); vec2 r=g+0.15+o*0.7-f; float d=dot(r,r);
+    if(d<d1){ d2=d1; d1=d; id=h21(i+g+vec2(5.3,9.1)); } else if(d<d2){ d2=d; } } }
+  return vec3(sqrt(d1),sqrt(d2)-sqrt(d1),id); }
+vec3 patColor(vec3 p, vec3 n){
+  vec3 a=abs(n); vec2 q=(a.x>a.y&&a.x>a.z)?p.zy:(a.y>a.z?p.xz:p.xy);
+  if(uPat<1.5){ vec3 v=vor(q*1.5); float ring=smoothstep(0.17,0.24,v.x)*(1.0-smoothstep(0.34,0.42,v.x));
+    vec3 c=mix(vec3(0.9,0.64,0.24),vec3(0.64,0.4,0.13),smoothstep(0.17,0.0,v.x)*0.8); return mix(c,vec3(0.07,0.04,0.02),ring); }
+  if(uPat<2.5){ vec3 v=vor(q*1.2); vec3 br=mix(vec3(0.42,0.2,0.07),vec3(0.64,0.35,0.1),v.z); return mix(vec3(0.95,0.85,0.58),br,smoothstep(0.05,0.12,v.y)); }
+  if(uPat<3.5){ float n=vn(q*1.6)*0.6+vn(q*3.7+7.0)*0.4; vec3 c=vec3(0.07,0.12,0.06); c=mix(c,vec3(0.26,0.32,0.13),step(0.36,n)); c=mix(c,vec3(0.34,0.24,0.12),step(0.5,n)); return mix(c,vec3(0.62,0.56,0.38),step(0.64,n)); }
+  float s=sin(q.x*6.0+q.y*3.2+sin(q.y*4.0)*0.9+vn(q*2.0)*2.2); return mix(vec3(0.03),vec3(0.96),smoothstep(-0.12,0.12,s)); }`;
+const PAT_FRAG = `vec3 pcol = vec3(1.0);
+  if (vPaint > 0.5) {
+    pcol = uBase;
+    if (uPat > 0.5) pcol = patColor(vOP, normalize(vON));
+    if (uSSt > 0.5 && vON.y > 0.55) { float ax = abs(vOP.x); float on = uSSt < 1.5 ? step(ax, 0.2) : step(0.13, ax) * step(ax, 0.3); pcol = mix(pcol, uSCol, on); }
+  }
+  diffuseColor.rgb *= pcol;`;
+function paintMat() {
+  const m = glowify(new THREE.MeshLambertMaterial({ vertexColors: true }), 0.45), g0 = m.onBeforeCompile;
+  m.onBeforeCompile = (sh) => {
+    g0(sh); Object.assign(sh.uniforms, PU);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aPaint; varying float vPaint; varying vec3 vOP; varying vec3 vON;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vPaint = aPaint; vOP = position; vON = normal;');
+    sh.fragmentShader = sh.fragmentShader.replace('void main() {', PAT_GLSL + '\nvoid main() {').replace('#include <color_fragment>', '#include <color_fragment>\n  ' + PAT_FRAG)
+      .replace('totalEmissiveRadiance += vColor * 0.45;', 'totalEmissiveRadiance += vColor * pcol * 0.45;');
+  };
+  m.customProgramCacheKey = () => 'paintglow';
+  return m;
+}
+function markPaint(geo) {
+  const c = geo.attributes.color, n = c.count, a = new Float32Array(n);
+  for (let i = 0; i < n; i++) if (c.getX(i) > 0.9 && c.getZ(i) > 0.9 && c.getY(i) < 0.1) { a[i] = 1; c.setXYZ(i, 1, 1, 1); }
+  geo.setAttribute('aPaint', new THREE.BufferAttribute(a, 1));
+  return geo;
+}
 function lightParts(typeKey, paint) {
   const spec = SPEC[typeKey], base = typeKey === 'cop' ? 0x4a8cff : paint;
   const c = new THREE.Color(base).lerp(new THREE.Color(0xffffff), 0.3).getHex(), x = spec.wid / 2 + 0.05, l = spec.len * 0.78;
@@ -1332,9 +1395,11 @@ const player = (() => {
   return Object.assign(car, { glow, flames: [f1, f2], flameMat, blob });
 })();
 function applyVehicle() {
-  const v = curVeh(), spec = SPEC[v.spec], paint = PAINTS[save.paint].c;
+  const v = curVeh(), spec = SPEC[v.spec], pn = PAINTS[save.paint], paint = pn.c, sp = STRIPES[save.stripe] || STRIPES[0];
   P.len = spec.len; P.wid = spec.wid;
-  player.body.geometry.dispose(); player.body.geometry = spec.build ? spec.build(paint) : mergeBoxes(spec.parts, paint);
+  PU.uBase.value.setHex(paint); PU.uPat.value = pn.pat || 0; PU.uSCol.value.setHex(sp.c); PU.uSSt.value = sp.st;
+  if (!player.body.material.userData.paint) { player.body.material = paintMat(); player.body.material.userData.paint = 1; }
+  player.body.geometry.dispose(); player.body.geometry = markPaint(spec.build ? spec.build(PSENT) : mergeBoxes(spec.parts, PSENT));
   player.lights.geometry.dispose(); player.lights.geometry = mergeBoxes(lightParts(v.spec, paint), 0xffffff);
   player.glow.geometry.dispose(); player.glow.geometry = mergeBoxes([B(spec.wid - .25, .03, spec.len * .83, 0, .12, 0, 0xffffff)], 0xffffff);
   player.flames[0].position.set(spec.wid * .26, .55, -spec.len / 2); player.flames[1].position.set(-spec.wid * .26, .55, -spec.len / 2);
@@ -1345,7 +1410,8 @@ function applyVehicle() {
 }
 function refreshPlayerLook() {
   applyVehicle();
-  player.glow.material.color.setHex(PAINTS[save.paint].c);
+  const ug = UNDERGLOWS[save.glowU] || UNDERGLOWS[0];
+  player.glow.material.color.setHex(ug.same ? PAINTS[save.paint].c : ug.c);
   player.flameMat.color.setHex(FLAMES[save.flame].c);
   buildRams();
 }
@@ -3465,9 +3531,9 @@ function renderGarage() {
       const own = save[ownKey].includes(i), b = document.createElement('button');
       b.className = 'sw' + (save[selKey] === i ? ' sel' : '') + (own ? '' : ' lock');
       const hex = '#' + it.c.toString(16).padStart(6, '0');
-      b.innerHTML = `<span class="dot" style="background:${hex};color:${hex}"></span><span>${it.n}</span><span class="pr">${own ? (save[selKey] === i ? 'נבחר' : '') : '<span class="coin"></span> ' + it.cost}</span>`;
+      b.innerHTML = `<span class="dot" style="background:${it.css || hex};color:${hex}"></span><span>${it.n}</span><span class="pr">${own ? (save[selKey] === i ? 'נבחר' : '') : '<span class="coin"></span> ' + priceHtml(it.cost)}</span>`;
       b.addEventListener('click', () => {
-        if (!own) { if (save.coins < it.cost) { toast('אין מספיק צ׳וריסו'); return; } save.coins -= it.cost; save[ownKey].push(i); }
+        if (!own) { if (save.coins < price(it.cost)) { toast('אין מספיק צ׳וריסו'); return; } save.coins -= price(it.cost); save[ownKey].push(i); }
         save[selKey] = i; persist(); apply(); Sfx.ui(); renderGarage();
       });
       host.appendChild(b);
@@ -3493,12 +3559,12 @@ function renderGarage() {
     row.innerHTML = '<div class="ut"><b>' + u.n + '</b><small>' + desc + '</small><div class="pips">' + u.cost.map((_, i) => '<span class="pip' + (i < lvl ? ' on' : '') + '"></span>').join('') + '</div></div>';
     if (lvl >= max) { const m = document.createElement('div'); m.className = 'maxed'; m.textContent = 'מקסימום'; row.appendChild(m); }
     else {
-      const price = u.cost[lvl], b = document.createElement('button');
-      b.className = 'buy' + (save.coins < price ? ' no' : '');
-      b.innerHTML = '<span class="coin"></span>' + price;
+      const full = u.cost[lvl], cost = price(full), b = document.createElement('button');
+      b.className = 'buy' + (save.coins < cost ? ' no' : '');
+      b.innerHTML = '<span class="coin"></span>' + priceHtml(full);
       b.addEventListener('click', () => {
-        if (save.coins < price) { toast('אין מספיק צ׳וריסו'); return; }
-        save.coins -= price; save.up[u.id] = lvl + 1; persist(); refreshPlayerLook(); Sfx.ui(); renderGarage(); toast('נקנה: ' + u.n + ' ' + ltr('(' + (lvl + 1) + '/' + max + ')'));
+        if (save.coins < cost) { toast('אין מספיק צ׳וריסו'); return; }
+        save.coins -= cost; save.up[u.id] = lvl + 1; persist(); refreshPlayerLook(); Sfx.ui(); renderGarage(); toast('נקנה: ' + u.n + ' ' + ltr('(' + (lvl + 1) + '/' + max + ')'));
       });
       row.appendChild(b);
     }
@@ -3506,6 +3572,8 @@ function renderGarage() {
   });
   build($('#gPaint'), PAINTS, 'ownPaint', 'paint', refreshPlayerLook);
   build($('#gFlame'), FLAMES, 'ownFlame', 'flame', refreshPlayerLook);
+  build($('#gStripe'), STRIPES, 'ownStripe', 'stripe', refreshPlayerLook);
+  build($('#gGlowU'), UNDERGLOWS, 'ownGlowU', 'glowU', refreshPlayerLook);
   pan.scrollTop = keepScroll;
 }
 
@@ -3538,9 +3606,9 @@ window.RingRush = {
   state: () => ({ state: G.state, dist: P.dist, speed: P.speed, lives: P.lives, score: P.score, lap: P.lapsDone, lane: P.lane, lat: P.lat, combo: P.combo, coins: P.coins, q: qLevel, near: R.near, inv: P.inv }),
   cars: () => traffic.filter((c) => c.active && c.state === 0).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, len: c.len, wid: c.wid, speed: c.speed, type: c.type, lane: c.lane })),
   coinsNear: () => coins.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),
-  setTrack, tracks: () => TRACKS.map((t) => ({ id: t.id, n: t.n })), trackInfo: () => ({ id: TR.id, L }), dbg: { scene, camera, get road() { return roadMesh; }, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo), coinGlow: footprint(sausageCoinGeo) * COIN_GLOW, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, len: P.len, wid: P.wid, shield: P.shield, maxLives: P.maxLives }), setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setLives(n) { P.lives = n; hc.hearts = null; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, chorizo: fireChorizo, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
+  setTrack, tracks: () => TRACKS.map((t) => ({ id: t.id, n: t.n })), trackInfo: () => ({ id: TR.id, L }), dbg: { scene, camera, get road() { return roadMesh; }, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo), coinGlow: footprint(sausageCoinGeo) * COIN_GLOW, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, topSpeed: curVeh().topSpeed, len: P.len, wid: P.wid, shield: P.shield, maxLives: P.maxLives }), setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setLives(n) { P.lives = n; hc.hearts = null; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, chorizo: fireChorizo, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
   cops: () => cops.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, speed: c.speed, stun: c.stunT })),
-  noCops(v) { G.noCops = !!v; }, orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
+  noCops(v) { G.noCops = !!v; }, setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p) => price(p), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
   ammo: () => ({ magnet: P.magnetT, lives: P.lives, missiles: P.missiles, shocks: P.shocks, chorizo: P.chorizo, kills: P.kills, maxLives: P.maxLives, turbo: P.turboT, power: P.powerT, food: R.food }),
   setLaps(n) { P.dist = n * L; P.pd = P.dist; P.lapsDone = n; }
 };

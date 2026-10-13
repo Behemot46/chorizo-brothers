@@ -1,4 +1,4 @@
-# צ'וריסו צ'ייס (גבי ושחר, האחים צ'וריסו)
+# Chorizo Chase (גבי ושחר, האחים צ'וריסו)
 
 Chorizo Brothers: a mobile arcade highway game. One HTML file, Three.js (r128 from cdnjs), no build step.
 Hebrew UI (RTL). Live: https://chorizo-brothers.vercel.app (Vercel, auto-deploys on push to `main`).

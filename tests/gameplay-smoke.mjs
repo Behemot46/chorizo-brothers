@@ -477,6 +477,14 @@ check('four animal/camo paints are painted through the shader', look.pats.join()
 check('racing stripes are applied', look.stripe.st === 2, JSON.stringify(look.stripe));
 check('the user Gabi pays 10% of upgrade prices, everyone else full price', look.full === 2600 && look.gabi === 260 && look.gabiSmall === 6 && look.gabiLatin === 100 && look.other === 1000, JSON.stringify(look));
 
+console.log('\n== WhatsApp share from the home screen ==');
+const shareHome = await page.evaluate(() => {
+  let got = null; const orig = window.open; window.open = (u) => { got = u; return {}; };
+  RingRush.setUser('גבי'); document.querySelector('#btnShareHome').click(); window.open = orig; RingRush.setUser('');
+  return { got, vis: !!document.querySelector('#btnShareHome').offsetParent || true };
+});
+check('home screen has a WhatsApp share button that opens wa.me with the game link', !!shareHome.got && shareHome.got.startsWith('https://wa.me/?text=') && decodeURIComponent(shareHome.got).includes('chorizo-brothers.vercel.app') && decodeURIComponent(shareHome.got).includes('Chorizo Chase'), String(shareHome.got).slice(0, 120));
+
 check('no page errors / shader errors', errors.length === 0, errors.slice(0, 3).join(' / '));
 await browser.close();
 const failed = results.filter((r) => !r.ok);

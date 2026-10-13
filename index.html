@@ -181,6 +181,7 @@ button.btn{appearance:none;border:0;cursor:pointer;font:inherit;font-weight:900;
   background:linear-gradient(180deg,#5af0ff,#19b7ff);box-shadow:0 8px 26px rgba(25,183,255,.45),inset 0 -3px 0 rgba(0,0,0,.18)}
 button.btn:active{transform:translateY(2px) scale(.985)}
 button.btn.big{min-height:72px;min-width:min(78vw,320px);font-size:28px;border-radius:22px;background:linear-gradient(180deg,#ff5fb0,#ff2e93);color:#fff;box-shadow:0 10px 32px rgba(255,46,147,.5),inset 0 -4px 0 rgba(0,0,0,.2)}
+button.btn.wa{background:linear-gradient(180deg,#43e67f,#12a84b);color:#04200f;min-height:50px;font-size:17px;box-shadow:0 5px 0 #0b6e30,0 0 18px rgba(67,230,127,.35)}
 button.btn.ghost{background:rgba(255,255,255,.1);color:var(--ink);box-shadow:none;border:1px solid rgba(255,255,255,.22);font-size:17px}
 .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .missions{width:min(92vw,380px);display:flex;flex-direction:column;gap:6px}
@@ -295,6 +296,7 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
       <button class="chip" id="mUser">👤 התחבר</button>
     </div>
     <button class="btn big" id="btnPlay">שחק</button>
+    <button class="btn wa" id="btnShareHome">📲 הזמן חברים בוואטסאפ</button>
     <div class="row">
       <button class="btn ghost" id="btnGarage">מוסך</button>
       <button class="btn ghost" id="btnAch">הישגים</button>
@@ -3504,6 +3506,17 @@ function shareText() {
   const res = RACE.dnf ? 'התרסקתי בהקפה ' + Math.min(RACE_LAPS, P.lapsDone + 1) : RACE.place === 1 ? 'ניצחתי! 🏆' : 'סיימתי מקום ' + RACE.place + ' מתוך ' + n;
   return res + ' ב"' + TR.n + '"' + t + ' במשחק "Chorizo Chase" 🌭🔥 תצליחו לנצח אותי?\n' + GAME_URL;
 }
+function homeShareText() {
+  const lg = LEAGUES[leagueIdx(save.trophies | 0)], tr = save.trophies | 0, w = Object.values(save.wins || {}).reduce((a, b) => a + (b | 0), 0);
+  const who = save.user ? ' (' + save.user + ')' : '';
+  const stat = tr > 0 || w > 0 ? 'אני בליגת ' + lg.n + ' עם ' + tr + ' גביעים' + (w ? ' ו-' + w + ' ניצחונות' : '') + who + '. ' : '';
+  return stat + 'בואו לשחק "Chorizo Chase" 🌭🔥 מרוץ של 3 הקפות מול 5 יריבים - תצליחו לנצח אותי?\n' + GAME_URL;
+}
+$('#btnShareHome').addEventListener('click', () => {
+  Sfx.init(); Sfx.ui();
+  const url = 'https://wa.me/?text=' + encodeURIComponent(homeShareText());
+  if (!window.open(url, '_blank', 'noopener')) location.href = url;
+});
 $('#btnShare').addEventListener('click', () => {
   const url = 'https://wa.me/?text=' + encodeURIComponent(shareText());
   if (!window.open(url, '_blank', 'noopener')) location.href = url;
@@ -3616,7 +3629,7 @@ window.RingRush = {
   coinsNear: () => coins.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),
   setTrack, tracks: () => TRACKS.map((t) => ({ id: t.id, n: t.n })), trackInfo: () => ({ id: TR.id, L }), dbg: { scene, camera, get road() { return roadMesh; }, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo), coinGlow: footprint(sausageCoinGeo) * COIN_GLOW, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, topSpeed: curVeh().topSpeed, len: P.len, wid: P.wid, shield: P.shield, maxLives: P.maxLives }), setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setLives(n) { P.lives = n; hc.hearts = null; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, chorizo: fireChorizo, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
   cops: () => cops.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, speed: c.speed, stun: c.stunT })),
-  noCops(v) { G.noCops = !!v; }, setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p) => price(p), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
+  noCops(v) { G.noCops = !!v; }, homeShare: () => homeShareText(), setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p) => price(p), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
   ammo: () => ({ magnet: P.magnetT, lives: P.lives, missiles: P.missiles, shocks: P.shocks, chorizo: P.chorizo, kills: P.kills, maxLives: P.maxLives, turbo: P.turboT, power: P.powerT, food: R.food }),
   setLaps(n) { P.dist = n * L; P.pd = P.dist; P.lapsDone = n; }
 };

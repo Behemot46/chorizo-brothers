@@ -382,7 +382,7 @@ await page.reload(); await page.waitForFunction(() => window.RingRush, null, { t
 await page.click('#btnPlay'); await page.waitForTimeout(300); await page.click('#tList .tk:nth-child(1)'); await page.waitForTimeout(300);
 const ask = await page.evaluate(() => ({ pick: !document.getElementById('ctlPick').classList.contains('hidden'), racing: RingRush.race().grid > 0 }));
 check('first race: asks for the control style and waits for the answer', ask.pick && !ask.racing, JSON.stringify(ask));
-await page.click('#pickTilt'); await page.waitForTimeout(4600);
+await page.click('#pickTilt'); await page.waitForFunction(() => !document.getElementById('tiltFail').classList.contains('hidden'), null, { timeout: 15000 }).catch(() => {});
 const noSensor = await page.evaluate(() => ({ failShown: !document.getElementById('tiltFail').classList.contains('hidden'), held: RingRush.race().grid > 0, chosen: RingRush.ctlChosen() }));
 check('tilt chosen but no sensor: the race waits and asks, instead of silently switching', noSensor.chosen && noSensor.failShown && noSensor.held, JSON.stringify(noSensor));
 await page.click('#btnTiltTouch'); await page.waitForTimeout(800);

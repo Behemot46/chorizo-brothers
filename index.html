@@ -3709,6 +3709,9 @@ function updateHud(dt) {
   const ak = P.missiles + ':' + P.shocks + ':' + warhead() + ':' + P.mines + ':' + mineKind() + ':' + P.kits;
   if (hc.ammo !== ak) { hc.ammo = ak; el.kitCn.textContent = P.kits; el.bKit.classList.toggle('hidden', P.kits <= 0 && upLvl('medic') === 0); el.bKit.classList.toggle('empty', P.kits <= 0); el.bMs.classList.toggle('wh', warhead() > 0); el.ms.textContent = P.missiles; el.mn.textContent = P.shocks; el.bMs.classList.toggle('empty', P.missiles <= 0); el.bMn.classList.toggle('empty', P.shocks <= 0);
     $('#mineCn').textContent = P.mines; $('#btnMine').classList.toggle('empty', P.mines <= 0); $('#btnMine').classList.toggle('x', mineKind() === 'x'); }
+  /* the mine button only pops up when it can matter: mines left and a rival or cop close behind */
+  const mineOn = G.state === 'play' && P.mines > 0 && (rivals.some((r) => r.active && !r.wreckT && P.dist - r.dist > 2 && P.dist - r.dist < 90) || cops.some((cp) => cp.active && signedRel(cp.s, pS()) < -2 && signedRel(cp.s, pS()) > -90));
+  if (hc.mineOn !== mineOn) { hc.mineOn = mineOn; $('#btnMine').classList.toggle('hidden', !mineOn); }
   BUFF_DEFS.forEach((d, i) => {
     const v = P[d.key], on = v > 0.05 && G.state !== 'menu', b = buffEls[i];
     if (b.on !== on) { b.on = on; b.n.classList.toggle('hidden', !on); }

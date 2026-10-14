@@ -341,8 +341,9 @@ const mine = await page.evaluate(async () => {
   const R = RingRush, out = {}, wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const chase = () => { R.start(0); R.setLaps(1); R.clearTraffic(); R.step(60); R.clearTraffic(); R.spawnCop(); for (let i = 0; i < 60 * 12 && !R.cops().some((c) => c.rel > -40 && c.rel < -12); i++) { R.step(1); if (i % 30 === 0) R.clearTraffic(); } };
   R.noCops(true); R.setUp('mines', 0); R.start(0); R.setLaps(1); R.clearTraffic(); R.step(60); R.clearTraffic();
-  out.noMirror = !R.mirrorOn(); out.stock0 = R.mines(); out.btnAlways = !!document.getElementById('btnMine') && document.getElementById('btnMine').offsetParent !== null;
-  chase(); await wait(150); out.mirror = R.mirrorOn();
+  out.noMirror = !R.mirrorOn(); out.stock0 = R.mines(); const vis = () => { const b = document.getElementById('btnMine'); return !!b && b.offsetParent !== null; };
+  R.rivalsOff(); R.step(5); await wait(100); out.btnIdle = vis();
+  chase(); await wait(150); out.mirror = R.mirrorOn(); out.btnChase = vis();
   /* level 0: the single mine button drops a puncture strip */
   const p0 = R.stat('punctures'); R.act.mine(); R.step(60 * 2.5); R.clearTraffic();
   out.punctured = R.stat('punctures') === p0 + 1 && R.mines().n === out.stock0.n - 1;
@@ -357,7 +358,7 @@ const mine = await page.evaluate(async () => {
   return out;
 });
 check('rear mirror opens only while a cop is behind', mine.noMirror && mine.mirror && mine.mirrorGone, JSON.stringify([mine.noMirror, mine.mirror, mine.mirrorGone]));
-check('the mine button is always on screen; at level 0 it drops a puncture strip that slows the chaser', mine.btnAlways && mine.stock0.kind === 'p' && mine.punctured && mine.copSlow, JSON.stringify([mine.btnAlways, mine.punctured, mine.copSlow, mine.stock0]));
+check('the mine button pops up only when a chaser is behind; at level 0 it drops a puncture strip that slows the chaser', !mine.btnIdle && mine.btnChase && mine.stock0.kind === 'p' && mine.punctured && mine.copSlow, JSON.stringify([mine.btnIdle, mine.btnChase, mine.punctured, mine.copSlow, mine.stock0]));
 check('with the mine upgrade the same button drops an explosive mine (6 at level 1) that destroys the chaser', mine.stock1.kind === 'x' && mine.stock1.n === 6 && mine.exploded && mine.left === 5, JSON.stringify([mine.stock1, mine.exploded, mine.left]));
 
 

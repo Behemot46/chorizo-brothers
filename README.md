@@ -27,3 +27,7 @@ Open `index.html` in a browser. Tests (Playwright + Chromium, real touch events)
 ## Fighting
 - Missile upgrade levels 4-5 add the chorizo warhead (wide blast, the old separate chorizo missile is gone). Rivals have health (24+), show a name tag with a health bar and a ring, hit back, and pay 20 chorizo when wrecked. Ramming traffic pays chorizo by car size plus random bonuses.
 - Founder discount: Shachar / Shachar Grossman pay 50% on everything; Gabi pays 10% on upgrades and looks.
+
+## Health
+- Lives are gone: a Tekken-style health bar (100 base; jeep and each armor level add +33%). Crash = -34 (truck/bus -44, rival shunt -24, lettuce -26, boss -44). The yellow trail catches up after a short pause.
+- Salami and the chorizo queen heal over time; poison bottles drain health (never below 1); first aid kits go into a bag (button, key H), heal 45+ and cure poison. Upgrade "ערכות עזרה ראשונה" gives starting kits, a bigger bag and stronger healing.

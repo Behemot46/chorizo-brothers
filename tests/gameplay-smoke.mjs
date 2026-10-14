@@ -35,8 +35,8 @@ const out = await page.evaluate(() => {
   res.hotdog = eat(0, lane()); res.turbo = R.ammo().turbo;
   res.bratwurst = eat(1, lane()); res.power = R.ammo().power;
   res.merguez = eat(2, lane()); res.magnet = R.ammo().magnet;
-  R.setLives(1); res.livesBefore = R.state().lives;
-  res.salami = eat(3, lane()); res.livesAfter = R.state().lives;
+  R.setHp(40); res.hpBefore = R.state().hp;
+  res.salami = eat(3, lane()); res.regenOn = R.poison().regen > 3; R.step(60 * 3); res.hpAfter = R.state().hp;
   R.start(); R.step(10);
   res.queen = eat(4, lane()); const a = R.ammo(); res.queenAll = a.turbo > 3 && a.power > 3 && a.magnet > 3;
   return res;
@@ -44,7 +44,7 @@ const out = await page.evaluate(() => {
 check('hot dog is collected and gives turbo', out.hotdog && out.turbo > 2, 'turbo=' + out.turbo);
 check('bratwurst is collected and gives power ram', out.bratwurst && out.power > 5, 'power=' + out.power);
 check('merguez is collected and gives magnet', out.merguez && out.magnet > 5, 'magnet=' + out.magnet);
-check('salami is collected and gives a heart', out.salami && out.livesAfter === out.livesBefore + 1, `${out.livesBefore}->${out.livesAfter}`);
+check('salami heals gradually over time (a regen status, not an instant heart)', out.salami && out.regenOn && out.hpAfter > out.hpBefore + 25, `${out.hpBefore}->${out.hpAfter}`);
 check('chorizo queen gives turbo + power + magnet', out.queen && out.queenAll);
 
 console.log('\n== sausage currency + magnet ==');
@@ -72,14 +72,14 @@ const veh = await page.evaluate(() => {
   for (const id of ['sport', 'jeep', 'taxi', 'armored']) { R.setCar(id); R.start(); out[id] = Object.assign({ settle: settle() }, R.vehicle()); }
   /* the armored car's shield soaks the first hit without losing a heart */
   R.setCar('armored'); R.start(); R.setLaps(1); let first = null;
-  for (let i = 0; i < 60 * 60 && R.state().state === 'play'; i++) { R.step(1); if (R.vehicle().shield === 0) { first = R.state().lives; break; } }
-  out.shieldHitLives = first; out.livesFull = R.vehicle().maxLives;
+  for (let i = 0; i < 60 * 60 && R.state().state === 'play'; i++) { R.step(1); if (R.vehicle().shield === 0) { first = R.state().hp; break; } }
+  out.shieldHitLives = first; out.livesFull = R.vehicle().maxHp;
   R.setCar('sport'); R.start();
   return out;
 });
-check('jeep has an extra heart, taxi and armored dimensions differ', veh.jeep.maxLives === veh.sport.maxLives + 1 && veh.armored.len > veh.sport.len && veh.jeep.wid > veh.sport.wid, JSON.stringify([veh.sport.maxLives, veh.jeep.maxLives]));
+check('jeep has an extra heart, taxi and armored dimensions differ', veh.jeep.maxHp > veh.sport.maxHp && veh.armored.len > veh.sport.len && veh.jeep.wid > veh.sport.wid, JSON.stringify([veh.sport.maxLives, veh.jeep.maxLives]));
 check('steering: taxi settles faster than sport, jeep slowest', veh.taxi.settle < veh.sport.settle && veh.sport.settle < veh.jeep.settle, `taxi=${veh.taxi.settle} sport=${veh.sport.settle} jeep=${veh.jeep.settle}`);
-check('armored shield absorbs the first hit without losing a heart', veh.shieldHitLives === veh.livesFull, `lives=${veh.shieldHitLives}/${veh.livesFull}`);
+check('armored shield absorbs the first hit without losing health', veh.shieldHitLives === veh.livesFull, `lives=${veh.shieldHitLives}/${veh.livesFull}`);
 
 console.log('\n== visual effects ==');
 await page.evaluate(() => { const R = RingRush; R.start(); R.setLaps(1); R.step(30); for (let i = 0; i < 60 * 30; i++) { R.step(1); if (R.cars().some((c) => c.rel > 8 && c.rel < 28 && c.type !== 'bus' && c.type !== 'truck')) break; } R.shock(); R.step(2); });
@@ -138,10 +138,10 @@ const bossT = await page.evaluate(() => {
   R.start(3); R.nearLap(1); R.step(120); out.noBossLap1 = !R.boss().active;
   R.start(3); R.nearLap(2); R.step(120); out.bossLap2 = R.boss().active; out.hp1 = R.boss().maxHp;
   /* a lettuce thrown at me lands in my lane and costs a heart if I stay */
-  R.start(); R.spawnBoss(); R.step(30); const l0 = R.state().lives; R.throwLettuce(); const pend = R.lettuces(); out.telegraph = pend.length === 1 && pend[0].state === 1 && pend[0].lane === R.state().lane;
-  R.step(100); out.hit = R.state().lives === l0 - 1;
+  R.start(); R.spawnBoss(); R.step(30); const l0 = R.state().hp; R.throwLettuce(); const pend = R.lettuces(); out.telegraph = pend.length === 1 && pend[0].state === 1 && pend[0].lane === R.state().lane;
+  R.step(100); out.hit = R.state().hp < l0;
   /* ... and dodging works: switching lanes during the 1.15 s of flight avoids it */
-  R.start(); R.spawnBoss(); R.step(30); const l1 = R.state().lives; R.throwLettuce(); R.step(15); R.act.lane(1); R.step(100); out.dodged = R.state().lives === l1;
+  R.start(); R.spawnBoss(); R.step(30); const l1 = R.state().hp; R.throwLettuce(); R.step(15); R.act.lane(1); R.step(100); out.dodged = R.state().hp === l1;
   /* the lettuce volley can never fill all three lanes */
   R.start(); R.spawnBoss(); let maxLanes = 0;
   for (let i = 0; i < 300; i++) { const r = Math.random(); if (r < 0.34) R.act.lane(-1); else if (r < 0.67) R.act.lane(1); R.throwLettuce(); R.step(14); R.state(); maxLanes = Math.max(maxLanes, new Set(R.lettuces().map((q) => q.lane)).size); if (R.state().state !== 'play') R.start(); R.spawnBoss(); }
@@ -233,7 +233,7 @@ const tilt = await page.evaluate(async () => {
   R.setCtl('tilt'); out.noSensor = R.ctl();
   await R.tiltRequest(); ori(60, 0);
   R.startRace(0); ori(60, 0); R.step(60 * 4.4); R.clearTraffic(); out.mode = R.ctl();
-  R.setLives(5); R.noRivalHits(true);
+  R.setHp(999); R.noRivalHits(true);
   ori(60, 22); R.step(90); out.right = R.state().lat;
   ori(60, -22); R.step(90); out.left = R.state().lat;
   ori(60, 0); R.step(90); out.level = R.state().lat;
@@ -258,7 +258,7 @@ const grid = await page.evaluate(() => {
 check('the race starts on a grid: countdown, 5 rivals, player starts last, nobody moves before GO', grid.rivals === 5 && grid.countdown && grid.placeStart === 6 && grid.still && grid.moving, JSON.stringify(grid));
 const fin = await page.evaluate(() => {
   const R = RingRush, out = {};
-  R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setLives(5);
+  R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setHp(999);
   const L = R.race().L, rivalsBefore = R.rivals().map((r) => r.dist);
   out.unlockedBefore = R.unlocked(1);
   R.setLaps(2); R.setDist(3 * L - 40); for (let i = 0; i < 60 * 8 && !R.race().finished; i++) R.step(1);
@@ -273,7 +273,7 @@ check('winning pays place + win bonus + first-win bonus and gives trophies', fin
 check('a podium finish unlocks the next track and saves wins and trophies', !fin.unlockedBefore && fin.unlockedAfter && fin.save.pods.ring === 1 && fin.save.wins.ring === 1 && fin.save.trophies === 30, JSON.stringify([fin.unlockedBefore, fin.unlockedAfter, fin.save]));
 const third = await page.evaluate(() => {
   const R = RingRush;
-  R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setLives(5);
+  R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setHp(999);
   const L = R.race().L; R.setLaps(2); R.setDist(3 * L - 40);
   R.setRival(0, 600, 0, 50); R.setRival(1, 600, 0, 50);
   for (let i = 0; i < 60 * 8 && !R.race().finished; i++) R.step(1); const place = R.race().place; R.step(60 * 5);
@@ -282,7 +282,7 @@ const third = await page.evaluate(() => {
 check('3rd place pays less, no win bonus, fewer trophies', third.place === 3 && third.reward.pay === 60 && third.reward.winBonus === 0 && third.reward.trophies === 10, JSON.stringify(third));
 const dnf = await page.evaluate(() => {
   const R = RingRush;
-  R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setLives(1);
+  R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setHp(30);
   R.placeCar('sedan', 8, R.state().lat, 0); R.step(60 * 4);
   return { state: R.state().state, race: R.race() };
 });
@@ -323,11 +323,11 @@ check('green halo appears only around cars I can actually destroy', !marks.none 
 const blade = await page.evaluate(() => {
   const R = RingRush, out = {};
   R.setUp('ramS', 1); R.start(0); R.clearTraffic(); R.setLat(0); R.step(150); R.clearTraffic();
-  const k0 = R.ammo().kills, l0 = R.state().lives; R.placeCar('sedan', 0, 3.4, R.state().speed); R.slam(1); R.step(40);
-  out.killed = R.ammo().kills - k0; out.livesKept = R.state().lives === l0;
+  const k0 = R.ammo().kills, l0 = R.state().hp; R.placeCar('sedan', 0, 3.4, R.state().speed); R.slam(1); R.step(40);
+  out.killed = R.ammo().kills - k0; out.livesKept = R.state().hp === l0;
   R.setUp('ramS', 0); R.start(0); R.clearTraffic(); R.setLat(0); R.step(150); R.clearTraffic();
-  const l1 = R.state().lives; R.placeCar('sedan', 0, 3.4, R.state().speed); R.step(2); R.slam(1); R.step(40);
-  out.noBladeCrash = R.state().lives < l1;
+  const l1 = R.state().hp; R.placeCar('sedan', 0, 3.4, R.state().speed); R.step(2); R.slam(1); R.step(40);
+  out.noBladeCrash = R.state().hp < l1;
   R.setUp('ramS', 1); R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setLat(0); R.step(30);
   R.setRival(0, 0, 3.4, R.state().speed); R.slam(1); let st = 0; for (let i = 0; i < 40; i++) { R.step(1); st = Math.max(st, R.rivals()[0].stun); }
   out.rivalKnocked = st > 0;
@@ -499,7 +499,7 @@ const war = await page.evaluate(async () => {
   fresh('sport'); R.setRival(0, 40, 0, 20); const r0 = R.rivals()[0]; out.hp = r0.maxHp; R.rivalHit(0, 5); out.afterHit = R.rivals()[0].hp; out.alive = R.rivals()[0].wreck === 0;
   c = R.state().coins; R.rivalHit(0, 100); out.wreck = R.rivals()[0].wreck > 0; out.wreckLoot = R.state().coins - c;
   /* a rival that lunges at the player costs a heart */
-  fresh('sport'); const l0 = R.ammo().lives; R.setRival(1, 0, 0.8, R.state().speed); R.rivalHitMe(1); R.step(30); out.livesBefore = l0; out.livesAfter = R.ammo().lives;
+  fresh('sport'); const l0 = R.ammo().hp; R.setRival(1, 0, 0.8, R.state().speed); R.rivalHitMe(1); R.step(30); out.livesBefore = l0; out.livesAfter = R.ammo().hp;
   /* a front ram on a slow rival damages it */
   fresh('sport'); R.setUp('ramF', 1); R.setRival(2, 4.2, 0, 8); const h0 = R.rivals()[2].hp; R.step(20); out.frontDmg = h0 - R.rivals()[2].hp;
   /* name tag and ring while racing */
@@ -516,11 +516,35 @@ const war = await page.evaluate(async () => {
 check('a ram pays chorizo by car size (sedan 2, truck 10) and double on the chorizo truck', war.lootSedan === 2 && war.lootTruck === 10 && war.lootBusTruckCar === 12, JSON.stringify(war));
 check('a real ram pays more than the old flat reward', war.realRam >= 5, 'got ' + war.realRam);
 check('rivals are sturdy (24+ hp), survive a hit, and a wreck pays 20 chorizo', war.hp >= 24 && war.afterHit === war.hp - 5 && war.alive && war.wreck && war.wreckLoot >= 20, JSON.stringify(war));
-check('a rival that lunges at the player costs one heart', war.livesAfter === war.livesBefore - 1, JSON.stringify([war.livesBefore, war.livesAfter]));
+check('a rival that lunges at the player takes 24 off the health bar', war.livesAfter === war.livesBefore - 24, JSON.stringify([war.livesBefore, war.livesAfter]));
 check('ramming a slow rival from behind damages it', war.frontDmg >= 5, 'dmg ' + war.frontDmg);
 check('every rival wears a name tag and a ring while racing', war.tags && war.tags.tag && war.tags.ring, JSON.stringify(war.tags));
 check('missile level 4 is the chorizo warhead: a wide blast, no separate chorizo weapon', war.warhead === 1 && war.blastKills >= 2 && war.plain === 0, JSON.stringify([war.warhead, war.blastKills, war.plain]));
 check('founder pays 50% on everything; Gabi 10% only on upgrades', war.fUp === 500 && war.fCar === 500 && war.fShort === 500 && war.fLatin === 500 && war.gUp === 100 && war.gCar === 1000, JSON.stringify(war));
+
+console.log('\n== health bar, poison, first aid ==');
+const hp = await page.evaluate(async () => {
+  const R = RingRush, out = {}, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const fresh = () => { R.setUp('armor', 0); R.setUp('medic', 0); R.setUp('ramF', 0); R.setUp('ramS', 0); R.setCar('sport'); R.start(0); R.clearTraffic(); R.setLat(0); R.step(150); R.clearTraffic(); R.noRivalHits(true); };
+  const eatK = (kind) => { R.place(kind, 14, R.state().lane); for (let i = 0; i < 90; i++) { R.step(1); } };
+  fresh(); out.full = R.state().hp === R.state().maxHp && R.state().maxHp === 100;
+  out.bar = document.getElementById('hpBar') && document.getElementById('hpFill').style.width;
+  /* poison drains over time but stops at 1 */
+  R.setHp(60); const p0 = R.state().hp; eatK(6); out.poisoned = R.poison().t > 0 || R.state().hp < p0; R.step(60 * 3); out.drained = p0 - R.state().hp; for (let i = 0; i < 20; i++) { R.step(60); R.clearTraffic(); } out.floor = R.state().hp;
+  /* a kit goes to the bag, the button uses it, heals and cures poison */
+  fresh(); R.setHp(50); R.giveKits(0); eatK(5); out.kits = R.state().kits; await wait(400); out.btnShown = !document.getElementById('btnKit').classList.contains('hidden');
+  R.setHp(50); R.kit(); out.healed = R.state().hp - 50; out.kitsLeft = R.state().kits;
+  /* a poisoned player is cured by a kit */
+  fresh(); R.giveKits(1); R.setHp(80); eatK(6); R.kit(); out.cured = R.poison().t === 0;
+  /* the trail catches up: hit then bar */
+  fresh(); R.setHp(999); R.placeCar('sedan', 6, 0, 5); R.step(90); out.afterCrash = R.state().hp;
+  R.noRivalHits(false);
+  return out;
+});
+check('the health bar starts full at 100 and is on screen', hp.full && /%$/.test(hp.bar || ''), JSON.stringify([hp.full, hp.bar]));
+check('a bottle of poison drains health over time but never below 1', hp.poisoned && hp.drained > 10 && hp.floor >= 1, JSON.stringify([hp.poisoned, hp.drained, hp.floor]));
+check('first aid kit: picked up into the bag, button appears, heals and cures poison', hp.kits === 1 && hp.btnShown && hp.healed >= 45 && hp.kitsLeft === 0 && hp.cured, JSON.stringify(hp));
+check('a car crash takes about a third of the base health', hp.afterCrash <= 70 && hp.afterCrash >= 60, 'hp=' + hp.afterCrash);
 
 check('no page errors / shader errors', errors.length === 0, errors.slice(0, 3).join(' / '));
 await browser.close();

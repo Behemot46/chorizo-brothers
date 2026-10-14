@@ -21,3 +21,8 @@ Single-file mobile arcade game: `index.html` (Three.js r128 from cdnjs). UI lang
   (`BLOB_READ_WRITE_TOKEN`). The static `index.html` works offline; sync is best-effort.
 - Hosting gotcha: the clean URL chorizo-brothers.vercel.app is attached to a deployment by hand (`assign_alias`) and must be re-assigned after each deploy
   until the old project `chorizo-brothers-old` is deleted.
+
+## Feedback, plate and progression (added Oct 2026)
+- Players send feedback from the menu button or an automatic prompt (after the 3rd race, then every 8th). `api/feedback.js` stores one blob per message; reading needs env `FEEDBACK_ADMIN_KEY` (`GET /api/feedback?k=...`). Report with `FEEDBACK_ADMIN_KEY=... node tools/feedback-report.mjs`, then summarize themes and suggestions for the owner. Never print the key.
+- XP / level 1-100 / prestige, the player plate (frame, background, name effect, emblem, license plate on the car's rear = username) and 134 achievements with locked cosmetics live in `index.html` (`LADDERS`, `PLATE`, `levelInfo`). Health is a bar (`P.hp`, base 100), not hearts.
+- Do not push to git or deploy to Vercel until the owner approves; local commits are fine.

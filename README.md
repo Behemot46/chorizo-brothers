@@ -34,3 +34,8 @@ Open `index.html` in a browser. Tests (Playwright + Chromium, real touch events)
 
 ## Achievements and unlockables
 - 134 achievements in 42 ladders (bronze/silver/gold/platinum) across fight, drive, race, collect and survive; each tier pays chorizo, the last tier of a ladder gives a title. 21 cosmetics (6 paints with new shader patterns, 5 stripes, 5 nitro flames, 5 underglows) and 40 titles open only through achievements; the crown opens with "king". Existing saves are caught up silently on first load (`migAch2`).
+
+## Plate, XP and feedback
+- XP from races, kills, near misses, food, missions and achievements; level 1-100 (+30+5*level coins per level, plate items at set levels), then prestige (reset, star, +5,000, exclusive items). The plate (frame, background, name effect, emblem, title) shows in the menu, the leaderboard and the results; the license plate on the car's rear shows the username in the chosen style.
+- Players can send free-text feedback (stars, category, text); see `tools/feedback-report.mjs`.
+- Desktop keyboard steering is now ~3x faster (26 m/s sideways with a short ramp).

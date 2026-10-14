@@ -17,7 +17,7 @@ const check = (name, ok, extra = '') => { results.push({ name, ok }); console.lo
 
 const browser = await chromium.launch({ executablePath: exe, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
-await ctx.addInitScript(() => { try { if (!localStorage.getItem('ringrush.v1')) localStorage.setItem('ringrush.v1', JSON.stringify({ coins: 0, tut: true })); } catch (e) {} });
+await ctx.addInitScript(() => { try { if (!localStorage.getItem('ringrush.v1')) localStorage.setItem('ringrush.v1', JSON.stringify({ coins: 0, tut: true, fbRun: 1e9 })); } catch (e) {} });
 const page = await ctx.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
@@ -265,10 +265,12 @@ const fin = await page.evaluate(() => {
   R.step(60 * 5);
   out.state = R.state().state; out.reward = R.race().reward; out.rows = R.race().results.length; out.unlockedAfter = R.unlocked(1);
   out.save = { pods: R.saveState().pods, wins: R.saveState().wins, trophies: R.saveState().trophies };
+  out.xp = R.lastXp(); out.xpBox = document.getElementById('oXp').textContent;
   return out;
 });
 check('crossing the line after 3 laps finishes the race and shows results', fin.finished && fin.state === 'over' && fin.rows === 6, JSON.stringify({ f: fin.finished, s: fin.state, rows: fin.rows }));
 check('winning pays place + win bonus + first-win bonus and gives trophies', fin.place === 1 && fin.reward.pay === 140 && fin.reward.winBonus === 28 && fin.reward.firstWin === 250 && fin.reward.trophies === 30, JSON.stringify(fin.reward));
+check('a finished race gives XP, shown on the results screen with the level', fin.xp && fin.xp.gain >= 300 && /XP/.test(fin.xpBox) && /רמה/.test(fin.xpBox), JSON.stringify([fin.xp && fin.xp.gain, fin.xpBox]));
 check('a podium finish unlocks the next track and saves wins and trophies', !fin.unlockedBefore && fin.unlockedAfter && fin.save.pods.ring === 1 && fin.save.wins.ring === 1 && fin.save.trophies === 30, JSON.stringify([fin.unlockedBefore, fin.unlockedAfter, fin.save]));
 const third = await page.evaluate(() => {
   const R = RingRush;
@@ -373,12 +375,9 @@ const truck = await page.evaluate(async () => {
 });
 check('the chorizo truck is a big van whose missiles carry a chorizo warhead (no separate chorizo button)', truck.veh.id === 'chorizotruck' && truck.veh.len > 5 && truck.warhead === 1 && truck.btn, JSON.stringify(truck));
 check('every sausage is worth double on the chorizo truck', truck.truckCoins === truck.sportCoins * 2 && truck.sportCoins > 0, `sport=${truck.sportCoins} truck=${truck.truckCoins}`);
-await Promise.all([page.waitForNavigation(), page.evaluate(() => {
-  /* edit the save and reload in one go, so no timer can write the old state back in between */
-  const s0 = JSON.parse(localStorage.getItem('ringrush.v1')); s0.ctlChosen = false; s0.ctl = 'tilt'; s0.pods = { ring: 1, sausage: 1, clover: 1 }; localStorage.setItem('ringrush.v1', JSON.stringify(s0)); location.hash = '';
-  window.addEventListener('beforeunload', (e) => e.stopImmediatePropagation(), true); location.reload();
-})]);
+await page.reload();
 await page.waitForFunction(() => window.RingRush, null, { timeout: 20000 }); await page.waitForTimeout(500);
+await page.evaluate(() => RingRush.prep({ ctlChosen: false, ctl: 'tilt', pods: { ring: 1, sausage: 1, clover: 1 }, fbRun: 1e9 })); /* set after the reload, so nothing can overwrite it */
 await page.click('#btnPlay'); await page.waitForTimeout(300); await page.click('#tList .tk:nth-child(1)'); await page.waitForTimeout(300);
 const ask = await page.evaluate(() => ({ pick: !document.getElementById('ctlPick').classList.contains('hidden'), racing: RingRush.race().grid > 0 }));
 check('first race: asks for the control style and waits for the answer', ask.pick && !ask.racing, JSON.stringify(ask));
@@ -529,7 +528,7 @@ const hp = await page.evaluate(async () => {
   fresh(); out.full = R.state().hp === R.state().maxHp && R.state().maxHp === 100;
   out.bar = document.getElementById('hpBar') && document.getElementById('hpFill').style.width;
   /* poison drains over time but stops at 1 */
-  R.setHp(60); const p0 = R.state().hp; eatK(6); out.poisoned = R.poison().t > 0 || R.state().hp < p0; R.step(60 * 3); out.drained = p0 - R.state().hp; for (let i = 0; i < 20; i++) { R.step(60); R.clearTraffic(); } out.floor = R.state().hp;
+  R.setHp(60); const p0 = R.state().hp; eatK(6); out.poisoned = R.poison().t > 0 || R.state().hp < p0; R.step(60 * 3); out.drained = p0 - R.state().hp; for (let i = 0; i < 240; i++) { R.step(5); R.clearTraffic(); } out.floor = R.state().hp;
   /* a kit goes to the bag, the button uses it, heals and cures poison */
   fresh(); R.setHp(50); R.giveKits(0); eatK(5); out.kits = R.state().kits; await wait(400); out.btnShown = !document.getElementById('btnKit').classList.contains('hidden');
   R.setHp(50); R.kit(); out.healed = R.state().hp - 50; out.kitsLeft = R.state().kits;
@@ -544,6 +543,55 @@ check('the health bar starts full at 100 and is on screen', hp.full && /%$/.test
 check('a bottle of poison drains health over time but never below 1', hp.poisoned && hp.drained > 10 && hp.floor >= 1, JSON.stringify([hp.poisoned, hp.drained, hp.floor]));
 check('first aid kit: picked up into the bag, button appears, heals and cures poison', hp.kits === 1 && hp.btnShown && hp.healed >= 45 && hp.kitsLeft === 0 && hp.cured, JSON.stringify(hp));
 check('a car crash takes about a third of the base health', hp.afterCrash <= 70 && hp.afterCrash >= 60, 'hp=' + hp.afterCrash);
+
+console.log('\n== player feedback and desktop keyboard steering ==');
+const fbk = await page.evaluate(async () => {
+  const R = RingRush, out = {}, posts = [], realFetch = window.fetch;
+  window.fetch = async (u, o) => { if (String(u).includes('/api/feedback')) { posts.push(JSON.parse(o.body)); return { ok: true, status: 200, json: async () => ({ ok: true }) }; } return realFetch(u, o); };
+  R.start(0); R.clearTraffic(); R.setLat(0);
+  out.dueFirst = R.fbDue(3, 0, 0) && !R.fbDue(2, 0, 0) && R.fbDue(8, 0, 1) && !R.fbDue(7, 0, 1);
+  R.fbOpen('menu', true); out.shown = !document.getElementById('feedback').classList.contains('hidden');
+  /* typing in the box must not trigger game shortcuts (w = nitro / space = play) */
+  const ta = document.getElementById('fbText'); ta.value = ''; ta.focus();
+  const st0 = R.state().state;
+  ta.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', bubbles: true })); ta.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+  out.typingSafe = R.state().state === st0;
+  document.querySelectorAll('#fbStars button')[3].click(); document.querySelectorAll('#fbCats .atab')[1].click(); ta.value = 'כדאי להוסיף עוד מסלולים וגם סאונד';
+  document.getElementById('btnFbSend').click(); await new Promise((r) => setTimeout(r, 300));
+  out.post = posts[0]; out.hidden = document.getElementById('feedback').classList.contains('hidden');
+  /* offline: the message is queued and retried */
+  window.fetch = async (u, o) => { if (String(u).includes('/api/feedback')) throw new Error('offline'); return realFetch(u, o); };
+  R.fbOpen('menu', false); document.getElementById('fbText').value = 'שליטה במחשב איטית'; document.querySelectorAll('#fbStars button')[1].click(); document.getElementById('btnFbSend').click(); await new Promise((r) => setTimeout(r, 300));
+  out.queued = R.fbQueue(); window.fetch = realFetch;
+  /* keyboard steering: a full crossing in well under half a second */
+  R.start(0); R.clearTraffic(); R.setLat(0); R.setCtl('touch'); R.step(30);
+  R.key('ArrowRight', true); R.step(18); R.key('ArrowRight', false); out.kbdRight = R.state().lat; R.step(40);
+  R.key('ArrowLeft', true); R.step(36); R.key('ArrowLeft', false); out.kbdLeft = R.state().lat;
+  return out;
+});
+check('feedback is prompted after the 3rd race, then every 8th', fbk.dueFirst && fbk.shown);
+check('typing in the feedback box never fires game shortcuts', fbk.typingSafe);
+check('feedback is sent with rating, category, text and context, and the panel closes', fbk.post && fbk.post.rating === 4 && fbk.post.cat === 'idea' && /מסלולים/.test(fbk.post.text) && fbk.post.ctx.v && fbk.hidden, JSON.stringify(fbk.post));
+check('feedback written offline is queued for a retry', fbk.queued === 1, 'queued=' + fbk.queued);
+check('keyboard steering moves 4 m in 0.3 s (9 m/s used to give 2.7) and sweeps across in 0.6 s', fbk.kbdRight > 4 && fbk.kbdLeft < -4, JSON.stringify([fbk.kbdRight, fbk.kbdLeft]));
+
+console.log('\n== levels, prestige and the player plate ==');
+const lv = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  R.setXp(0); out.l1 = R.xpInfo().level;
+  const g = R.addXp(100); out.l2 = R.xpInfo().level; out.ups = g.ups.length; out.items = g.items.join();
+  out.frame = R.plateOf().own.frame.length;
+  R.setXp(0); R.addXp(30000); out.big = R.xpInfo().level;
+  R.setXp(400000); out.cap = R.xpInfo().cap; out.lv = R.xpInfo().level;
+  const c0 = R.saveState().coins; out.pres = R.prestige(); out.afterPres = R.xpInfo(); out.presCoins = R.saveState().coins - c0; out.presItem = R.plateOf().own.frame.length > out.frame;
+  out.prestigeBlocked = (R.setXp(10), R.prestige());
+  out.html = R.plateHtmlTest();
+  return out;
+});
+check('XP levels up (100 XP = level 2 with coins and a plate frame)', lv.l1 === 1 && lv.l2 === 2 && lv.ups === 1 && lv.frame >= 2, JSON.stringify(lv));
+check('30,000 XP is a high level and 400,000 XP caps at level 100', lv.big > 30 && lv.cap && lv.lv === 100, JSON.stringify([lv.big, lv.lv]));
+check('prestige resets to level 1, adds a star, pays 5,000 and opens the prestige frame; it is refused below level 100', lv.pres && lv.afterPres.level === 1 && lv.afterPres.prestige === 1 && lv.presCoins >= 5000 && lv.presItem && !lv.prestigeBlocked, JSON.stringify([lv.afterPres, lv.presCoins]));
+check('the plate shows emblem, name and level', /plate/.test(lv.html) && /🌭/.test(lv.html) && /plv/.test(lv.html));
 
 check('no page errors / shader errors', errors.length === 0, errors.slice(0, 3).join(' / '));
 await browser.close();

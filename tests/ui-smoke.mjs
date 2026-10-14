@@ -27,7 +27,7 @@ async function main() {
   for (const [w, h] of VIEWPORTS) {
     console.log(`\n== ${w}x${h} ==`);
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
-    await ctx.addInitScript(() => { try { localStorage.setItem('ringrush.v1', JSON.stringify({ coins: 30000, tut: true })); } catch (e) {} });
+    await ctx.addInitScript(() => { try { localStorage.setItem('ringrush.v1', JSON.stringify({ coins: 30000, tut: true, fbRun: 1e9 })); } catch (e) {} });
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));

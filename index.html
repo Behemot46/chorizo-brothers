@@ -226,6 +226,25 @@ button.btn.ghost{background:rgba(255,255,255,.1);color:var(--ink);box-shadow:non
 .ac .pips{display:flex;gap:4px;margin-top:3px}.ac .pips i{width:14px;height:6px;border-radius:3px;background:rgba(255,255,255,.2)}.ac .pips i.on{background:var(--gold)}
 .ac .gift{color:#9ff6b7;font-size:12px}
 .ac.done .medal{background:radial-gradient(circle at 35% 30%,#fff3b0,#ffc83d 60%,#c58a00);box-shadow:0 0 14px rgba(255,200,61,.6)}
+.stars{display:flex;gap:6px;direction:ltr}
+.stars button{appearance:none;background:none;border:0;font-size:38px;line-height:1;padding:2px;filter:grayscale(1) opacity(.45);transition:transform .12s}
+.stars button.on{filter:none;transform:scale(1.08)}
+.fbcats{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:min(92vw,380px)}
+#fbText{width:min(92vw,380px);min-height:120px;border-radius:16px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:var(--ink);font:inherit;font-size:17px;padding:12px;resize:vertical}
+#fbText:focus{border-color:var(--neon);outline:0}
+.plate{display:inline-flex;align-items:center;gap:10px;padding:6px 12px;border-radius:14px;border:3px solid transparent;background:var(--pbg) padding-box,var(--pf) border-box;text-align:right;max-width:100%}
+.plate.sm{padding:3px 8px;gap:6px;border-width:2px;border-radius:10px}
+.plate .pem{font-size:26px;line-height:1}.plate.sm .pem{font-size:18px}
+.plate .pinfo{display:flex;flex-direction:column;min-width:0}.plate .pname{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.plate.sm .pname{font-size:14px}
+.plate .ptitle{color:var(--gold);font-size:11px;font-weight:700}
+.plate .plv{display:flex;flex-direction:column;align-items:center;min-width:34px;border-radius:10px;background:rgba(255,255,255,.14);padding:2px 6px}.plate .plv b{font-size:18px;line-height:1.1}.plate .plv small{font-size:10px;color:var(--gold)}
+.fx1{text-shadow:0 0 10px currentColor,0 0 18px currentColor}
+.fx2{background:linear-gradient(90deg,#ff2e4d,#ffc83d,#39ff88,#19e3ff,#9b5cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.fx3{background:linear-gradient(180deg,#fff3b0,#ffc83d,#b07a00);-webkit-background-clip:text;background-clip:text;color:transparent}
+#mPlate{appearance:none;background:none;border:0;padding:0;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;width:min(92vw,330px)}
+.pxp{display:block;width:80%;height:5px;border-radius:3px;background:rgba(255,255,255,.16);overflow:hidden}.pxp i{display:block;height:100%;background:linear-gradient(90deg,#19e3ff,#ff2e93)}
+.xpbox{width:min(92vw,380px);padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.07);display:flex;flex-direction:column;gap:6px;align-items:center}
+.xpbox .lvl{font-weight:900}.xpbox .up{color:#9ff6b7;font-weight:800;font-size:14px}
 .mtitle{color:var(--gold);font-weight:800;font-size:13px;margin-top:-6px}
 .car-grid{grid-template-columns:1fr 1fr}
 .cv{position:relative;min-height:150px;padding:10px 8px;border-radius:16px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--ink);font:inherit;
@@ -263,7 +282,8 @@ button.btn.ghost{background:rgba(255,255,255,.1);color:var(--ink);box-shadow:non
 button.buy{appearance:none;border:0;cursor:pointer;font:inherit;font-weight:900;font-size:15px;min-height:48px;min-width:88px;border-radius:14px;color:#1a1200;background:linear-gradient(180deg,#ffd978,#ffc83d);display:flex;align-items:center;justify-content:center;gap:6px}
 button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
 .maxed{color:var(--ok);font-weight:900;font-size:13px;min-width:88px;text-align:center}
-@media (max-height:640px){.logo .l1,.logo .l2{font-size:clamp(40px,14vw,56px)}.logo .bar{margin-top:4px}.logo small{margin-bottom:4px}.panel{gap:8px}button.btn.big{min-height:60px}.speedo b{font-size:40px}}
+@media (max-height:480px){.logo .l1,.logo .l2{font-size:34px}.logo .bar,.logo small{display:none}#mPlate .plate{padding:2px 8px}#mPlate .pem{font-size:18px}.chips{gap:6px}.chip{padding:5px 10px}}
+@media (max-height:640px){.sub{display:none}.pxp{display:none}#mPlate .plate{padding:3px 10px}.logo small{margin-bottom:2px}.logo .l1,.logo .l2{font-size:clamp(40px,14vw,56px)}.logo .bar{margin-top:4px}.logo small{margin-bottom:4px}.panel{gap:8px}button.btn.big{min-height:60px}.speedo b{font-size:40px}}
 @media (max-width:360px){#mini{width:70px;height:70px}.hud-side{top:calc(var(--st) + 70px)}}
 @media (orientation:landscape) and (max-height:520px){.hud-side{top:calc(var(--st) + 56px)}#mini{width:64px;height:64px}.speedo{bottom:calc(var(--sb) + 40px)}#placeN{font-size:40px}#mirror{top:calc(var(--st) + 70px);height:60px}}
 </style>
@@ -314,7 +334,7 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
       <div class="chip" id="mLeague">🏅 <b>נקניקייה</b></div>
       <button class="chip" id="mUser">👤 התחבר</button>
     </div>
-    <div class="mtitle hidden" id="mTitle"></div>
+    <button id="mPlate" aria-label="לוחית שחקן"></button>
     <button class="btn big" id="btnPlay">שחק</button>
     <button class="btn wa" id="btnShareHome">📲 הזמן חברים בוואטסאפ</button>
     <div class="row">
@@ -324,8 +344,20 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
       <button class="btn ghost" id="btnMute1">🔊</button>
       <button class="btn ghost" id="btnFx1">אפקטים</button>
       <button class="btn ghost" id="btnCtl1">היגוי</button>
+      <button class="btn ghost" id="btnFeedback">💬 משוב</button>
     </div>
     <div class="missions"><h3>משימות יומיות</h3><div id="mMissions"></div></div>
+  </section>
+
+  <section id="plateEd" class="panel solid hidden">
+    <div class="ghead"><h2 class="t">לוחית שחקן</h2><div class="chip"><span class="coin"></span> <b id="pCoins">0</b></div></div>
+    <h3 style="margin:0;color:var(--dim);font-size:14px">לוחית שחקן</h3>
+    <div id="gPlatePrev" style="text-align:center"></div>
+    <div id="gPrestige" class="hint"></div>
+    <div id="gPlate"></div>
+    <h3 style="margin:0;color:var(--dim);font-size:14px">תואר <small id="gTitleCnt"></small></h3>
+    <div class="garage-grid" id="gTitle"></div>
+    <div class="sfoot"><button class="btn" id="btnPlateBack">חזרה</button></div>
   </section>
 
   <section id="garage" class="panel solid hidden">
@@ -340,8 +372,7 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
     <div class="garage-grid" id="gStripe"></div>
     <h3 style="margin:0;color:var(--dim);font-size:14px">תאורת תחתית</h3>
     <div class="garage-grid" id="gGlowU"></div>
-    <h3 style="margin:0;color:var(--dim);font-size:14px">תואר <small id="gTitleCnt"></small></h3>
-    <div class="garage-grid" id="gTitle"></div>
+    <button class="btn ghost" id="btnPlateEd">🪪 עיצוב לוחית ותואר</button>
     <h3 style="margin:0;color:var(--dim);font-size:14px">שדרוגים לרכב ולנשק</h3>
     <div class="uplist" id="gUp"></div>
     <div class="sfoot"><button class="btn" id="btnGarageBack">חזרה</button></div>
@@ -373,6 +404,7 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
     <div class="newbest hidden" id="oBest">שיא זמן חדש!</div>
     <div class="rtable" id="oTable"></div>
     <div class="rewards" id="oRewards"></div>
+    <div class="xpbox" id="oXp"></div>
     <div class="league" id="oLeague"></div>
     <div class="stats">
       <div class="stat"><b id="oScore">0</b><small>ניקוד</small></div>
@@ -412,6 +444,16 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
     <div id="loginMsg" class="hint"></div>
     <div class="sfoot"><button class="btn big" id="btnLogin">כניסה</button>
     <div class="row"><button class="btn ghost" id="btnLogout">התנתק</button><button class="btn ghost" id="btnLoginBack">חזרה</button></div></div>
+  </section>
+
+  <section id="feedback" class="panel solid hidden">
+    <div class="ghead"><h2 class="t">משוב</h2></div>
+    <p class="hint" id="fbHint">עזור לנו לשפר: מה אהבת, מה הציק, מה היית משנה? אפשר גם בלי טקסט.</p>
+    <div class="stars" id="fbStars" role="radiogroup" aria-label="דירוג"></div>
+    <div class="fbcats" id="fbCats"></div>
+    <textarea id="fbText" maxlength="600" rows="5" placeholder="כתוב כאן בחופשיות..." autocomplete="off" spellcheck="false"></textarea>
+    <div class="hint" id="fbMsg"></div>
+    <div class="sfoot"><button class="btn big" id="btnFbSend">שלח משוב</button><button class="btn ghost" id="btnFbBack">לא עכשיו</button></div>
   </section>
 
   <section id="board" class="panel solid hidden">
@@ -455,7 +497,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 };
 const SAVE_DEFAULTS = {
-  track: 0, times: {}, wins: {}, pods: {}, trophies: 0, streak: 0, ctl: '', ctlChosen: false, user: '', coins: 0, best: 0, bestLaps: 0, paint: 0, flame: 0, ownPaint: [0], ownFlame: [0], stripe: 0, ownStripe: [0], glowU: 0, ownGlowU: [0], title: -1, ownTitle: [], migAch2: false,
+  track: 0, times: {}, wins: {}, pods: {}, trophies: 0, streak: 0, ctl: '', ctlChosen: false, user: '', coins: 0, best: 0, bestLaps: 0, paint: 0, flame: 0, ownPaint: [0], ownFlame: [0], stripe: 0, ownStripe: [0], glowU: 0, ownGlowU: [0], title: -1, ownTitle: [], migAch2: false, fbQueue: [], fbSent: 0, fbRun: 0, xp: 0, prestige: 0, migXp: false, plate: { frame: 0, bg: 0, fx: 0, em: 0, lp: 0 }, ownPlate: { frame: [0], bg: [0], fx: [0], em: [0], lp: [0] },
   muted: false, tut: false, mission: { day: '', done: [] }, runs: 0, up: {}, car: 'sport', ownCars: ['sport'], calm: false, stats: {}, ach: {}
 };
 const save = Object.assign(JSON.parse(JSON.stringify(SAVE_DEFAULTS)), store.get('ringrush.v1', {}));
@@ -709,7 +751,7 @@ function checkAch(silent) {
   let changed = false, n = 0, last = null;
   for (const a of ACH) {
     if (save.ach[a.id] || a.v() < a.goal) continue;
-    save.ach[a.id] = Date.now(); save.coins += a.r; changed = true; n++;
+    save.ach[a.id] = Date.now(); save.coins += a.r; changed = true; n++; if (!silent) addXp(40 * (a.tier + 1));
     const unl = grantUnlocks(a.id);
     last = a.n + ' ' + ltr('+' + a.r) + (unl.length ? ' · 🎁 ' + unl.join(', ') : '');
     if (!silent) { toast('הישג: ' + last); Sfx.lap(); }
@@ -717,6 +759,66 @@ function checkAch(silent) {
   }
   if (changed) persist();
   return n;
+}
+
+/* ---- XP, levels (1-100), prestige and the player plate ---- */
+const LEVEL_CAP = 100;
+const xpNeed = (lv) => 100 + 22 * (lv - 1); /* XP from level lv to lv+1 */
+function levelInfo() {
+  let xp = Math.max(0, save.xp | 0), lv = 1;
+  while (lv < LEVEL_CAP && xp >= xpNeed(lv)) { xp -= xpNeed(lv); lv++; }
+  return { level: lv, into: xp, need: lv >= LEVEL_CAP ? 1 : xpNeed(lv), cap: lv >= LEVEL_CAP, prestige: save.prestige | 0 };
+}
+const PLATE_KINDS = [['frame', 'מסגרת'], ['bg', 'רקע'], ['fx', 'אפקט שם'], ['em', 'סמל'], ['lp', 'לוחית רישוי']];
+const PLATE = {
+  frame: [{ n: 'ללא', css: 'rgba(255,255,255,.2)' }, { n: 'תכלת ניאון', lvl: 2, css: '#19e3ff' }, { n: 'ורוד חם', cost: 150, css: '#ff2e93' }, { n: 'נקניק', cost: 300, css: '#ff5a2a' }, { n: 'זהב', cost: 600, css: '#ffc83d' },
+    { n: 'להבה', lvl: 15, css: 'linear-gradient(135deg,#ffd23a,#ff3a1f)' }, { n: 'חשמל', lvl: 25, css: 'linear-gradient(135deg,#9fe8ff,#3a7bff)' }, { n: 'קשת', lvl: 40, css: 'linear-gradient(135deg,#ff2e4d,#ffc83d,#39ff88,#19e3ff,#9b5cff)' },
+    { n: 'יהלום', lvl: 60, css: 'linear-gradient(135deg,#ffffff,#9fe8ff,#ffffff)' }, { n: 'כוכב פרסטיז׳', pres: 1, css: 'linear-gradient(135deg,#ffe08a,#c58a00,#ffe08a)' }],
+  bg: [{ n: 'כהה', css: '#12142a' }, { n: 'סגול לילה', cost: 100, css: 'linear-gradient(135deg,#1a1040,#3a1a6a)' }, { n: 'אש', cost: 200, css: 'linear-gradient(135deg,#3a0a0a,#8a2410)' }, { n: 'ים', cost: 200, css: 'linear-gradient(135deg,#06243a,#0b5a8a)' },
+    { n: 'ירוק רעל', lvl: 10, css: 'linear-gradient(135deg,#0a2a10,#1f6a2a)' }, { n: 'שקיעה', lvl: 20, css: 'linear-gradient(135deg,#3a1050,#b0402a)' }, { n: 'זהב כהה', lvl: 50, css: 'linear-gradient(135deg,#2a1c00,#7a5600)' }, { n: 'גלקסיה', pres: 1, css: 'radial-gradient(circle at 30% 30%,#7a2fd0,#0a0830)' }],
+  fx: [{ n: 'רגיל', cls: '' }, { n: 'זוהר', cost: 150, cls: 'fx1' }, { n: 'זהב', cost: 800, cls: 'fx3' }, { n: 'מעבר צבעים', lvl: 30, cls: 'fx2' }],
+  em: [{ n: 'נקניקייה', ico: '🌭' }, { n: 'מרוץ', ico: '🏎️', cost: 80 }, { n: 'להבה', ico: '🔥', cost: 100 }, { n: 'ברק', ico: '⚡', cost: 100 }, { n: 'פלפל', ico: '🌶️', lvl: 3 }, { n: 'בשר', ico: '🥩', lvl: 6 },
+    { n: 'טיל', ico: '🚀', cost: 200 }, { n: 'פיצוץ', ico: '💥', cost: 200 }, { n: 'אריה', ico: '🦁', lvl: 12 }, { n: 'נמר', ico: '🐯', lvl: 18 }, { n: 'זברה', ico: '🦓', lvl: 22 }, { n: 'גולגולת', ico: '💀', cost: 400 },
+    { n: 'כוכב', ico: '⭐', lvl: 30 }, { n: 'גביע', ico: '🏆', lvl: 45 }, { n: 'יהלום', ico: '💎', lvl: 70 }, { n: 'כתר', ico: '👑', pres: 1 }],
+  lp: [{ n: 'לבן', bg: '#f4f6ff', ink: '#101423' }, { n: 'צהוב', cost: 60, bg: '#ffd32a', ink: '#14161c' }, { n: 'שחור', cost: 120, bg: '#14161c', ink: '#f4f6ff' }, { n: 'ניאון', lvl: 12, bg: '#0b0d1a', ink: '#19e3ff' },
+    { n: 'ורוד', cost: 200, bg: '#ff2e93', ink: '#ffffff' }, { n: 'זהב', lvl: 35, bg: '#c58a00', ink: '#fff3b0' }]
+};
+const plateOwned = (k, i) => (save.ownPlate[k] || []).includes(i);
+function grantLevelItems(level) { /* everything that opens at this level or by prestige; returns the names */
+  const got = [];
+  for (const [k] of PLATE_KINDS) PLATE[k].forEach((it, i) => {
+    if (plateOwned(k, i)) return;
+    if ((it.lvl && level >= it.lvl) || (it.pres && (save.prestige | 0) >= it.pres)) { save.ownPlate[k] = (save.ownPlate[k] || []).concat([i]); got.push(it.n); }
+  });
+  return got;
+}
+function addXp(n) {
+  n = Math.max(0, Math.round(n)); if (!n) return { gain: 0, ups: [], items: [] };
+  const before = levelInfo().level; save.xp = (save.xp | 0) + n;
+  const after = levelInfo().level, ups = [], items = [];
+  for (let lv = before + 1; lv <= after; lv++) {
+    const coins = 30 + 5 * lv; save.coins += coins; ups.push({ lv, coins });
+    const g = grantLevelItems(lv); items.push(...g);
+    toast('⬆️ רמה ' + lv + ' ' + ltr('+' + coins) + (g.length ? ' · 🎁 ' + g.join(', ') : '')); Sfx.lap();
+  }
+  return { gain: n, ups, items };
+}
+function prestigeNow() { /* level 100 -> start again at level 1 with a star, a coin gift and the prestige items */
+  if (!levelInfo().cap) return false;
+  save.prestige = (save.prestige | 0) + 1; save.xp = 0; save.coins += 5000; grantLevelItems(1); persist();
+  toast('⭐ פרסטיז׳ ' + save.prestige + '! ' + ltr('+5000')); Sfx.lap(); return true;
+}
+const plateCard = () => ({ lv: levelInfo().level, pr: save.prestige | 0, p: Object.assign({}, save.plate), ti: (TITLES[save.title] || {}).n || '' });
+const frameBg = (c) => (/gradient/.test(c) ? c : 'linear-gradient(' + c + ',' + c + ')');
+function plateHtml(c, name, opt) { /* c = {lv, pr, p:{frame,bg,fx,em}, ti}; works for me and for leaderboard rows */
+  const p = c.p || {}, f = PLATE.frame[p.frame] || PLATE.frame[0], bg = PLATE.bg[p.bg] || PLATE.bg[0], fx = PLATE.fx[p.fx] || PLATE.fx[0], em = PLATE.em[p.em] || PLATE.em[0];
+  const esc = (x) => String(x || '').replace(/[<>&"]/g, '');
+  return '<span class="plate' + (opt && opt.small ? ' sm' : '') + '" style="--pf:' + frameBg(f.css) + ';--pbg:' + frameBg(bg.css) + '"><span class="pem">' + em.ico + '</span><span class="pinfo"><b class="pname ' + fx.cls + '">' + esc(name) + '</b>'
+    + (c.ti ? '<small class="ptitle">« ' + esc(c.ti) + ' »</small>' : '') + '</span><span class="plv"><b>' + (c.lv | 0) + '</b>' + (c.pr ? '<small>★' + (c.pr | 0) + '</small>' : '') + '</span></span>';
+}
+function renderMenuPlate() {
+  const li = levelInfo(), host = $('#mPlate');
+  host.innerHTML = plateHtml(plateCard(), save.user || 'שחקן') + '<span class="pxp"><i style="width:' + (li.cap ? 100 : Math.round(li.into / li.need * 100)) + '%"></i></span>';
 }
 
 /* vehicles: multipliers on the baseline sport car; bars (1-5) are only for the garage cards */
@@ -1532,8 +1634,20 @@ function applyVehicle() {
   shieldMesh.scale.set(spec.wid * .95, 1.05, spec.len * .6);
   crownMesh.visible = !!save.ach.king; crownMesh.position.set(0, v.crownY, -spec.len * .08);
 }
+/* the license plate on the back of the player's car: the username (or CHORIZO) in the chosen plate style */
+const lpCan = document.createElement('canvas'); lpCan.width = 256; lpCan.height = 80;
+const lpTex = new THREE.CanvasTexture(lpCan);
+const lpMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.34), new THREE.MeshBasicMaterial({ map: lpTex, side: THREE.DoubleSide }));
+lpMesh.rotation.y = Math.PI; player.g.add(lpMesh);
+function updatePlateMesh() {
+  const st = PLATE.lp[save.plate.lp] || PLATE.lp[0], g = lpCan.getContext('2d'), txt = String(save.user || 'CHORIZO').toUpperCase().slice(0, 8);
+  g.fillStyle = st.bg; g.fillRect(0, 0, 256, 80); g.strokeStyle = st.ink; g.lineWidth = 6; g.strokeRect(4, 4, 248, 72);
+  g.fillStyle = st.ink; g.textAlign = 'center'; g.textBaseline = 'middle'; g.direction = 'rtl'; g.font = '900 46px "Arial Hebrew","Noto Sans Hebrew",Arial,sans-serif'; g.fillText(txt, 128, 42, 230);
+  lpTex.needsUpdate = true;
+  const spec = SPEC[curVeh().spec]; lpMesh.position.set(0, spec.len > 8 ? 1.0 : 0.62, -spec.len / 2 - 0.03);
+}
 function refreshPlayerLook() {
-  applyVehicle();
+  applyVehicle(); updatePlateMesh();
   const ug = UNDERGLOWS[save.glowU] || UNDERGLOWS[0];
   player.glow.material.color.setHex(ug.same ? PAINTS[save.paint].c : ug.c);
   player.flameMat.color.setHex(FLAMES[save.flame].c);
@@ -2233,7 +2347,7 @@ function banner(txt, cls) {
   setTimeout(() => d.remove(), 1100);
   while (el.banners.children.length > 3) el.banners.firstChild.remove();
 }
-function toast(txt) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = txt; el.toast.appendChild(d); setTimeout(() => d.remove(), 2700); }
+function toast(txt) { while (el.toast.children.length >= 3) el.toast.firstChild.remove(); const d = document.createElement('div'); d.className = 'toast'; d.textContent = txt; el.toast.appendChild(d); setTimeout(() => d.remove(), 2700); }
 const fmt = (n) => Math.floor(n).toLocaleString('en-US');
 const ltr = (x) => '\u2066' + x + '\u2069'; /* keep +/digits in LTR inside RTL text */
 const comboMult = () => 1 + Math.min(7, Math.floor(P.combo / 3));
@@ -2276,6 +2390,10 @@ function renderResults(rw) {
   $('#oRewards').innerHTML = line('נקניקיות שנאספו', P.coins) + line(rw.dnf ? 'פרס השתתפות' : 'פרס מקום ' + rw.place, rw.pay)
     + (rw.winBonus ? line('בונוס ניצחון' + (rw.streak > 1 ? ' (רצף ' + rw.streak + ')' : ''), rw.winBonus, 'gold') : '') + (rw.firstWin ? line('ניצחון ראשון במסלול!', rw.firstWin, 'gold') : '')
     + '<div class="rl tot"><span>סה״כ</span><em dir="ltr">+' + total + '</em></div>';
+  { const x = RACE.xp, li = levelInfo(); if (x) {
+    $('#oXp').innerHTML = '<div class="lvl">⭐ XP <span dir="ltr">+' + x.gain + '</span> · רמה ' + li.level + (li.prestige ? ' ★' + li.prestige : '') + '</div><div class="prog" style="width:100%"><i style="width:' + (li.cap ? 100 : Math.round(li.into / li.need * 100)) + '%"></i></div><small>' + (li.cap ? 'רמה מקסימלית: אפשר לעבור לפרסטיז׳ במוסך' : li.into + '/' + li.need + ' ל' + 'רמה ' + (li.level + 1)) + '</small>'
+      + x.ups.map((u) => '<div class="up">⬆️ עלית לרמה ' + u.lv + ' <span dir="ltr">+' + u.coins + '</span></div>').join('') + (x.items.length ? '<div class="up">🎁 נפתח: ' + x.items.join(', ') + '</div>' : '');
+  } else $('#oXp').innerHTML = ''; }
   const li = leagueIdx(rw.after), lg = LEAGUES[li], nx = LEAGUES[li + 1];
   const up = leagueIdx(rw.after) > leagueIdx(rw.before), dn = leagueIdx(rw.after) < leagueIdx(rw.before);
   $('#oLeague').innerHTML = '<div class="lg" style="color:' + lg.col + '"><b>' + lg.n + '</b> · <span dir="ltr">' + rw.after + '</span> 🏅 <small dir="ltr">(' + (rw.trophies >= 0 ? '+' : '') + rw.trophies + ')</small></div>'
@@ -2312,7 +2430,7 @@ function checkMissions() {
   R.score = P.score; R.laps = P.lapsDone;
   for (const m of missions) {
     if (save.mission.done.includes(m.id) || !m.f(R)) continue;
-    save.mission.done.push(m.id); save.coins += MISSION_REWARD; bump('missions'); persist();
+    save.mission.done.push(m.id); save.coins += MISSION_REWARD; bump('missions'); addXp(60); persist();
     toast('משימה הושלמה: ' + m.t + ' ' + ltr('+' + MISSION_REWARD)); Sfx.lap();
   }
 }
@@ -2379,6 +2497,11 @@ function endRun(reason) {
   const rw = raceReward(place, RACE.dnf);
   RACE.reward = rw;
   save.coins += P.coins + rw.pay + rw.winBonus + rw.firstWin;
+  { /* XP: finishing place, kills, near misses, food, clean laps, laps and the win bonuses */
+    const li0 = levelInfo(), base = RACE.dnf ? 40 : [300, 200, 140, 100, 70, 50][place - 1];
+    const gain = Math.round(base * TR.pay) + R.kills * 4 + R.near * 2 + R.food * 8 + R.cleanLaps * 40 + P.lapsDone * 25 + (rw.firstWin ? 200 : 0) + (rw.winBonus ? 100 : 0);
+    RACE.xp = Object.assign(addXp(gain), { li0 });
+  }
   bump('earned', P.coins + rw.pay + rw.winBonus + rw.firstWin); bump('meters', Math.round(P.dist)); bumpMax('bestStreak', save.streak | 0);
   if (!RACE.dnf) { bump('finishes'); if (place <= 3) bump('podiums'); if (!P.hurt) bump('perfect'); if (P.hp < 15) bump('closeCalls'); }
   checkAch();
@@ -2390,7 +2513,7 @@ function endRun(reason) {
   el.siren.classList.remove('on'); el.warn.classList.add('hidden');
   el.hud.classList.add('hidden'); el.tut.classList.add('hidden'); el.countdown.classList.add('hidden'); el.mirror.classList.add('hidden');
   show('over', true); syncUser();
-  Net.push();
+  Net.push(); maybeAskFeedback();
 }
 const Net = {
   status: '', t: 0, busy: false,
@@ -2401,7 +2524,7 @@ const Net = {
     if (!save.user) return;
     try {
       const copy = JSON.parse(JSON.stringify(save)); delete copy.user;
-      const r = await Net.call('/api/profile', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ u: save.user, save: copy }) });
+      const r = await Net.call('/api/profile', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ u: save.user, save: copy, card: plateCard() }) });
       Net.status = r.ok ? 'ok' : 'error';
     } catch (e) { Net.status = 'offline'; }
   },
@@ -2420,7 +2543,7 @@ const Net = {
   async board() { return (await Net.call('/api/leaderboard')).rows || []; }
 };
 netHook = Net.schedule;
-function syncUser() { { const t = TITLES[save.title], mt = $('#mTitle'); if (mt) { mt.textContent = t ? '« ' + t.n + ' »' : ''; mt.classList.toggle('hidden', !t); } } $('#mUser').textContent = save.user ? '👤 ' + save.user + (isFounder() ? ' 👑 מייסד' : '') : '👤 התחבר'; $('#btnLogin2').classList.toggle('hidden', !!save.user); }
+function syncUser() { renderMenuPlate(); updatePlateMesh(); $('#mUser').textContent = save.user ? '👤 ' + save.user + (isFounder() ? ' 👑 מייסד' : '') : '👤 התחבר'; $('#btnLogin2').classList.toggle('hidden', !!save.user); }
 function toMenu() {
   G.state = 'menu'; resetTraffic();
   Sfx.musicStop(); Sfx.engine(0, false, false);
@@ -2503,7 +2626,7 @@ const Tilt = (() => {
   };
   return api;
 })();
-const kbd = { l: false, r: false };
+const kbd = { l: false, r: false, v: 0 };
 function ctlMode() { return save.ctl === 'tilt' && Tilt.live() ? 'tilt' : 'touch'; }
 function ctlThrottle() {
   if (G.state === 'dying') return 0.5;
@@ -2513,7 +2636,11 @@ function ctlSteer(dt) {
   if (G.state === 'dying' || RACE.finished) { P.latB = damp(P.latB, 0, 1.2, dt); return; }
   if (save.ctl === 'tilt' && !Tilt.live() && !G.tiltWarned) { G.tiltWarned = true; toast('חיישן ההטיה הפסיק להגיב: עברנו להחלקת אצבע. אפשר לחזור בהשהיה'); }
   if (ctlMode() === 'tilt') P.latB = Tilt.steer() * LAT_MAX;
-  else if (kbd.l || kbd.r) P.latB = clamp(P.latB + ((kbd.r ? 1 : 0) - (kbd.l ? 1 : 0)) * 9 * dt, -LAT_MAX, LAT_MAX);
+  else { /* keyboard: quick ramp up to ~26 m/s sideways (it used to be 9), so a full road crossing takes about 0.4 s */
+    const dir = (kbd.r ? 1 : 0) - (kbd.l ? 1 : 0);
+    kbd.v = damp(kbd.v, dir * 26, dir ? 18 : 26, dt);
+    if (Math.abs(kbd.v) > 0.05) P.latB = clamp(P.latB + kbd.v * dt, -LAT_MAX, LAT_MAX);
+  }
 }
 function showTutorial() {
   const tilt = ctlMode() === 'tilt';
@@ -3663,8 +3790,9 @@ touchEl.addEventListener('contextmenu', (e) => e.preventDefault());
 document.addEventListener('touchmove', (e) => { if (!(e.target && e.target.closest && e.target.closest('.panel'))) e.preventDefault(); }, { passive: false });
 ['gesturestart', 'gesturechange', 'gestureend'].forEach((ev) => document.addEventListener(ev, (e) => e.preventDefault()));
 function holdSteer() {}
+const isTyping = (e) => !!(e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)); /* typing a name or feedback must never fire game shortcuts */
 window.addEventListener('keydown', (e) => {
-  if (e.repeat) return;
+  if (e.repeat || isTyping(e)) return;
   const k = e.key;
   if (k === 'ArrowLeft' || k === 'a' || k === 'A') kbd.l = true;
   else if (k === 'ArrowRight' || k === 'd' || k === 'D') kbd.r = true;
@@ -3681,6 +3809,7 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'Enter' && G.state === 'over') startRun(undefined, true);
 });
 window.addEventListener('keyup', (e) => {
+  if (isTyping(e)) return;
   const k = e.key;
   if (k === 'ArrowLeft' || k === 'a' || k === 'A') kbd.l = false;
   else if (k === 'ArrowRight' || k === 'd' || k === 'D') kbd.r = false;
@@ -3756,8 +3885,59 @@ function openTracks() { renderTracks(); show('tracks', true); show('menu', false
 $('#btnTracks1').addEventListener('click', () => { bankRace(); toMenu(); openTracks(); });
 $('#btnTracks2').addEventListener('click', () => { toMenu(); openTracks(); });
 $('#btnAgain').addEventListener('click', () => { Sfx.init(); beginRace(TRACKS.indexOf(TR)); });
+/* ---- player feedback: a rating, a category and free text; prompted every few races, always available from the menu ---- */
+const APP_VER = '2026-10-14';
+const FB_CATS = [['love', '❤️ אהבתי'], ['idea', '💡 הצעה'], ['bug', '🐞 באג'], ['controls', '🎮 שליטה'], ['hard', '🔥 קשה מדי'], ['easy', '😴 קל מדי']];
+const fbState = { rating: 0, cat: '', from: 'menu', auto: false, busy: false };
+function fbRender() {
+  const st = $('#fbStars'); st.innerHTML = '';
+  for (let i = 1; i <= 5; i++) { const b = document.createElement('button'); b.textContent = '⭐'; b.className = i <= fbState.rating ? 'on' : ''; b.setAttribute('aria-label', i + ' כוכבים'); b.addEventListener('click', () => { fbState.rating = i; Sfx.ui(); fbRender(); }); st.appendChild(b); }
+  const ct = $('#fbCats'); ct.innerHTML = '';
+  FB_CATS.forEach(([k, n]) => { const t = document.createElement('button'); t.className = 'atab' + (fbState.cat === k ? ' sel' : ''); t.textContent = n; t.addEventListener('click', () => { fbState.cat = fbState.cat === k ? '' : k; Sfx.ui(); fbRender(); }); ct.appendChild(t); });
+}
+function openFeedback(from, auto) {
+  Object.assign(fbState, { rating: 0, cat: '', from, auto: !!auto, busy: false }); $('#fbText').value = ''; $('#fbMsg').textContent = '';
+  $('#fbHint').textContent = auto ? 'עוד כמה מירוצים מאחוריך: איך היה? ספר לנו מה אהבת ומה היית משנה (ואם תכתוב משהו משמעותי תקבל 25 צ׳וריסו).' : 'עזור לנו לשפר: מה אהבת, מה הציק, מה היית משנה? אפשר גם בלי טקסט.';
+  fbRender(); show('feedback', true); show(from, false);
+}
+function fbPayload() {
+  return { u: save.user || '', rating: fbState.rating, cat: fbState.cat, text: $('#fbText').value, ctx: { v: APP_VER, device: matchMedia('(pointer:coarse)').matches ? 'touch' : 'desktop', ctl: save.ctl, car: save.car, track: TR.id, runs: save.runs, wins: st('wins'), trophies: save.trophies | 0, level: typeof levelInfo === 'function' ? levelInfo().level : 0, prestige: save.prestige | 0, ach: Object.keys(save.ach || {}).length, q: String(qLevel), w: innerWidth, h: innerHeight } };
+}
+async function fbPost(p) { const r = await Net.call('/api/feedback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(p) }); if (!r.ok) throw new Error('rejected'); }
+async function fbFlush() { /* retry feedback that could not be sent while offline */
+  if (!save.fbQueue || !save.fbQueue.length || fbFlush.busy) return; fbFlush.busy = true;
+  try { while (save.fbQueue.length) { await fbPost(save.fbQueue[0]); save.fbQueue.shift(); persist(); } } catch (e) { /* try again later */ }
+  fbFlush.busy = false;
+}
+async function fbSend() {
+  if (fbState.busy) return;
+  const text = $('#fbText').value.trim();
+  if (!fbState.rating && !text) { $('#fbMsg').textContent = 'דרג בכוכבים או כתוב משהו'; return; }
+  fbState.busy = true; $('#fbMsg').textContent = 'שולח...';
+  const p = fbPayload(); let sent = true;
+  try { await fbPost(p); } catch (e) { sent = false; save.fbQueue = (save.fbQueue || []).concat([p]).slice(-10); }
+  save.fbSent = (save.fbSent | 0) + 1; save.fbRun = save.runs; bump('feedbacks');
+  let thanks = sent ? 'תודה על המשוב! 🙏' : 'תודה! נשלח כשיהיה חיבור 🙏';
+  if (fbState.auto && text.length >= 10) { save.coins += 25; thanks += ' ' + ltr('+25'); }
+  persist(); toast(thanks); show('feedback', false); show(fbState.from, true); toMenu_refresh();
+  if (sent) fbFlush();
+}
+const fbDueCalc = (runs, last, sent) => runs - last >= (sent > 0 ? 8 : 3);
+function maybeAskFeedback() { /* after the 3rd race, then every 8th; asking counts even when dismissed */
+  if (!fbDueCalc(save.runs, save.fbRun | 0, save.fbSent | 0)) return;
+  save.fbRun = save.runs; persist();
+  setTimeout(() => { if (G.state === 'over' && !$('#over').classList.contains('hidden')) openFeedback('over', true); }, 1800);
+}
+$('#btnFeedback').addEventListener('click', () => { Sfx.init(); Sfx.ui(); openFeedback('menu', false); });
+$('#btnFbSend').addEventListener('click', fbSend);
+$('#btnFbBack').addEventListener('click', () => { show('feedback', false); show(fbState.from, true); });
+setTimeout(fbFlush, 4000);
 function openLogin(from) { openLogin.from = from; $('#loginName').value = save.user || ''; $('#loginMsg').textContent = ''; show('login', true); show(from, false); }
 $('#mUser').addEventListener('click', () => { Sfx.init(); Sfx.ui(); openLogin('menu'); });
+function openPlateEd(from) { Sfx.init(); Sfx.ui(); renderPlateEditor(); show('plateEd', true); show(from, false); openPlateEd.from = from; }
+$('#mPlate').addEventListener('click', () => openPlateEd('menu'));
+$('#btnPlateEd').addEventListener('click', () => openPlateEd('garage'));
+$('#btnPlateBack').addEventListener('click', () => { show('plateEd', false); show(openPlateEd.from || 'menu', true); if ((openPlateEd.from || 'menu') === 'garage') renderGarage(); toMenu_refresh(); });
 $('#btnLogin2').addEventListener('click', () => { Sfx.ui(); openLogin('over'); });
 $('#btnLoginBack').addEventListener('click', () => { show('login', false); show(openLogin.from || 'menu', true); });
 $('#btnLogin').addEventListener('click', async () => {
@@ -3782,7 +3962,7 @@ $('#btnBoard').addEventListener('click', async () => {
     rows.forEach((r, i) => {
       const lg = LEAGUES[leagueIdx(r.t)], d = document.createElement('div');
       d.className = 'br' + (save.user && r.n.toLowerCase() === save.user.toLowerCase() ? ' me' : '');
-      d.innerHTML = '<b>' + (i + 1) + '</b><span>' + r.n.replace(/[<>&]/g, '') + ' <small style="color:' + lg.col + '">' + lg.n + '</small></span><em dir="ltr">' + r.t + ' 🏅 · ' + r.w + ' 🏆</em>';
+      d.innerHTML = '<b>' + (i + 1) + '</b><span>' + (r.c ? plateHtml(r.c, r.n, { small: true }) : r.n.replace(/[<>&]/g, '')) + ' <small style="color:' + lg.col + '">' + lg.n + '</small></span><em dir="ltr">' + r.t + ' 🏅 · ' + r.w + ' 🏆</em>';
       host.appendChild(d);
     });
   } catch (e) { host.innerHTML = '<div class="hint">אין חיבור לשרת הדירוג</div>'; }
@@ -3799,7 +3979,7 @@ function shareText() {
 function homeShareText() {
   const lg = LEAGUES[leagueIdx(save.trophies | 0)], tr = save.trophies | 0, w = Object.values(save.wins || {}).reduce((a, b) => a + (b | 0), 0);
   const who = save.user ? ' (' + save.user + (TITLES[save.title] ? ', ' + TITLES[save.title].n : '') + ')' : '';
-  const stat = tr > 0 || w > 0 ? 'אני בליגת ' + lg.n + ' עם ' + tr + ' גביעים' + (w ? ' ו-' + w + ' ניצחונות' : '') + who + '. ' : '';
+  const stat = tr > 0 || w > 0 ? 'אני ברמה ' + levelInfo().level + ' בליגת ' + lg.n + ' עם ' + tr + ' גביעים' + (w ? ' ו-' + w + ' ניצחונות' : '') + who + '. ' : '';
   return stat + 'בואו לשחק "Chorizo Chase" 🌭🔥 מרוץ של 3 הקפות מול 5 יריבים - תצליחו לנצח אותי?\n' + GAME_URL;
 }
 $('#btnShareHome').addEventListener('click', () => {
@@ -3850,6 +4030,46 @@ function renderAch() {
 }
 $('#btnAch').addEventListener('click', () => { Sfx.init(); Sfx.ui(); renderAch(); show('ach', true); show('menu', false); });
 $('#btnAchBack').addEventListener('click', () => { show('ach', false); show('menu', true); $('#mCoins').textContent = fmt(save.coins); });
+function renderPlateEditor() {
+  const li = levelInfo(), host = $('#gPlate'); host.innerHTML = ''; $('#pCoins').textContent = fmt(save.coins);
+  $('#gPlatePrev').innerHTML = plateHtml(plateCard(), save.user || 'שחקן');
+  const pr = $('#gPrestige');
+  pr.innerHTML = li.cap ? '<button class="btn" id="btnPrestige">⭐ פרסטיז׳ ' + ((save.prestige | 0) + 1) + ' · +5,000</button><br>הגעת לרמה 100: איפוס הרמה ל-1, כוכב ליד השם ופריטים בלעדיים.'
+    : 'רמה ' + li.level + ' · ' + li.into + '/' + li.need + ' XP. XP מגיע ממירוצים, ניגוחים, כמעט-פגיעות, משימות והישגים.';
+  const pb = $('#btnPrestige'); if (pb) pb.addEventListener('click', () => { if (prestigeNow()) { Sfx.ui(); renderPlateEditor(); syncUser(); } });
+  PLATE_KINDS.forEach(([k, label]) => {
+    const h = document.createElement('h3'); h.style.cssText = 'margin:6px 0 0;color:var(--dim);font-size:13px;text-align:center'; h.textContent = label; host.appendChild(h);
+    const g = document.createElement('div'); g.className = 'garage-grid'; host.appendChild(g);
+    PLATE[k].forEach((it, i) => {
+      const own = plateOwned(k, i), sel = save.plate[k] === i, b = document.createElement('button');
+      b.className = 'sw' + (sel ? ' sel' : '') + (own ? '' : ' lock');
+      const sample = k === 'frame' ? '<span class="dot" style="background:' + frameBg(it.css) + '"></span>' : k === 'bg' ? '<span class="dot" style="background:' + it.css + '"></span>'
+        : k === 'fx' ? '<span class="pname ' + it.cls + '" style="font-size:20px">Aa</span>' : k === 'em' ? '<span style="font-size:26px;line-height:1">' + it.ico + '</span>'
+        : '<span style="display:inline-block;padding:2px 8px;border-radius:5px;background:' + it.bg + ';color:' + it.ink + ';font-weight:900;font-size:12px;letter-spacing:1px">ABC 12</span>';
+      const state = own ? (sel ? 'נבחר' : '') : it.lvl ? '🔒 רמה ' + it.lvl : it.pres ? '🔒 פרסטיז׳' : '<span class="coin"></span> ' + priceHtml(it.cost);
+      b.innerHTML = sample + '<span>' + it.n + '</span><span class="pr">' + state + '</span>';
+      b.addEventListener('click', () => {
+        if (!own) {
+          if (it.lvl) { toast('נפתח ברמה ' + it.lvl); return; }
+          if (it.pres) { toast('נפתח בפרסטיז׳ ' + it.pres); return; }
+          if (save.coins < price(it.cost)) { toast('אין מספיק צ׳וריסו'); return; }
+          save.coins -= price(it.cost); save.ownPlate[k] = (save.ownPlate[k] || []).concat([i]);
+        }
+        save.plate[k] = i; persist(); Sfx.ui(); renderPlateEditor(); syncUser();
+      });
+      g.appendChild(b);
+    });
+  });
+  const tg = $('#gTitle'); tg.innerHTML = '';
+  $('#gTitleCnt').textContent = '(' + save.ownTitle.length + '/' + TITLES.length + ' נפתחו בהישגים)';
+  const none = document.createElement('button'); none.className = 'sw' + (save.title < 0 ? ' sel' : ''); none.innerHTML = '<span>ללא</span><span class="pr">' + (save.title < 0 ? 'נבחר' : '') + '</span>';
+  none.addEventListener('click', () => { save.title = -1; persist(); Sfx.ui(); syncUser(); renderPlateEditor(); }); tg.appendChild(none);
+  save.ownTitle.forEach((ti) => {
+    const t = TITLES[ti]; if (!t) return;
+    const b = document.createElement('button'); b.className = 'sw' + (save.title === ti ? ' sel' : ''); b.innerHTML = '<span>' + t.n + '</span><span class="pr">' + (save.title === ti ? 'נבחר' : '') + '</span>';
+    b.addEventListener('click', () => { save.title = ti; persist(); Sfx.ui(); syncUser(); renderPlateEditor(); }); tg.appendChild(b);
+  });
+}
 function renderGarage() {
   const pan = $('#garage'), keepScroll = pan.scrollTop;
   $('#gCoins').textContent = fmt(save.coins);
@@ -3903,15 +4123,6 @@ function renderGarage() {
   build($('#gFlame'), FLAMES, 'ownFlame', 'flame', refreshPlayerLook);
   build($('#gStripe'), STRIPES, 'ownStripe', 'stripe', refreshPlayerLook);
   build($('#gGlowU'), UNDERGLOWS, 'ownGlowU', 'glowU', refreshPlayerLook);
-  const tg = $('#gTitle'); tg.innerHTML = '';
-  $('#gTitleCnt').textContent = '(' + save.ownTitle.length + '/' + TITLES.length + ' נפתחו בהישגים)';
-  const none = document.createElement('button'); none.className = 'sw' + (save.title < 0 ? ' sel' : ''); none.innerHTML = '<span>ללא</span><span class="pr">' + (save.title < 0 ? 'נבחר' : '') + '</span>';
-  none.addEventListener('click', () => { save.title = -1; persist(); Sfx.ui(); syncUser(); renderGarage(); }); tg.appendChild(none);
-  save.ownTitle.forEach((ti) => {
-    const t = TITLES[ti]; if (!t) return;
-    const b = document.createElement('button'); b.className = 'sw' + (save.title === ti ? ' sel' : ''); b.innerHTML = '<span>' + t.n + '</span><span class="pr">' + (save.title === ti ? 'נבחר' : '') + '</span>';
-    b.addEventListener('click', () => { save.title = ti; persist(); Sfx.ui(); syncUser(); renderGarage(); }); tg.appendChild(b);
-  });
   pan.scrollTop = keepScroll;
 }
 
@@ -3929,6 +4140,9 @@ function setTrack(i) {
    ===================================================================== */
 resize();
 refreshPlayerLook();
+if (!save.migXp) { /* give existing players XP for what they already did */
+  save.xp = Math.min(40000, Math.round(st('wins') * 200 + st('finishes') * 80 + st('kills') * 3 + st('rams') * 4)); save.migXp = true; grantLevelItems(levelInfo().level); persist();
+}
 if (!save.migAch2) { /* the achievement system grew: grant whatever the existing progress already earned, without a toast storm */
   const n = checkAch(true); save.migAch2 = true; persist();
   if (n) setTimeout(() => toast('🎁 נפתחו ' + n + ' הישגים לפי ההתקדמות שלך'), 900);
@@ -3951,7 +4165,7 @@ window.RingRush = {
   coinsNear: () => coins.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),
   setTrack, tracks: () => TRACKS.map((t) => ({ id: t.id, n: t.n })), trackInfo: () => ({ id: TR.id, L }), dbg: { scene, camera, get road() { return roadMesh; }, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo) * COIN_SCALE, coinGlow: footprint(sausageCoinGeo) * COIN_GLOW * COIN_SCALE, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, topSpeed: curVeh().topSpeed, len: P.len, wid: P.wid, shield: P.shield, maxHp: P.maxHp }), setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setHp(v) { P.hp = Math.min(P.maxHp, v); hc.hp = null; }, giveKits(n) { P.kits = n; hc.ammo = null; }, kit() { useKit(); }, poison() { return { t: P.poisonT, regen: P.regenT }; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
   cops: () => cops.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, speed: c.speed, stun: c.stunT })),
-  noCops(v) { G.noCops = !!v; }, rivalsOff() { rivals.forEach((r) => { r.active = false; r.g.visible = false; }); }, noRivalHits(v) { G.noRivalHits = !!v; }, homeShare: () => homeShareText(), unlockAll() { for (const a of ACH) { if (!save.ach[a.id]) { save.ach[a.id] = Date.now(); grantUnlocks(a.id); } } applyVehicle(); persist(); }, achTotal: () => ACH.length, badAchRefs: () => COSMETIC_LISTS.flatMap(([l]) => l.filter((x) => x.ach && !achById(x.ach)).map((x) => x.n)), owned: () => ({ paint: save.ownPaint.length, stripe: save.ownStripe.length, flame: save.ownFlame.length, glow: save.ownGlowU.length, title: save.ownTitle.length, titles: TITLES.length }), setTitle(i) { save.title = i; syncUser(); },  rivalTags: () => rivals.map((r) => ({ tag: r.tag.sp.visible, ring: r.tag.ring.visible })), ramLoot: (t) => ramLoot(t), rivalHit: (i, d) => rivalDamage(rivals[i], d), setRivalHp(i, v) { rivals[i].hp = v; }, rivalHitMe(i) { const r = rivals[i]; r.atkT = 1; r.atkCd = 99; G.rivalHitCd = 0; },  setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p, k) => price(p, k), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
+  noCops(v) { G.noCops = !!v; }, rivalsOff() { rivals.forEach((r) => { r.active = false; r.g.visible = false; }); }, noRivalHits(v) { G.noRivalHits = !!v; }, homeShare: () => homeShareText(), prep(o) { Object.assign(save, o); persist(); }, xpInfo: () => levelInfo(), addXp: (n) => addXp(n), setXp(n) { save.xp = n; }, prestige: () => prestigeNow(), plateOf: () => ({ plate: save.plate, own: save.ownPlate, card: plateCard() }), plateHtmlTest: () => plateHtml(plateCard(), 'T'), lastXp: () => RACE.xp, fbPayload: () => fbPayload(), fbOpen: (from, auto) => openFeedback(from, auto), fbDue: (runs, last, sent) => fbDueCalc(runs, last, sent), fbQueue: () => (save.fbQueue || []).length, fbSend, fbState, key(k, down) { if (k === 'ArrowLeft') kbd.l = down; if (k === 'ArrowRight') kbd.r = down; }, kbdV: () => kbd.v, unlockAll() { for (const a of ACH) { if (!save.ach[a.id]) { save.ach[a.id] = Date.now(); grantUnlocks(a.id); } } applyVehicle(); persist(); }, achTotal: () => ACH.length, badAchRefs: () => COSMETIC_LISTS.flatMap(([l]) => l.filter((x) => x.ach && !achById(x.ach)).map((x) => x.n)), owned: () => ({ paint: save.ownPaint.length, stripe: save.ownStripe.length, flame: save.ownFlame.length, glow: save.ownGlowU.length, title: save.ownTitle.length, titles: TITLES.length }), setTitle(i) { save.title = i; syncUser(); },  rivalTags: () => rivals.map((r) => ({ tag: r.tag.sp.visible, ring: r.tag.ring.visible })), ramLoot: (t) => ramLoot(t), rivalHit: (i, d) => rivalDamage(rivals[i], d), setRivalHp(i, v) { rivals[i].hp = v; }, rivalHitMe(i) { const r = rivals[i]; r.atkT = 1; r.atkCd = 99; G.rivalHitCd = 0; },  setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p, k) => price(p, k), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
   ammo: () => ({ magnet: P.magnetT, hp: P.hp, kits: P.kits, missiles: P.missiles, shocks: P.shocks, warhead: warhead(), kills: P.kills, maxHp: P.maxHp, turbo: P.turboT, power: P.powerT, food: R.food }),
   setLaps(n) { P.dist = n * L; P.pd = P.dist; P.lapsDone = n; }
 };

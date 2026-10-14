@@ -634,6 +634,17 @@ check('the blocker weaves into the player\'s lane', rfight.blocked && rfight.blo
 check('the trapper drops a mine behind it and driving into it costs 22 health', rfight.trapMine && rfight.mineDmg === 22, JSON.stringify([rfight.trapMine, rfight.mineDmg]));
 check('the armored rival takes 30% less damage (10 -> 7) and the roster has different toughness', rfight.tankTook === 7 && new Set(rfight.hp).size >= 3, JSON.stringify([rfight.tankTook, rfight.hp]));
 
+const vip = await page.evaluate(() => {
+  const R = RingRush, out = {}; R.prep({ ownCars: ['sport'], car: 'sport' });
+  R.setUser(''); out.ids = R.vehicleIds(); out.anon = R.vehicleIds().filter((i) => R.owns(i));
+  R.setUser('גבי'); out.gabi = R.vehicleIds().filter((i) => R.owns(i)).length;
+  R.setUser('שחר'); out.shachar = R.vehicleIds().filter((i) => R.owns(i)).length;
+  R.prep({ ownCars: ['sport'], car: 'moto' }); R.setUser('גבי'); out.motoCar = R.curCar(); R.setUser(''); out.afterLogout = R.curCar();
+  return out;
+});
+check('Gabi and Shachar own every vehicle for free; other users only what they bought; a locked car falls back to the sport car', vip.anon.length === 1 && vip.gabi === vip.ids.length && vip.shachar === vip.ids.length && vip.motoCar === 'moto' && vip.afterLogout === 'sport', JSON.stringify(vip));
+const newCars = await page.evaluate(() => { const R = RingRush, out = []; for (const id of ['moto', 'garbage', 'tractor']) { R.setCar(id); R.start(0); R.clearTraffic(); R.step(120); out.push([id, R.curCar(), Math.round(R.state().speed)]); } return out; });
+check('moto, orange garbage truck and racing tractor are selectable and drive', newCars.every((c) => c[0] === c[1] && c[2] > 20), JSON.stringify(newCars));
 check('no page errors / shader errors', errors.length === 0, errors.slice(0, 3).join(' / '));
 await browser.close();
 const failed = results.filter((r) => !r.ok);

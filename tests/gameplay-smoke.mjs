@@ -339,27 +339,26 @@ check('side slam without blades just crashes into the car', blade.noBladeCrash);
 check('side slam knocks a rival aside', blade.rivalKnocked);
 const mine = await page.evaluate(async () => {
   const R = RingRush, out = {}, wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  R.noCops(true); R.setUp('mines', 1); R.start(0); R.setLaps(1); R.clearTraffic(); R.step(60); R.clearTraffic();
-  out.noMirror = !R.mirrorOn(); out.stock = R.mines();
-  R.spawnCop();
-  for (let i = 0; i < 60 * 12 && !R.cops().some((c) => c.rel > -40 && c.rel < -12); i++) { R.step(1); if (i % 30 === 0) R.clearTraffic(); }
-  await wait(150); out.mirror = R.mirrorOn();
-  const p0 = R.stat('punctures'); R.act.mine('p'); R.step(60 * 2.5); R.clearTraffic();
-  out.punctured = R.stat('punctures') === p0 + 1 && R.mines().p === out.stock.p - 1;
+  const chase = () => { R.start(0); R.setLaps(1); R.clearTraffic(); R.step(60); R.clearTraffic(); R.spawnCop(); for (let i = 0; i < 60 * 12 && !R.cops().some((c) => c.rel > -40 && c.rel < -12); i++) { R.step(1); if (i % 30 === 0) R.clearTraffic(); } };
+  R.noCops(true); R.setUp('mines', 0); R.start(0); R.setLaps(1); R.clearTraffic(); R.step(60); R.clearTraffic();
+  out.noMirror = !R.mirrorOn(); out.stock0 = R.mines(); out.btnAlways = !!document.getElementById('btnMine') && document.getElementById('btnMine').offsetParent !== null;
+  chase(); await wait(150); out.mirror = R.mirrorOn();
+  /* level 0: the single mine button drops a puncture strip */
+  const p0 = R.stat('punctures'); R.act.mine(); R.step(60 * 2.5); R.clearTraffic();
+  out.punctured = R.stat('punctures') === p0 + 1 && R.mines().n === out.stock0.n - 1;
   out.copSlow = R.cops().length === 0 || R.cops()[0].stun > 0 || R.cops()[0].rel < -50;
   R.step(60 * 6);
-  /* an explosive mine kills the chaser */
-  R.start(0); R.setLaps(1); R.clearTraffic(); R.step(60); R.clearTraffic(); R.spawnCop();
-  for (let i = 0; i < 60 * 12 && !R.cops().some((c) => c.rel > -40 && c.rel < -12); i++) { R.step(1); if (i % 30 === 0) R.clearTraffic(); }
-  const k0 = R.ammo().kills; R.act.mine('x'); R.step(60 * 2.5);
-  out.exploded = R.ammo().kills > k0 && R.cops().length === 0; out.xLeft = R.mines().x; R.noCops(false);
-  /* no mirror again once the cop is gone */
+  /* level 1+: the same button drops an explosive mine that kills the chaser, and there are more of them */
+  R.setUp('mines', 1); chase(); out.stock1 = R.mines();
+  const k0 = R.ammo().kills; R.act.mine(); R.step(60 * 2.5);
+  out.exploded = R.ammo().kills > k0 && R.cops().length === 0; out.left = R.mines().n; R.noCops(false);
   R.step(60); await wait(600); out.mirrorGone = !R.mirrorOn();
+  R.setUp('mines', 0);
   return out;
 });
 check('rear mirror opens only while a cop is behind', mine.noMirror && mine.mirror && mine.mirrorGone, JSON.stringify([mine.noMirror, mine.mirror, mine.mirrorGone]));
-check('puncture mine stuns the chaser and uses one mine', mine.punctured && mine.copSlow, JSON.stringify([mine.punctured, mine.copSlow, mine.stock]));
-check('explosive mines (upgrade) destroy the chaser', mine.exploded && mine.xLeft === mine.stock.x - 1, JSON.stringify([mine.exploded, mine.xLeft, mine.stock.x]));
+check('the mine button is always on screen; at level 0 it drops a puncture strip that slows the chaser', mine.btnAlways && mine.stock0.kind === 'p' && mine.punctured && mine.copSlow, JSON.stringify([mine.btnAlways, mine.punctured, mine.copSlow, mine.stock0]));
+check('with the mine upgrade the same button drops an explosive mine (6 at level 1) that destroys the chaser', mine.stock1.kind === 'x' && mine.stock1.n === 6 && mine.exploded && mine.left === 5, JSON.stringify([mine.stock1, mine.exploded, mine.left]));
 
 
 

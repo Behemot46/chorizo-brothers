@@ -262,6 +262,7 @@ button.btn.ghost{background:rgba(255,255,255,.1);color:var(--ink);box-shadow:non
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 0 18px rgba(255,46,147,.4);touch-action:none}
 .wb.m{box-shadow:0 0 18px rgba(25,227,255,.45)}
 .wb.c{box-shadow:0 0 18px rgba(255,120,40,.6)}
+.wb.n{box-shadow:0 0 18px rgba(255,160,40,.6)}
 .wb.k{box-shadow:0 0 18px rgba(125,255,176,.6)}
 .wb.z{box-shadow:0 0 18px rgba(255,225,74,.65)}
 .wb svg{width:32px;height:32px;display:block}
@@ -306,11 +307,8 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
     <div id="finishWarn" class="hidden"><span id="finishWarnTxt"></span></div>
     <div class="speedo"><b id="kmh">0</b><small>KM/H</small></div>
     <div class="nitro" id="nitro"><div id="nitroFill"></div><span>NITRO</span></div>
-    <div id="mineBox" class="hidden">
-      <button class="mnb x" id="btnMineX" aria-label="מוקש נפץ">💥 נפץ<b id="mxCnt">0</b></button>
-      <button class="mnb" id="btnMineP" aria-label="מוקש פנצ'ר">📍 פנצ'ר<b id="mpCnt">0</b></button>
-    </div>
     <div class="wbtns">
+      <button class="wb n" id="btnMine" aria-label="מוקש"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="14" r="7" fill="#262a3a" stroke="#fff"/><path d="M15.500 9 18 6.500M18 6.500l2-.5M18 6.500l.5-2" stroke="#ffc83d"/><circle cx="8.500" cy="11.500" r="1.500" fill="#fff" stroke="none" opacity=".7"/></svg><b id="mineCn">4</b></button>
       <button class="wb k hidden" id="btnKit" aria-label="ערכת עזרה ראשונה"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="14" rx="3" fill="#f4f6ff" stroke="#fff" stroke-width="1.4"/><path d="M9 6V4.500h6V6" stroke="#9aa3b8" stroke-width="1.6" stroke-linecap="round"/><path d="M12 9.500v7M8.500 13h7" stroke="#e0183a" stroke-width="2.800" stroke-linecap="round"/></svg><b id="kitCn">0</b></button>
       <button class="wb z" id="btnShock" aria-label="מכת חשמל"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linejoin="round"><path d="M13.500 2 5 13.500h6L9.500 22 19 9.500h-6z" fill="#ffe14a" stroke="#fff"/></svg><b id="shCnt">3</b></button>
       <button class="wb m" id="btnMissile" aria-label="טיל"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2c3 2.500 4.500 6 4.500 10v4l-2 2h-5l-2-2v-4C7.500 8 9 4.500 12 2z" fill="#19e3ff" stroke="#fff"/><circle cx="12" cy="9.500" r="1.600" fill="#06101a" stroke="none"/><path d="M7.500 14l-3 3.500V20l3-1.500M16.500 14l3 3.500V20l-3-1.500" stroke="#ff2e93"/></svg><b id="msCnt">3</b></button>
@@ -654,7 +652,7 @@ const UPGRADES = [
   { id: 'ramS', n: 'להבי צד', d: ['הקשה על צד המסך מזנקת הצידה עם להבים רחבים שמנפצים רכבים קטנים (וגם רכבים שנוגעים בצד)', 'מנפצים גם ואנים, והזינוק חזק יותר', 'מנפצים גם אוטובוסים ומשאיות'], cost: [400, 1100, 2600] },
   { id: 'missiles', n: 'מחסנית טילים', d: ['מתחילים עם 5 טילים', 'מתחילים עם 7 טילים', 'מתחילים עם 9 טילים', 'ראש נפץ צ׳וריסו: כל טיל מתפוצץ בפיצוץ רחב ומשמיד כל מה שסביבו', 'ראש נפץ ענק: נועל לבד על מטרה (גם בלי כוונת), פיצוץ גדול יותר ופוגע גם ביריבים'], cost: [100, 300, 700, 1800, 3600] },
   { id: 'shock', n: 'מכת חשמל', d: ['פריקה לטווח קרוב ובינוני: מחסלת רכבים קטנים, מאטה גדולים ומפילה שוטרים. 5 מטענים', '7 מטענים, וגם אוטובוסים נופלים', '9 מטענים, וגם משאיות נופלות'], cost: [200, 600, 1500] },
-  { id: 'mines', n: 'מוקשי נפץ', d: ['פתח 2 מוקשי נפץ (בנוסף לפנצ׳ר) שמשמידים רודפים. פנצ׳ר: 5', '3 מוקשי נפץ ו-6 פנצ׳ר', '4 מוקשי נפץ ו-7 פנצ׳ר'], cost: [150, 450, 1200] },
+  { id: 'mines', n: 'מוקשים', d: ['מוקש נפץ במקום פנצ׳ר: משמיד רודפים ויריבים. מתחילים עם 6 מוקשים', 'פיצוץ רחב ב-30% ו-8 מוקשים', 'פיצוץ רחב ב-60% ו-10 מוקשים'], cost: [150, 450, 1200] },
   { id: 'armor', n: 'שריון', d: ['+33% חיים בכל מירוץ', 'עוד +33% חיים'], cost: [600, 1800] },
   { id: 'medic', n: 'ערכות עזרה ראשונה', d: ['מתחילים עם ערכה אחת (מרפאה 55) ואפשר לשאת 3', 'מתחילים עם 2 ערכות, מרפאות 65, נושאים 4', 'מתחילים עם 3 ערכות, מרפאות 75, נושאים 5'], cost: [300, 900, 2200] }
 ];
@@ -2336,7 +2334,7 @@ const pS = () => mod(P.dist, L);
 /* HUD refs */
 const el = {
   hud: $('#hud'), score: $('#score'), combo: $('#combo'), kmh: $('#kmh'), nitro: $('#nitro'), nitroFill: $('#nitroFill'), lap: $('#lap'),
-  coinsRun: $('#coinsRun'), hpBar: $('#hpBar'), hpFill: $('#hpFill'), hpTrail: $('#hpTrail'), hpNum: $('#hpNum'), bKit: $('#btnKit'), kitCn: $('#kitCn'), mini: $('#mini'), placeN: $('#placeN'), placeOf: $('#placeOf'), lapTxt: $('#lapTxt'), progFill: $('#progFill'), buffs: $('#buffs'), mirror: $('#mirror'), mineBox: $('#mineBox'), mxCnt: $('#mxCnt'), mpCnt: $('#mpCnt'), finishWarn: $('#finishWarn'), finishWarnTxt: $('#finishWarnTxt'), countdown: $('#countdown'), cdTxt: $('#cdTxt'), bonusBanner: $('#bonusBanner'), slamPips: $('#slamPips'), banners: $('#banners'), flash: $('#flash'), nitroGlow: $('#nitroGlow'),
+  coinsRun: $('#coinsRun'), hpBar: $('#hpBar'), hpFill: $('#hpFill'), hpTrail: $('#hpTrail'), hpNum: $('#hpNum'), bKit: $('#btnKit'), kitCn: $('#kitCn'), mini: $('#mini'), placeN: $('#placeN'), placeOf: $('#placeOf'), lapTxt: $('#lapTxt'), progFill: $('#progFill'), buffs: $('#buffs'), mirror: $('#mirror'), mxCnt: $('#mxCnt'), mpCnt: $('#mpCnt'), finishWarn: $('#finishWarn'), finishWarnTxt: $('#finishWarnTxt'), countdown: $('#countdown'), cdTxt: $('#cdTxt'), bonusBanner: $('#bonusBanner'), slamPips: $('#slamPips'), banners: $('#banners'), flash: $('#flash'), nitroGlow: $('#nitroGlow'),
   toast: $('#toast'), tut: $('#tut'), flashW: $('#flashW'), bossBar: $('#bossBar'), bossFill: $('#bossFill'), bossHp: $('#bossHp'), siren: $('#siren'), warn: $('#warn'), warnTxt: $('#warnTxt'), ms: $('#msCnt'), mn: $('#shCnt'), bMs: $('#btnMissile'), bMn: $('#btnShock')
 };
 
@@ -2459,7 +2457,7 @@ function startRun(trackIdx, grid) {
   missions = todaysMissions();
   const VH0 = curVeh(), maxHp = Math.round(100 * (3 + upLvl('armor') + VH0.hearts) / 3); /* a heart used to be a third of the base health */
   Object.assign(P, { hurt: false, dist: 0, pd: 0, lat: 0, plat: 0, lane: 0, vlat: 0, latB: 0, latT: 0, slamOff: 0, slamT: 0, slamCd: 0, thr: 1, speed: 30, hp: maxHp, maxHp, regenT: 0, regenRate: 0, poisonT: 0, poisonRate: 0, kits: startKits(), inv: 1.2, alive: true, nitro: 60, nitroOn: false, brake: 0,
-    combo: 0, comboT: 0, score: 0, coins: 0, lapsDone: 0, lapClean: true, missiles: missileAmmo(), shocks: 3 + 2 * upLvl('shock'), kills: 0, turboT: 0, powerT: 0, magnetT: 0, shield: VH0.shield ? 1 : 0, mines: mineStock('p'), minesX: mineStock('x') });
+    combo: 0, comboT: 0, score: 0, coins: 0, lapsDone: 0, lapClean: true, missiles: missileAmmo(), shocks: 3 + 2 * upLvl('shock'), kills: 0, turboT: 0, powerT: 0, magnetT: 0, shield: VH0.shield ? 1 : 0, mines: mineStock(), minesX: 0 });
   Object.assign(R, { maxCombo: 0, coins: 0, cleanLaps: 0, laps: 0, maxKmh: 0, score: 0, nitroUses: 0, near: 0, kills: 0, food: 0 });
   Object.assign(G, { state: 'play', time: 0, rowAcc: 0, prevOpen: [-1, 0, 1], dyingT: 0, shake: 0, missionTick: 0, tutT: 0, wCool: 0, target: null, copT: rnd(14, 22), sirenT: 0, copNear: null });
   Object.assign(RACE, { grid: 0, lastCount: 99, t: 0, finished: false, finT: 0, endT: 0, place: 1, dnf: false, results: null, reward: null, tiltAsk: false });
@@ -2725,7 +2723,7 @@ const act = {
   missile() { fireMissile(); },
   shock() { fireShock(); },
   kit() { useKit(); },
-  mine(kind) { dropMine(kind); }
+  mine() { dropMine(); }
 };
 
 const addKill = () => { P.kills++; R.kills++; bump('kills'); };
@@ -3051,23 +3049,26 @@ const mines = Array.from({ length: MINE_N }, () => {
   g.add(a, b); g.visible = false; scene.add(g);
   return { g, a, b, active: false, kind: 'p', s: 0, lat: 0, age: 0 };
 });
-const mineStock = (kind) => (kind === 'p' ? 4 + upLvl('mines') : upLvl('mines') > 0 ? 1 + upLvl('mines') : 0);
-function dropMine(kind) {
+/* one mine button: the mine you drop follows the mine upgrade (level 0 = puncture strip that slows chasers, level 1+ = explosive mine; bigger blast and more mines with the level) */
+const mineStock = () => 4 + 2 * upLvl('mines');
+const mineKind = () => (upLvl('mines') >= 1 ? 'x' : 'p');
+function dropMine() {
   if (G.state !== 'play' || RACE.grid > 0 || RACE.finished || G.mineCd > 0) return;
-  if (kind === 'p' ? P.mines <= 0 : P.minesX <= 0) { Sfx.fizzle(); return; }
+  if (P.mines <= 0) { Sfx.fizzle(); return; }
   const m = mines.find((q) => !q.active); if (!m) return;
+  const kind = mineKind();
   Object.assign(m, { active: true, kind, s: mod(pS() - P.len / 2 - 2, L), lat: P.lat, age: 0 });
   m.a.visible = kind === 'p'; m.b.visible = kind === 'x'; m.g.visible = true;
-  if (kind === 'p') P.mines--; else P.minesX--;
-  G.mineCd = 0.45; hc.ammo = null; Sfx.mine(); vib(15);
+  P.mines--; G.mineCd = 0.45; hc.ammo = null; Sfx.mine(); vib(15);
 }
 function mineBlast(s, lat) {
-  frameOf(s, lat, F2); explode(F2.px, 0.8, F2.pz, 1.8); Sfx.boom();
+  const k = 1 + 0.3 * Math.max(0, upLvl('mines') - 1); /* levels 2 and 3 widen the blast */
+  frameOf(s, lat, F2); explode(F2.px, 0.8, F2.pz, 1.8 * k); Sfx.boom();
   impact({ slow: 0.35, shake: 0.7, punch: 0.7 });
   let n = 0;
-  for (const cp of cops) if (cp.active && Math.abs(signedRel(cp.s, s)) < 8 && Math.abs(cp.lat - lat) < 5) { cp.active = false; cp.g.visible = false; n += 2; addKill(); bump('cops'); P.coins += 10; R.coins += 10; }
-  for (const c of traffic) if (c.active && c.state === 0 && Math.abs(signedRel(c.s, s)) < 7 + c.len / 2 && Math.abs(c.lat - lat) < 5) { destroyCar(c, 'missile', true); n++; }
-  for (const r of rivals) if (r.active && Math.abs(signedRel(mod(r.dist, L), s)) < 8 && Math.abs(r.lat - lat) < 5) { r.stunT = Math.max(r.stunT, 2.4); r.speed *= 0.4; n++; rivalDamage(r, 5); }
+  for (const cp of cops) if (cp.active && Math.abs(signedRel(cp.s, s)) < 8 * k && Math.abs(cp.lat - lat) < 5 * k) { cp.active = false; cp.g.visible = false; n += 2; addKill(); bump('cops'); P.coins += 10; R.coins += 10; }
+  for (const c of traffic) if (c.active && c.state === 0 && Math.abs(signedRel(c.s, s)) < 7 * k + c.len / 2 && Math.abs(c.lat - lat) < 5 * k) { destroyCar(c, 'missile', true); n++; }
+  for (const r of rivals) if (r.active && Math.abs(signedRel(mod(r.dist, L), s)) < 8 * k && Math.abs(r.lat - lat) < 5 * k) { r.stunT = Math.max(r.stunT, 2.4); r.speed *= 0.4; n++; rivalDamage(r, 5); }
   P.score += 300 * n;
   if (n) banner('מוקש! ' + ltr('+' + 300 * n), 'big');
 }
@@ -3341,7 +3342,7 @@ function runTick(dt) {
       if (curVeh().shield && P.shield < 1) { P.shield = 1; banner('המגן נטען', 'ok'); }
       P.lapClean = true; P.nitro = Math.min(100, P.nitro + 30); Sfx.lap(); vib([20, 30, 20]);
       if (TR.boss && P.lapsDone === RACE_LAPS - 1 && !BOSS.active) spawnBoss();
-      P.missiles = Math.min(missileAmmo(), P.missiles + 1); P.shocks = Math.min(3 + 2 * upLvl('shock'), P.shocks + 1); hc.ammo = null;
+      P.missiles = Math.min(missileAmmo(), P.missiles + 1); P.shocks = Math.min(3 + 2 * upLvl('shock'), P.shocks + 1); P.mines = Math.min(mineStock(), P.mines + 1); hc.ammo = null;
     }
   }
   if (RACE.finished) { RACE.endT += dt; if (RACE.endT > 3.4 && G.state === 'play') endRun('finish'); }
@@ -3661,9 +3662,9 @@ function updateHud(dt) {
   el.hpTrail.style.width = (hc.trail * 100).toFixed(1) + '%';
   const hcls = (P.poisonT > 0 ? 'pois ' : '') + (P.regenT > 0 ? 'regen ' : '') + (hpPct < 0.28 ? 'low' : hpPct < 0.55 ? 'mid' : '');
   if (hc.hcls !== hcls) { hc.hcls = hcls; el.hpBar.className = 'hpbar ' + hcls; }
-  const ak = P.missiles + ':' + P.shocks + ':' + warhead() + ':' + P.mines + ':' + P.minesX + ':' + P.kits;
+  const ak = P.missiles + ':' + P.shocks + ':' + warhead() + ':' + P.mines + ':' + mineKind() + ':' + P.kits;
   if (hc.ammo !== ak) { hc.ammo = ak; el.kitCn.textContent = P.kits; el.bKit.classList.toggle('hidden', P.kits <= 0 && upLvl('medic') === 0); el.bKit.classList.toggle('empty', P.kits <= 0); el.bMs.classList.toggle('wh', warhead() > 0); el.ms.textContent = P.missiles; el.mn.textContent = P.shocks; el.bMs.classList.toggle('empty', P.missiles <= 0); el.bMn.classList.toggle('empty', P.shocks <= 0);
-    el.mpCnt.textContent = P.mines; el.mxCnt.textContent = P.minesX; $('#btnMineP').classList.toggle('empty', P.mines <= 0); $('#btnMineX').classList.toggle('empty', P.minesX <= 0); $('#btnMineX').classList.toggle('hidden', upLvl('mines') === 0); }
+    $('#mineCn').textContent = P.mines; $('#btnMine').classList.toggle('empty', P.mines <= 0); $('#btnMine').classList.toggle('x', mineKind() === 'x'); }
   BUFF_DEFS.forEach((d, i) => {
     const v = P[d.key], on = v > 0.05 && G.state !== 'menu', b = buffEls[i];
     if (b.on !== on) { b.on = on; b.n.classList.toggle('hidden', !on); }
@@ -3683,13 +3684,9 @@ function updateHud(dt) {
     el.warn.classList.remove('hidden'); el.siren.classList.add('on');
     const t = 'שוטר מאחור ' + ltr(Math.round(cn) + 'מ׳'); if (hc.warn !== t) { hc.warn = t; el.warnTxt.textContent = t; }
   } else { el.warn.classList.add('hidden'); el.siren.classList.remove('on'); }
-  /* rear-view mirror while a cop is close behind; the mine buttons also appear for a rival right behind */
+  /* rear-view mirror while a cop is close behind */
   const mirOn = copOn && cn < 120;
   if (hc.mirror !== mirOn) { hc.mirror = mirOn; el.mirror.classList.toggle('hidden', !mirOn); el.hud.classList.toggle('mirroron', mirOn); }
-  let rivalBehind = false;
-  if (G.state === 'play' && !grid && !RACE.finished) for (const r of rivals) { if (!r.active) continue; const rel = signedRel(mod(r.dist, L), pS()); if (rel < -2 && rel > -28) { rivalBehind = true; break; } }
-  const mineOn = G.state === 'play' && !grid && !RACE.finished && (mirOn || rivalBehind);
-  if (hc.mineOn !== mineOn) { hc.mineOn = mineOn; el.mineBox.classList.toggle('hidden', !mineOn); }
   const slOn = (ramS() > 0 || P.powerT > 0) && G.state === 'play' && !grid;
   if (hc.slOn !== slOn) { hc.slOn = slOn; el.slamPips.classList.toggle('hidden', !slOn); }
   if (slOn) el.slamPips.classList.toggle('rdy', P.slamCd <= 0);
@@ -3803,8 +3800,7 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'm' || k === 'M' || k === 'f' || k === 'F') act.missile();
   else if (k === 'x' || k === 'X' || k === 'z' || k === 'Z') act.shock();
   else if (k === 'h' || k === 'H') act.kit();
-  else if (k === 'b' || k === 'B') act.mine('p');
-  else if (k === 'n' || k === 'N') act.mine('x');
+  else if (k === 'b' || k === 'B' || k === 'n' || k === 'N') act.mine();
   else if (k === 'p' || k === 'P' || k === 'Escape') { G.state === 'paused' ? resumeGame() : pauseGame(); }
   else if (k === 'Enter' && G.state === 'over') startRun(undefined, true);
 });
@@ -3968,8 +3964,7 @@ $('#btnBoard').addEventListener('click', async () => {
   } catch (e) { host.innerHTML = '<div class="hint">אין חיבור לשרת הדירוג</div>'; }
 });
 $('#btnBoardBack').addEventListener('click', () => { show('board', false); show('menu', true); });
-wbind($('#btnMineP'), () => act.mine('p'));
-wbind($('#btnMineX'), () => act.mine('x'));
+wbind($('#btnMine'), () => act.mine());
 const GAME_URL = 'https://chorizo-brothers.vercel.app';
 function shareText() {
   const n = rivals.length + 1, t = RACE.finished ? ' בזמן ' + fmtT(RACE.finT) : '';
@@ -4159,7 +4154,7 @@ window.RingRush = {
   clearTraffic() { for (const co of coins) co.active = false; for (const c of traffic) { c.active = false; c.g.visible = false; } for (const pk of pickups) { pk.active = false; pk.g.visible = false; } },
   setRival(i, ahead, lat, speed) { const r = rivals[i]; r.active = true; r.g.visible = true; r.dist = r.pd = P.dist + ahead; r.lat = r.plat = r.latT = lat; r.stunT = 0; if (speed !== undefined) r.speed = speed; },
   bonusUi: () => ({ banner: el.bonusBanner.textContent, pills: buffEls.filter((b) => b.on).map((b) => b.n.title) }),
-  tilt: () => Tilt.debug(), ctlChosen: () => !!save.ctlChosen, tiltRequest: () => Tilt.request(), ctl: ctlMode, setCtl(m) { save.ctl = m; }, mines: () => ({ p: P.mines, x: P.minesX, active: mines.filter((m) => m.active).length }), dropMine, slam: (d) => act.slam(d), marks: () => rmarks.map((m) => m.visible), mirrorOn: () => !!hc.mirror, setLat(v) { P.latB = v; }, setDist(v) { P.dist = P.pd = v; }, place: () => myPlace(),
+  tilt: () => Tilt.debug(), ctlChosen: () => !!save.ctlChosen, tiltRequest: () => Tilt.request(), ctl: ctlMode, setCtl(m) { save.ctl = m; }, mines: () => ({ n: P.mines, kind: mineKind(), p: P.mines, x: 0, active: mines.filter((m) => m.active).length }), dropMine, slam: (d) => act.slam(d), marks: () => rmarks.map((m) => m.visible), mirrorOn: () => !!hc.mirror, setLat(v) { P.latB = v; }, setDist(v) { P.dist = P.pd = v; }, place: () => myPlace(),
   state: () => ({ state: G.state, dist: P.dist, speed: P.speed, hp: P.hp, maxHp: P.maxHp, kits: P.kits, score: P.score, lap: P.lapsDone, lane: P.lane, lat: P.lat, combo: P.combo, coins: P.coins, q: qLevel, near: R.near, inv: P.inv }),
   cars: () => traffic.filter((c) => c.active && c.state === 0).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, len: c.len, wid: c.wid, speed: c.speed, type: c.type, lane: c.lane })),
   coinsNear: () => coins.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),

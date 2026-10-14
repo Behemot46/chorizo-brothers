@@ -116,19 +116,18 @@ check('a police car close behind adds the alarm stabs', mCop.stab > 0, 'stab=' +
 console.log('\n== achievements ==');
 const ach = await page.evaluate(() => {
   const R = RingRush, out = {};
-  const c0 = R.state().coins; R.bump('rams', 100); R.checkAch();
-  out.ram = R.ach().includes('ram100'); out.noKing = !R.ach().includes('king'); out.crownBefore = R.crown();
-  R.bump('noBrakeLaps', 1); R.bump('cops', 10); R.bump('kills', 250); R.bump('sausages', 1000); R.bumpMax('maxCombo', 15); R.bumpMax('bestLaps', 5); R.bumpMax('maxKmh', 300);
-  R.bump('food', 50); R.bump('queens', 1); R.bump('missileKills', 50); R.bump('shocked', 50); R.bump('bosses', 1);
-  for (const id of ['jeep', 'taxi', 'chorizotruck', 'armored']) R.setCar(id);
-  R.setCar('sport'); R.checkAch();
-  out.all = R.ach().length; out.king = R.ach().includes('king'); out.crown = R.crown();
+  R.bump('rams', 100); R.checkAch();
+  out.ram = R.ach().includes('ram100') && R.ach().includes('rams_1'); out.noKing = !R.ach().includes('king'); out.crownBefore = R.crown();
+  out.bad = R.badAchRefs(); out.total = R.achTotal();
+  R.unlockAll();
+  out.all = R.ach().length; out.king = R.ach().includes('king'); out.crown = R.crown(); out.owned = R.owned();
   return out;
 });
-check('a stat reaching its goal unlocks the achievement', ach.ram && ach.noKing && !ach.crownBefore);
-check('unlocking every achievement unlocks the king badge and shows the crown', ach.king && ach.crown && ach.all === 15, `unlocked=${ach.all}`);
+check('a stat reaching its goal unlocks the achievement (and the tiers below it)', ach.ram && ach.noKing && !ach.crownBefore);
+check('there are 100+ achievements and every unlockable points at a real one', ach.total >= 100 && ach.bad.length === 0, `total=${ach.total} bad=${ach.bad}`);
+check('unlocking every achievement shows the crown and opens all paints, stripes, flames, underglows and titles', ach.king && ach.crown && ach.all === ach.total && ach.owned.paint === 7 && ach.owned.stripe === 6 && ach.owned.flame === 6 && ach.owned.glow === 6 && ach.owned.title === ach.owned.titles, JSON.stringify(ach.owned));
 const stats = await page.evaluate(() => ({ kills: RingRush.stat('kills'), rams: RingRush.stat('rams') }));
-check('lifetime stats are tracked', stats.kills >= 250 && stats.rams >= 100, JSON.stringify(stats));
+check('lifetime stats are tracked', stats.rams >= 100, JSON.stringify(stats));
 
 console.log('\n== boss: the vegetarian produce truck ==');
 const bossT = await page.evaluate(() => {

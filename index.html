@@ -218,6 +218,15 @@ button.btn.ghost{background:rgba(255,255,255,.1);color:var(--ink);box-shadow:non
 .ac .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.ac b{font-size:16px}.ac small{color:var(--dim);font-size:12px}
 .ac .prog{height:6px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:4px}.ac .prog i{display:block;height:100%;background:var(--neon)}.ac.on .prog i{background:var(--gold)}
 .ac em{font-style:normal;color:var(--gold);font-weight:800;font-size:13px;white-space:nowrap}
+.atabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:min(92vw,380px)}
+.atab{appearance:none;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:var(--ink);font:inherit;font-weight:700;font-size:13px;padding:6px 12px;border-radius:999px}
+.atab.sel{background:rgba(25,227,255,.18);border-color:var(--neon);color:#fff}
+.ac .medal.t1{border-color:#c98a4a;color:#e8b07a}.ac .medal.t2{border-color:#c5ccd8;color:#e8edf5}.ac .medal.t3{border-color:#ffc83d;color:#ffd96a}.ac .medal.t4{border-color:#7ae7ff;color:#b9f3ff}
+.ac .medal{font-size:22px}
+.ac .pips{display:flex;gap:4px;margin-top:3px}.ac .pips i{width:14px;height:6px;border-radius:3px;background:rgba(255,255,255,.2)}.ac .pips i.on{background:var(--gold)}
+.ac .gift{color:#9ff6b7;font-size:12px}
+.ac.done .medal{background:radial-gradient(circle at 35% 30%,#fff3b0,#ffc83d 60%,#c58a00);box-shadow:0 0 14px rgba(255,200,61,.6)}
+.mtitle{color:var(--gold);font-weight:800;font-size:13px;margin-top:-6px}
 .car-grid{grid-template-columns:1fr 1fr}
 .cv{position:relative;min-height:150px;padding:10px 8px;border-radius:16px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--ink);font:inherit;
   display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;text-align:center}
@@ -305,6 +314,7 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
       <div class="chip" id="mLeague">🏅 <b>נקניקייה</b></div>
       <button class="chip" id="mUser">👤 התחבר</button>
     </div>
+    <div class="mtitle hidden" id="mTitle"></div>
     <button class="btn big" id="btnPlay">שחק</button>
     <button class="btn wa" id="btnShareHome">📲 הזמן חברים בוואטסאפ</button>
     <div class="row">
@@ -330,6 +340,8 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
     <div class="garage-grid" id="gStripe"></div>
     <h3 style="margin:0;color:var(--dim);font-size:14px">תאורת תחתית</h3>
     <div class="garage-grid" id="gGlowU"></div>
+    <h3 style="margin:0;color:var(--dim);font-size:14px">תואר <small id="gTitleCnt"></small></h3>
+    <div class="garage-grid" id="gTitle"></div>
     <h3 style="margin:0;color:var(--dim);font-size:14px">שדרוגים לרכב ולנשק</h3>
     <div class="uplist" id="gUp"></div>
     <div class="sfoot"><button class="btn" id="btnGarageBack">חזרה</button></div>
@@ -337,6 +349,7 @@ button.buy.no{background:rgba(255,255,255,.12);color:var(--dim)}
 
   <section id="ach" class="panel solid hidden">
     <div class="ghead"><h2 class="t">הישגים</h2><div class="chip"><b id="aCount">0/0</b></div></div>
+    <div class="atabs" id="aTabs"></div>
     <div class="uplist" id="aList"></div>
     <div class="sfoot"><button class="btn" id="btnAchBack">חזרה</button></div>
   </section>
@@ -442,7 +455,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 };
 const SAVE_DEFAULTS = {
-  track: 0, times: {}, wins: {}, pods: {}, trophies: 0, streak: 0, ctl: '', ctlChosen: false, user: '', coins: 0, best: 0, bestLaps: 0, paint: 0, flame: 0, ownPaint: [0], ownFlame: [0], stripe: 0, ownStripe: [0], glowU: 0, ownGlowU: [0],
+  track: 0, times: {}, wins: {}, pods: {}, trophies: 0, streak: 0, ctl: '', ctlChosen: false, user: '', coins: 0, best: 0, bestLaps: 0, paint: 0, flame: 0, ownPaint: [0], ownFlame: [0], stripe: 0, ownStripe: [0], glowU: 0, ownGlowU: [0], title: -1, ownTitle: [], migAch2: false,
   muted: false, tut: false, mission: { day: '', done: [] }, runs: 0, up: {}, car: 'sport', ownCars: ['sport'], calm: false, stats: {}, ach: {}
 };
 const save = Object.assign(JSON.parse(JSON.stringify(SAVE_DEFAULTS)), store.get('ringrush.v1', {}));
@@ -553,19 +566,33 @@ const PAINTS = [
   { n: 'נמר', c: 0xe0a030, cost: 400, pat: 1, css: 'radial-gradient(circle at 30% 35%,#1a0d04 0 12%,transparent 14%),radial-gradient(circle at 68% 60%,#1a0d04 0 14%,transparent 16%),#e0a030' },
   { n: 'ג׳ירפה', c: 0xc8944a, cost: 400, pat: 2, css: 'linear-gradient(90deg,#f2dfa0 0 10%,#8a4a16 10% 45%,#f2dfa0 45% 55%,#8a4a16 55% 90%,#f2dfa0 90%)' },
   { n: 'הסוואה', c: 0x4a5a2a, cost: 500, pat: 3, css: 'radial-gradient(circle at 25% 30%,#1c2a10 0 28%,transparent 30%),radial-gradient(circle at 70% 65%,#8a6a30 0 25%,transparent 27%),#4a5a2a' },
-  { n: 'זברה', c: 0xf4f4f4, cost: 500, pat: 4, css: 'repeating-linear-gradient(135deg,#f6f6f6 0 5px,#0a0a0a 5px 10px)' }
+  { n: 'זברה', c: 0xf4f4f4, cost: 500, pat: 4, css: 'repeating-linear-gradient(135deg,#f6f6f6 0 5px,#0a0a0a 5px 10px)' },
+  /* the paints below cannot be bought: each one opens with an achievement */
+  { n: 'להבות', c: 0xff5a1f, cost: 0, ach: 'kmh300', pat: 5, css: 'linear-gradient(0deg,#ffd23a,#ff6a1f 45%,#b3081f)' },
+  { n: 'גלקסיה', c: 0x6a2fd0, cost: 0, ach: 'near_4', pat: 6, css: 'radial-gradient(circle at 30% 30%,#fff 0 3%,transparent 4%),radial-gradient(circle at 70% 65%,#fff 0 3%,transparent 4%),radial-gradient(circle,#7a2fd0,#0a0830)' },
+  { n: 'עור צ׳וריסו', c: 0xc2301f, cost: 0, ach: 'sausage1000', pat: 7, css: 'radial-gradient(circle at 25% 30%,#ffb04a 0 8%,transparent 10%),radial-gradient(circle at 70% 70%,#ffb04a 0 8%,transparent 10%),#b32b18' },
+  { n: 'דגל משובץ', c: 0xf4f4f4, cost: 0, ach: 'wins_3', pat: 8, css: 'conic-gradient(#111 25%,#fff 0 50%,#111 0 75%,#fff 0)' },
+  { n: 'קשת ניאון', c: 0xff2e93, cost: 0, ach: 'tracksWon_4', pat: 9, css: 'linear-gradient(135deg,#ff2e4d,#ffc83d,#39ff88,#19e3ff,#9b5cff)' },
+  { n: 'זהב מלכותי', c: 0xf2b830, cost: 0, ach: 'king', pat: 10, css: 'linear-gradient(135deg,#fff3b0,#ffc83d 45%,#b07a00)' }
 ];
 const STRIPES = [
   { n: 'ללא', c: 0x555a6a, cost: 0, st: 0 }, { n: 'לבן', c: 0xf4f6ff, cost: 80, st: 1 }, { n: 'זהב כפול', c: 0xffc83d, cost: 120, st: 2 },
-  { n: 'ורוד', c: 0xff2e93, cost: 80, st: 1 }, { n: 'שחור כפול', c: 0x15151a, cost: 150, st: 2 }
+  { n: 'ורוד', c: 0xff2e93, cost: 80, st: 1 }, { n: 'שחור כפול', c: 0x15151a, cost: 150, st: 2 },
+  { n: 'תכלת כפול', c: 0x19e3ff, cost: 0, st: 2, ach: 'near_1' }, { n: 'אדום להבה', c: 0xff3a2f, cost: 0, st: 1, ach: 'rams_3' },
+  { n: 'זהב משולש', c: 0xffc83d, cost: 0, st: 3, ach: 'wins_2' }, { n: 'סגול כפול', c: 0xb03aff, cost: 0, st: 2, ach: 'combo15' },
+  { n: 'ירוק רעל משולש', c: 0x8dff3a, cost: 0, st: 3, ach: 'poisons_2' }
 ];
 const UNDERGLOWS = [
   { n: 'כצבע הרכב', c: 0xffffff, cost: 0, css: 'conic-gradient(#19e3ff,#ff2e4d,#ffc83d,#8dff3a,#19e3ff)', same: true }, { n: 'ירוק חומצה', c: 0x8dff3a, cost: 100 },
-  { n: 'אדום', c: 0xff2e4d, cost: 100 }, { n: 'זהב', c: 0xffc83d, cost: 150 }, { n: 'סגול', c: 0x9b5cff, cost: 150 }, { n: 'לבן', c: 0xffffff, cost: 200 }
+  { n: 'אדום', c: 0xff2e4d, cost: 100 }, { n: 'זהב', c: 0xffc83d, cost: 150 }, { n: 'סגול', c: 0x9b5cff, cost: 150 }, { n: 'לבן', c: 0xffffff, cost: 200 },
+  { n: 'כתום להבה', c: 0xff7a2a, cost: 0, ach: 'cops10' }, { n: 'תכלת קרח', c: 0x9fe8ff, cost: 0, ach: 'shock50' }, { n: 'ורוד ניאון', c: 0xff2e93, cost: 0, ach: 'finishes_2' },
+  { n: 'ירוק רעל', c: 0x39ff5a, cost: 0, ach: 'kitsUsed_2' }, { n: 'בורדו', c: 0xa3081f, cost: 0, ach: 'rivalWrecks_3' }
 ];
 const FLAMES = [
   { n: 'כחול', c: 0x3aa0ff, cost: 0 }, { n: 'ורוד', c: 0xff2e93, cost: 80 },
-  { n: 'ירוק', c: 0x39ff88, cost: 80 }, { n: 'זהב', c: 0xffc83d, cost: 150 }
+  { n: 'ירוק', c: 0x39ff88, cost: 80 }, { n: 'זהב', c: 0xffc83d, cost: 150 },
+  { n: 'סגול', c: 0xb03aff, cost: 0, ach: 'combo30' }, { n: 'תכלת קרח', c: 0x9fe8ff, cost: 0, ach: 'meters_2' }, { n: 'אדום לוהט', c: 0xff2e1f, cost: 0, ach: 'rivalWrecks_2' },
+  { n: 'לבן', c: 0xffffff, cost: 0, ach: 'noBrakeLaps_2' }, { n: 'זהב מלכותי', c: 0xffd24a, cost: 0, ach: 'bestStreak_3' }
 ];
 const MISSION_POOL = [
   { id: 'nm5', t: '5 כמעט-פגיעות ברצף', f: (r) => r.maxCombo >= 5 },
@@ -604,33 +631,92 @@ const priceHtml = (p, kind) => (price(p, kind) < p ? '<s style="opacity:.55">' +
 const st = (k) => (save.stats && save.stats[k]) || 0;
 const bump = (k, n) => { save.stats[k] = st(k) + (n === undefined ? 1 : n); };
 const bumpMax = (k, v) => { if (v > st(k)) save.stats[k] = v; };
-const ACH = [
-  { id: 'ram100', n: '100 ניגוחים', d: 'נפץ 100 רכבים בניגוח', goal: 100, v: () => st('rams'), r: 150 },
-  { id: 'nobrake', n: 'בלי בלם', d: 'סיים הקפה בלי לגעת בבלם', goal: 1, v: () => st('noBrakeLaps'), r: 100 },
-  { id: 'cops10', n: 'ציד שוטרים', d: 'הפל 10 שוטרים', goal: 10, v: () => st('cops'), r: 150 },
-  { id: 'kills250', n: 'שוק פרוע', d: 'הרוס 250 רכבים', goal: 250, v: () => st('kills'), r: 150 },
-  { id: 'sausage1000', n: 'מלך הצ׳וריסו', d: 'אסוף 1,000 נקניקיות צ׳וריסו', goal: 1000, v: () => st('sausages'), r: 200 },
-  { id: 'combo15', n: 'קומבו 15', d: '15 כמעט-פגיעות ברצף', goal: 15, v: () => st('maxCombo'), r: 100 },
-  { id: 'laps5', n: 'מרתון', d: '5 הקפות בריצה אחת', goal: 5, v: () => st('bestLaps'), r: 150 },
-  { id: 'kmh300', n: '300 קמ״ש', d: 'הגע למהירות 300 קמ״ש', goal: 300, v: () => st('maxKmh'), r: 100 },
-  { id: 'food50', n: 'תפריט שף', d: 'אכול 50 נקניקיות מיוחדות', goal: 50, v: () => st('food'), r: 120 },
-  { id: 'queen', n: 'הכתרת המלכה', d: 'אכול את צ׳וריסו המלכה', goal: 1, v: () => st('queens'), r: 80 },
-  { id: 'missile50', n: 'טייס קרב', d: 'הרוס 50 רכבים בטילים', goal: 50, v: () => st('missileKills'), r: 150 },
-  { id: 'shock50', n: 'חשמלאי', d: 'חשמל 50 רכבים', goal: 50, v: () => st('shocked'), r: 120 },
-  { id: 'garage', n: 'אספן', d: 'קנה את כל הרכבים', goal: 5, v: () => save.ownCars.length, r: 200 },
-  { id: 'boss1', n: 'הבוס הצמחוני', d: 'נצח את הבוס הצמחוני', goal: 1, v: () => st('bosses'), r: 250 }
+const ownedUpLevels = () => Object.values(save.up || {}).reduce((a, b) => a + (b | 0), 0);
+const CATS = [['fight', 'קרבות'], ['drive', 'נהיגה'], ['race', 'מירוצים'], ['collect', 'אוסף'], ['survive', 'הישרדות']];
+const MEDALS3 = ['🥉', '🥇', '💎'], MEDALS4 = ['🥉', '🥈', '🥇', '💎'], TIER3 = ['ארד', 'זהב', 'פלטינה'], TIER4 = ['ארד', 'כסף', 'זהב', 'פלטינה'];
+/* every ladder has 3-4 tiers; each tier pays chorizo, the last one also gives a title; some tiers open paints, stripes, flames or underglow */
+const LADDERS = [
+  ['rams', 'fight', '🚜', 'בולדוזר', [25, 100, 500, 2000], 'נפץ {n} רכבים בניגוח', () => st('rams'), 'שוברי הכבישים', ['rams_1', 'ram100', 'rams_3', 'rams_4']],
+  ['kills', 'fight', '💥', 'שוק פרוע', [100, 250, 1000, 5000], 'הרוס {n} רכבים', () => st('kills'), 'מכונת הרס', ['kills_1', 'kills250', 'kills_3', 'kills_4']],
+  ['cops', 'fight', '🚔', 'ציד שוטרים', [5, 10, 50, 200], 'הפל {n} שוטרים', () => st('cops'), 'אימת השוטרים', ['cops_1', 'cops10', 'cops_3', 'cops_4']],
+  ['missileKills', 'fight', '🚀', 'טייס קרב', [20, 50, 200, 1000], 'הרוס {n} רכבים בטילים', () => st('missileKills'), 'מפציץ הצ׳וריסו', ['missile_1', 'missile50', 'missile_3', 'missile_4']],
+  ['shocked', 'fight', '⚡', 'חשמלאי', [25, 50, 200, 800], 'חשמל {n} רכבים', () => st('shocked'), 'ברק על גלגלים', ['shock_1', 'shock50', 'shock_3', 'shock_4']],
+  ['sideRams', 'fight', '🔪', 'להבי צד', [20, 100, 400], 'נפץ {n} רכבים בניגוח צד', () => st('sideRams'), 'הקוצר'],
+  ['bigRams', 'fight', '🚛', 'צייד ענקים', [5, 25, 100], 'נפץ {n} אוטובוסים ומשאיות בניגוח', () => st('bigRams'), 'מפיל ענקים'],
+  ['rivalWrecks', 'fight', '🏴‍☠️', 'שובר יריבים', [1, 5, 25, 100], 'נפץ {n} יריבים', () => st('rivalWrecks'), 'אימת המסלול'],
+  ['rivalHits', 'fight', '🥊', 'מתאגרף', [25, 150, 600], 'פגע ביריבים {n} פעמים', () => st('rivalHits'), 'האגרוף הברזל'],
+  ['punctures', 'fight', '📍', 'שדה מוקשים', [10, 50, 200], 'פגע ב-{n} מכוניות במוקשים', () => st('punctures'), 'מאסטר המלכודות'],
+  ['bosses', 'fight', '🥬', 'הבוס הצמחוני', [1, 5, 20], 'נצח את הבוס {n} פעמים', () => st('bosses'), 'אוכל הירקות', ['boss1', 'bosses_2', 'bosses_3']],
+  ['maxKmh', 'drive', '🏎️', 'מהירות', [200, 250, 300, 350], 'הגע ל-{n} קמ״ש', () => st('maxKmh'), 'רוח רפאים', ['kmh200', 'kmh250', 'kmh300', 'kmh350']],
+  ['near', 'drive', '😮', 'כמעט-כמעט', [50, 300, 1500, 6000], '{n} כמעט-פגיעות', () => st('near'), 'מחליק על הקצה'],
+  ['maxCombo', 'drive', '🔥', 'קומבו', [5, 15, 30, 60], '{n} כמעט-פגיעות ברצף', () => st('maxCombo'), 'מלך הקומבו', ['combo5', 'combo15', 'combo30', 'combo60']],
+  ['noBrakeLaps', 'drive', '🦶', 'בלי בלם', [1, 5, 25], 'סיים {n} הקפות בלי לגעת בבלם', () => st('noBrakeLaps'), 'רגל כבדה', ['nobrake', 'noBrakeLaps_2', 'noBrakeLaps_3']],
+  ['cleanLaps', 'drive', '✨', 'הקפה נקייה', [3, 15, 60], 'סיים {n} הקפות בלי נזק', () => st('cleanLaps'), 'הנהג המושלם'],
+  ['meters', 'drive', '🛣️', 'קילומטראז׳', [10, 50, 250, 1000], 'נסע {n} ק״מ', () => st('meters') / 1000, 'נווד הכבישים'],
+  ['secs', 'drive', '⏱️', 'שעות על הכביש', [10, 60, 300], 'שחק {n} דקות', () => st('secs') / 60, 'חי על האספלט'],
+  ['finishes', 'race', '🏁', 'קו הגמר', [1, 10, 50, 200], 'סיים {n} מירוצים', () => st('finishes'), 'ותיק המסלול'],
+  ['wins', 'race', '🏆', 'מנצח', [1, 5, 25, 100], 'נצח ב-{n} מירוצים', () => st('wins'), 'האלוף'],
+  ['podiums', 'race', '🥇', 'פודיום', [5, 25, 100], 'עלה לפודיום {n} פעמים', () => st('podiums'), 'איש הפודיום'],
+  ['bestStreak', 'race', '🔁', 'רצף ניצחונות', [2, 5, 10, 20], 'נצח {n} מירוצים ברצף', () => st('bestStreak'), 'בלתי עביר'],
+  ['perfect', 'race', '💎', 'מירוץ מושלם', [1, 5, 25], 'סיים {n} מירוצים בלי פגיעה אחת', () => st('perfect'), 'הצלף'],
+  ['tracksWon', 'race', '🗺️', 'כובש מסלולים', [1, 2, 3, 4], 'נצח בכל אחד מ-{n} מסלולים', () => Object.values(save.wins || {}).filter((x) => x > 0).length, 'כובש העיר'],
+  ['trophies', 'race', '🏅', 'ליגות', [60, 160, 320, 560], 'הגע ל-{n} גביעים', () => save.trophies | 0, 'מלך הליגה'],
+  ['sausages', 'collect', '🌭', 'מלך הצ׳וריסו', [100, 1000, 5000, 25000], 'אסוף {n} נקניקיות צ׳וריסו', () => st('sausages'), 'בולע הנקניקים', ['sausage100', 'sausage1000', 'sausage_3', 'sausage_4']],
+  ['food', 'collect', '🍽️', 'תפריט שף', [10, 50, 250, 1000], 'אכול {n} נקניקיות מיוחדות', () => st('food'), 'שף העל', ['food10', 'food50', 'food_3', 'food_4']],
+  ['queens', 'collect', '👑', 'הכתרת המלכה', [1, 10, 50], 'אכול {n} צ׳וריסו מלכה', () => st('queens'), 'משרת המלכה', ['queen', 'queens_2', 'queens_3']],
+  ['cars', 'collect', '🚗', 'אספן', [2, 3, 4, 5], 'בבעלותך {n} רכבים', () => save.ownCars.length, 'בעל המוסך', ['cars_1', 'cars_2', 'cars_3', 'garage']],
+  ['paints', 'collect', '🎨', 'צבעים', [3, 6, 10], 'בבעלותך {n} צבעים', () => save.ownPaint.length, 'הצייר'],
+  ['upgrades', 'collect', '🛠️', 'משדרג', [5, 15, 30], 'צבור {n} רמות שדרוג', ownedUpLevels, 'המהנדס'],
+  ['earned', 'collect', '💰', 'עשיר', [1000, 10000, 100000], 'הרווח {n} צ׳וריסו בסך הכול', () => st('earned'), 'בעל הנקניקיות'],
+  ['shares', 'collect', '📲', 'שגריר', [1, 5, 20], 'שתף את המשחק {n} פעמים בוואטסאפ', () => st('shares'), 'מפיץ הצ׳וריסו'],
+  ['kitsUsed', 'survive', '🩹', 'רופא', [1, 10, 50], 'השתמש ב-{n} ערכות עזרה ראשונה', () => st('kitsUsed'), 'הפרמדיק'],
+  ['poisons', 'survive', '🧪', 'טעם לרעל', [1, 10, 40], 'שתה {n} בקבוקי רעל', () => st('poisons'), 'מחוסן לרעל'],
+  ['closeCalls', 'survive', '😰', 'על הקצה', [1, 5, 20], 'סיים {n} מירוצים עם פחות מ-15 חיים', () => st('closeCalls'), 'המת שחי'],
+  ['salamis', 'survive', '💚', 'סלמי מרפא', [5, 25, 100], 'אכול {n} סלמי', () => st('salamis'), 'בריאות ברזל'],
+  ['missions', 'survive', '📋', 'משימות יומיות', [5, 25, 100], 'השלם {n} משימות יומיות', () => st('missions'), 'איש המשימות']
 ];
-ACH.push({ id: 'king', n: 'מלך הצ\'וריסו', d: 'פתח את כל ההישגים וקבל כתר על הרכב', goal: ACH.length, v: () => ACH.filter((a) => save.ach[a.id]).length, r: 500 });
-function checkAch() {
-  let changed = false;
+const ACH = [], TITLES = [];
+LADDERS.forEach(([key, cat, ico, name, goals, tpl, fn, title, ids]) => {
+  const rew = goals.length === 3 ? [60, 200, 600] : [40, 100, 250, 600], tn = goals.length === 3 ? TIER3 : TIER4, md = goals.length === 3 ? MEDALS3 : MEDALS4;
+  goals.forEach((g, i) => {
+    const a = { id: (ids && ids[i]) || key + '_' + (i + 1), lad: key, tier: i, tiers: goals.length, cat, ico, medal: md[i], lname: name, n: name + ' · ' + tn[i], d: tpl.replace('{n}', g.toLocaleString('en-US')), goal: g, v: fn, r: rew[i] };
+    if (i === goals.length - 1) { a.title = title; TITLES.push({ n: title, ach: a.id }); }
+    ACH.push(a);
+  });
+});
+{
+  const base = ACH.length;
+  ACH.push({ id: 'half', lad: 'half', tier: 0, tiers: 1, cat: 'special', ico: '⭐', medal: '⭐', lname: 'חצי הדרך', n: 'חצי הדרך', d: 'פתח מחצית מההישגים', goal: Math.floor(base / 2), v: () => ACH.filter((x) => save.ach[x.id]).length, r: 1000 });
+  TITLES.push({ n: 'חצי אגדה', ach: 'half' });
+  ACH.push({ id: 'king', lad: 'king', tier: 0, tiers: 1, cat: 'special', ico: '👑', medal: '👑', lname: 'מלך הצ\'וריסו', n: 'מלך הצ\'וריסו', d: 'פתח את כל ההישגים וקבל כתר על הרכב', goal: base + 1, v: () => ACH.filter((x) => save.ach[x.id]).length, r: 5000 });
+  TITLES.push({ n: 'מלך המלכים', ach: 'king' });
+}
+const achById = (id) => ACH.find((a) => a.id === id);
+const COSMETIC_LISTS = [[PAINTS, 'ownPaint', 'צבע'], [STRIPES, 'ownStripe', 'פסי מרוץ'], [FLAMES, 'ownFlame', 'להבת נייטרו'], [UNDERGLOWS, 'ownGlowU', 'תאורת תחתית']];
+function unlocksOf(id) { /* names of everything an achievement opens */
+  const out = [];
+  for (const [list, , kind] of COSMETIC_LISTS) list.forEach((it) => { if (it.ach === id) out.push(kind + ': ' + it.n); });
+  TITLES.forEach((t) => { if (t.ach === id) out.push('תואר: ' + t.n); });
+  return out;
+}
+function grantUnlocks(id) {
+  const got = [];
+  for (const [list, ownKey] of COSMETIC_LISTS) list.forEach((it, i) => { if (it.ach === id && !save[ownKey].includes(i)) { save[ownKey].push(i); got.push(it.n); } });
+  TITLES.forEach((t, i) => { if (t.ach === id && !save.ownTitle.includes(i)) { save.ownTitle.push(i); got.push('תואר ' + t.n); } });
+  return got;
+}
+function checkAch(silent) {
+  let changed = false, n = 0, last = null;
   for (const a of ACH) {
     if (save.ach[a.id] || a.v() < a.goal) continue;
-    save.ach[a.id] = Date.now(); save.coins += a.r; changed = true;
-    toast('הישג: ' + a.n + ' ' + ltr('+' + a.r));
-    Sfx.lap();
+    save.ach[a.id] = Date.now(); save.coins += a.r; changed = true; n++;
+    const unl = grantUnlocks(a.id);
+    last = a.n + ' ' + ltr('+' + a.r) + (unl.length ? ' · 🎁 ' + unl.join(', ') : '');
+    if (!silent) { toast('הישג: ' + last); Sfx.lap(); }
     if (a.id === 'king') applyVehicle();
   }
   if (changed) persist();
+  return n;
 }
 
 /* vehicles: multipliers on the baseline sport car; bars (1-5) are only for the garage cards */
@@ -1362,18 +1448,25 @@ vec3 vor(vec2 p){ vec2 i=floor(p),f=fract(p); float d1=9.0,d2=9.0,id=0.0;
   for(int y=-1;y<=1;y++){ for(int x=-1;x<=1;x++){ vec2 g=vec2(float(x),float(y)); vec2 o=vec2(h21(i+g),h21(i+g+vec2(31.7,17.3))); vec2 r=g+0.15+o*0.7-f; float d=dot(r,r);
     if(d<d1){ d2=d1; d1=d; id=h21(i+g+vec2(5.3,9.1)); } else if(d<d2){ d2=d; } } }
   return vec3(sqrt(d1),sqrt(d2)-sqrt(d1),id); }
+vec3 hsv(float h,float sa,float v){ vec3 k=clamp(abs(fract(h+vec3(0.0,0.6667,0.3333))*6.0-3.0)-1.0,0.0,1.0); return v*mix(vec3(1.0),k,sa); }
 vec3 patColor(vec3 p, vec3 n){
   vec3 a=abs(n); vec2 q=(a.x>a.y&&a.x>a.z)?p.zy:(a.y>a.z?p.xz:p.xy);
   if(uPat<1.5){ vec3 v=vor(q*1.5); float ring=smoothstep(0.17,0.24,v.x)*(1.0-smoothstep(0.34,0.42,v.x));
     vec3 c=mix(vec3(0.9,0.64,0.24),vec3(0.64,0.4,0.13),smoothstep(0.17,0.0,v.x)*0.8); return mix(c,vec3(0.07,0.04,0.02),ring); }
   if(uPat<2.5){ vec3 v=vor(q*1.2); vec3 br=mix(vec3(0.42,0.2,0.07),vec3(0.64,0.35,0.1),v.z); return mix(vec3(0.95,0.85,0.58),br,smoothstep(0.05,0.12,v.y)); }
   if(uPat<3.5){ float n=vn(q*1.6)*0.6+vn(q*3.7+7.0)*0.4; vec3 c=vec3(0.07,0.12,0.06); c=mix(c,vec3(0.26,0.32,0.13),step(0.36,n)); c=mix(c,vec3(0.34,0.24,0.12),step(0.5,n)); return mix(c,vec3(0.62,0.56,0.38),step(0.64,n)); }
-  float s=sin(q.x*6.0+q.y*3.2+sin(q.y*4.0)*0.9+vn(q*2.0)*2.2); return mix(vec3(0.03),vec3(0.96),smoothstep(-0.12,0.12,s)); }`;
+  if(uPat<4.5){ float s=sin(q.x*6.0+q.y*3.2+sin(q.y*4.0)*0.9+vn(q*2.0)*2.2); return mix(vec3(0.03),vec3(0.96),smoothstep(-0.12,0.12,s)); }
+  if(uPat<5.5){ float f=sin(q.x*9.0+vn(q*3.0)*4.0)*0.5+0.5; float h=clamp(p.y*0.8+f*0.35-0.1,0.0,1.0); return mix(vec3(0.7,0.04,0.06),vec3(1.0,0.82,0.15),smoothstep(0.15,0.9,h)); }
+  if(uPat<6.5){ float nb=vn(q*1.3)*0.65+vn(q*3.1)*0.35; vec3 c=mix(vec3(0.03,0.02,0.14),vec3(0.5,0.12,0.65),smoothstep(0.25,0.85,nb)); float star=step(0.982,h21(floor(q*16.0))); return c+vec3(star); }
+  if(uPat<7.5){ vec3 c=vec3(0.7,0.12,0.06); float sp=step(0.9,h21(floor(q*24.0))); c=mix(c,vec3(1.0,0.62,0.2),sp); float band=smoothstep(0.92,1.0,sin(q.x*3.2)*0.5+0.5); return mix(c,vec3(0.32,0.08,0.04),band); }
+  if(uPat<8.5){ float ck=mod(floor(q.x*3.0)+floor(q.y*3.0),2.0); return mix(vec3(0.04),vec3(0.97),ck); }
+  if(uPat<9.5){ return hsv(fract(q.x*0.22+q.y*0.3+vn(q)*0.1),0.85,1.0); }
+  float g=vn(q*2.0)*0.3+sin(q.x*5.0+q.y*3.0)*0.12; return mix(vec3(0.62,0.4,0.05),vec3(1.0,0.86,0.35),clamp(0.55+g,0.0,1.0)); }`;
 const PAT_FRAG = `vec3 pcol = vec3(1.0);
   if (vPaint > 0.5) {
     pcol = uBase;
     if (uPat > 0.5) pcol = patColor(vOP, normalize(vON));
-    if (uSSt > 0.5 && vON.y > 0.55) { float ax = abs(vOP.x); float on = uSSt < 1.5 ? step(ax, 0.2) : step(0.13, ax) * step(ax, 0.3); pcol = mix(pcol, uSCol, on); }
+    if (uSSt > 0.5 && vON.y > 0.55) { float ax = abs(vOP.x); float on = uSSt < 1.5 ? step(ax, 0.2) : uSSt < 2.5 ? step(0.13, ax) * step(ax, 0.3) : max(max(step(ax, 0.07), step(0.17, ax) * step(ax, 0.24)), step(0.34, ax) * step(ax, 0.41)); pcol = mix(pcol, uSCol, on); }
   }
   diffuseColor.rgb *= pcol;`;
 function paintMat() {
@@ -2219,7 +2312,7 @@ function checkMissions() {
   R.score = P.score; R.laps = P.lapsDone;
   for (const m of missions) {
     if (save.mission.done.includes(m.id) || !m.f(R)) continue;
-    save.mission.done.push(m.id); save.coins += MISSION_REWARD; persist();
+    save.mission.done.push(m.id); save.coins += MISSION_REWARD; bump('missions'); persist();
     toast('משימה הושלמה: ' + m.t + ' ' + ltr('+' + MISSION_REWARD)); Sfx.lap();
   }
 }
@@ -2247,7 +2340,7 @@ function startRun(trackIdx, grid) {
   if (trackIdx !== undefined && trackIdx !== null) setTrack(trackIdx);
   missions = todaysMissions();
   const VH0 = curVeh(), maxHp = Math.round(100 * (3 + upLvl('armor') + VH0.hearts) / 3); /* a heart used to be a third of the base health */
-  Object.assign(P, { dist: 0, pd: 0, lat: 0, plat: 0, lane: 0, vlat: 0, latB: 0, latT: 0, slamOff: 0, slamT: 0, slamCd: 0, thr: 1, speed: 30, hp: maxHp, maxHp, regenT: 0, regenRate: 0, poisonT: 0, poisonRate: 0, kits: startKits(), inv: 1.2, alive: true, nitro: 60, nitroOn: false, brake: 0,
+  Object.assign(P, { hurt: false, dist: 0, pd: 0, lat: 0, plat: 0, lane: 0, vlat: 0, latB: 0, latT: 0, slamOff: 0, slamT: 0, slamCd: 0, thr: 1, speed: 30, hp: maxHp, maxHp, regenT: 0, regenRate: 0, poisonT: 0, poisonRate: 0, kits: startKits(), inv: 1.2, alive: true, nitro: 60, nitroOn: false, brake: 0,
     combo: 0, comboT: 0, score: 0, coins: 0, lapsDone: 0, lapClean: true, missiles: missileAmmo(), shocks: 3 + 2 * upLvl('shock'), kills: 0, turboT: 0, powerT: 0, magnetT: 0, shield: VH0.shield ? 1 : 0, mines: mineStock('p'), minesX: mineStock('x') });
   Object.assign(R, { maxCombo: 0, coins: 0, cleanLaps: 0, laps: 0, maxKmh: 0, score: 0, nitroUses: 0, near: 0, kills: 0, food: 0 });
   Object.assign(G, { state: 'play', time: 0, rowAcc: 0, prevOpen: [-1, 0, 1], dyingT: 0, shake: 0, missionTick: 0, tutT: 0, wCool: 0, target: null, copT: rnd(14, 22), sirenT: 0, copNear: null });
@@ -2286,6 +2379,9 @@ function endRun(reason) {
   const rw = raceReward(place, RACE.dnf);
   RACE.reward = rw;
   save.coins += P.coins + rw.pay + rw.winBonus + rw.firstWin;
+  bump('earned', P.coins + rw.pay + rw.winBonus + rw.firstWin); bump('meters', Math.round(P.dist)); bumpMax('bestStreak', save.streak | 0);
+  if (!RACE.dnf) { bump('finishes'); if (place <= 3) bump('podiums'); if (!P.hurt) bump('perfect'); if (P.hp < 15) bump('closeCalls'); }
+  checkAch();
   RACE.results = st.map((x) => ({ n: x.n, me: !!x.me, t: x.fin ? x.finT : null, d: x.d }));
   if (!RACE.dnf) { const bt = save.times[TR.id]; if (!bt || RACE.finT < bt) { save.times[TR.id] = RACE.finT; rw.newTime = true; } }
   Sfx.over(); if (place === 1 && !RACE.dnf) Sfx.lap();
@@ -2324,7 +2420,7 @@ const Net = {
   async board() { return (await Net.call('/api/leaderboard')).rows || []; }
 };
 netHook = Net.schedule;
-function syncUser() { $('#mUser').textContent = save.user ? '👤 ' + save.user + (isFounder() ? ' 👑 מייסד' : '') : '👤 התחבר'; $('#btnLogin2').classList.toggle('hidden', !!save.user); }
+function syncUser() { { const t = TITLES[save.title], mt = $('#mTitle'); if (mt) { mt.textContent = t ? '« ' + t.n + ' »' : ''; mt.classList.toggle('hidden', !t); } } $('#mUser').textContent = save.user ? '👤 ' + save.user + (isFounder() ? ' 👑 מייסד' : '') : '👤 התחבר'; $('#btnLogin2').classList.toggle('hidden', !!save.user); }
 function toMenu() {
   G.state = 'menu'; resetTraffic();
   Sfx.musicStop(); Sfx.engine(0, false, false);
@@ -2544,7 +2640,7 @@ function crash(c, cause) {
     Sfx.crash(); vib(40); banner('המגן נשבר!', 'nm');
     return;
   }
-  P.hp -= HIT_DMG[cause] || (c && (c.type === 'bus' || c.type === 'truck') ? 44 : 34); G.hpHold = 0.55; P.inv = 2.0; P.combo = 0; P.comboT = 0; P.lapClean = false;
+  P.hurt = true; P.hp -= HIT_DMG[cause] || (c && (c.type === 'bus' || c.type === 'truck') ? 44 : 34); G.hpHold = 0.55; P.inv = 2.0; P.combo = 0; P.comboT = 0; P.lapClean = false;
   P.speed *= 0.55; P.nitroOn = false; G.shake = 1;
   if (c) destroyCar(c, 'hit', false);
   frameOf(pS(), P.lat, F1); emitSparks(F1.px, 1, F1.pz, 40); FX.burst(F1.px, 1, F1.pz, 1.3, PAINTS[save.paint].c);
@@ -2563,6 +2659,7 @@ function ram(c, kind) {
   const pts = 200 * (c.len > 8 ? 2 : 1); P.score += pts; P.nitro = Math.min(100, P.nitro + 8);
   G.shake = Math.max(G.shake, 0.5); Sfx.ram(); vib(25);
   if (c.len > 8) impact({ slow: 0.55, flash: 0.6, shake: 0.8, punch: 1 }); else impact({ punch: 0.55, shake: 0.5 });
+  bump(kind === 'side' ? 'sideRams' : 'frontRams'); if (c.len > 8) bump('bigRams');
   const loot = ramLoot(c.type);
   banner((kind === 'front' ? 'ניגוח חזית! ' : 'ניגוח צד! ') + ltr('+' + pts) + ' · ' + ltr('+' + loot.n) + ' צ׳וריסו', 'big');
 }
@@ -2638,10 +2735,10 @@ function applyBonus(kind) {
     case 1: P.powerT = 8; break;
     case 2: P.magnetT = 9; break;
     case 3:
-      P.regenT = 7; P.regenRate = 9; P.poisonT = 0; P.score += 100;
+      bump('salamis'); P.regenT = 7; P.regenRate = 9; P.poisonT = 0; P.score += 100;
       break;
     default:
-      bump('queens'); P.turboT = 6; P.powerT = 7; P.magnetT = 10; P.regenT = Math.max(P.regenT, 5); P.regenRate = Math.max(P.regenRate, 8); P.score += 500; G.shake = Math.max(G.shake, 0.5);
+      bump('queens'); bump('salamis'); P.turboT = 6; P.powerT = 7; P.magnetT = 10; P.regenT = Math.max(P.regenT, 5); P.regenRate = Math.max(P.regenRate, 8); P.score += 500; G.shake = Math.max(G.shake, 0.5);
       frameOf(pS(), P.lat, F1); emitSparks(F1.px, 1.6, F1.pz, 36);
   }
 }
@@ -2947,7 +3044,7 @@ function weaponsTick(dt, ps, dying) {
 function frameOf(s, lat, o) { Track.frame(s, o); o.px = Track.worldX(o, lat); o.pz = Track.worldZ(o, lat); return o; }
 
 function nearMiss(c, gap) {
-  P.combo++; P.comboT = 3.6; R.near++;
+  P.combo++; P.comboT = 3.6; R.near++; bump('near');
   R.maxCombo = Math.max(R.maxCombo, P.combo); bumpMax('maxCombo', R.maxCombo);
   const close = gap < 0.9, pts = Math.round(100 * comboMult() * (close ? 2 : 1) * curVeh().nearBonus);
   P.score += pts; P.nitro = Math.min(100, P.nitro + (close ? 16 : 9));
@@ -3111,7 +3208,7 @@ function runTick(dt) {
     P.brakedLap = false;
     if (P.lapsDone >= RACE_LAPS) finishRace();
     else {
-      if (P.lapClean) { R.cleanLaps++; P.score += 500 * P.lapsDone; }
+      if (P.lapClean) { R.cleanLaps++; bump('cleanLaps'); P.score += 500 * P.lapsDone; }
       { const got = heal(25); if (got > 0) banner('+' + Math.round(got) + ' חיים', 'ok'); }
       banner(P.lapsDone === RACE_LAPS - 1 ? 'הקפה אחרונה!' : 'הקפה ' + ltr(P.lapsDone + 1) + ' מתוך ' + ltr(RACE_LAPS), P.lapsDone === RACE_LAPS - 1 ? 'big' : 'ok');
       if (curVeh().shield && P.shield < 1) { P.shield = 1; banner('המגן נטען', 'ok'); }
@@ -3123,7 +3220,7 @@ function runTick(dt) {
   if (RACE.finished) { RACE.endT += dt; if (RACE.endT > 3.4 && G.state === 'play') endRun('finish'); }
 
   /* missions */
-  G.missionTick += dt; if (G.missionTick > 1) { G.missionTick = 0; checkMissions(); checkAch(); }
+  G.missionTick += dt; if (G.missionTick > 1) { G.missionTick = 0; if (G.state === 'play' && RACE.grid <= 0) bump('secs'); checkMissions(); checkAch(); }
   if (G.tutT > 0) { G.tutT -= dt; if (G.tutT <= 0) { el.tut.classList.add('hidden'); save.tut = true; persist(); } }
   if (dying) { G.dyingT += dt; if (G.dyingT > 1.5) endRun(); }
 }
@@ -3654,7 +3751,7 @@ $('#pickTouch').addEventListener('click', () => pickDone('touch'));
 $('#btnPickBack').addEventListener('click', () => { show('ctlPick', false); show(pickFrom, true); });
 $('#btnTiltRetry').addEventListener('click', () => { Tilt.request().then((ok) => { $('#tiltDiag').textContent = ok ? 'ההרשאה אושרה. הטה מעט את הטלפון כדי שנזהה אותו' : 'ההרשאה נדחתה או שאין חיישן במכשיר'; }); });
 $('#btnTiltTouch').addEventListener('click', () => { setCtl('touch'); show('tiltFail', false); RACE.tiltAsk = false; });
-function bankRace() { save.coins += P.coins; save.best = Math.max(save.best, Math.floor(P.score)); P.coins = 0; persist(); }
+function bankRace() { bump('earned', P.coins); save.coins += P.coins; save.best = Math.max(save.best, Math.floor(P.score)); P.coins = 0; persist(); }
 function openTracks() { renderTracks(); show('tracks', true); show('menu', false); show('over', false); show('pause', false); }
 $('#btnTracks1').addEventListener('click', () => { bankRace(); toMenu(); openTracks(); });
 $('#btnTracks2').addEventListener('click', () => { toMenu(); openTracks(); });
@@ -3701,16 +3798,17 @@ function shareText() {
 }
 function homeShareText() {
   const lg = LEAGUES[leagueIdx(save.trophies | 0)], tr = save.trophies | 0, w = Object.values(save.wins || {}).reduce((a, b) => a + (b | 0), 0);
-  const who = save.user ? ' (' + save.user + ')' : '';
+  const who = save.user ? ' (' + save.user + (TITLES[save.title] ? ', ' + TITLES[save.title].n : '') + ')' : '';
   const stat = tr > 0 || w > 0 ? 'אני בליגת ' + lg.n + ' עם ' + tr + ' גביעים' + (w ? ' ו-' + w + ' ניצחונות' : '') + who + '. ' : '';
   return stat + 'בואו לשחק "Chorizo Chase" 🌭🔥 מרוץ של 3 הקפות מול 5 יריבים - תצליחו לנצח אותי?\n' + GAME_URL;
 }
 $('#btnShareHome').addEventListener('click', () => {
-  Sfx.init(); Sfx.ui();
+  Sfx.init(); Sfx.ui(); bump('shares'); persist();
   const url = 'https://wa.me/?text=' + encodeURIComponent(homeShareText());
   if (!window.open(url, '_blank', 'noopener')) location.href = url;
 });
 $('#btnShare').addEventListener('click', () => {
+  bump('shares'); persist();
   const url = 'https://wa.me/?text=' + encodeURIComponent(shareText());
   if (!window.open(url, '_blank', 'noopener')) location.href = url;
 });
@@ -3723,13 +3821,29 @@ function openGarage(from) { Sfx.init(); Sfx.ui(); renderGarage(); show('garage',
 $('#btnGarage').addEventListener('click', () => openGarage('menu'));
 $('#btnGarage2').addEventListener('click', () => openGarage('over'));
 $('#btnGarageBack').addEventListener('click', () => { show('garage', false); show(openGarage.from || 'menu', true); if (openGarage.from !== 'over') { $('#mCoins').textContent = fmt(save.coins); } });
+let achTab = 'all';
 function renderAch() {
   const host = $('#aList'), keep = $('#ach').scrollTop; host.innerHTML = '';
   const done = ACH.filter((a) => save.ach[a.id]).length; $('#aCount').textContent = done + '/' + ACH.length;
-  ACH.forEach((a) => {
-    const on = !!save.ach[a.id], v = Math.min(a.goal, a.v()), row = document.createElement('div');
-    row.className = 'ac' + (on ? ' on' : '');
-    row.innerHTML = '<div class="medal">' + (on ? '✓' : Math.round(v / a.goal * 100) + '%') + '</div><div class="info"><b>' + a.n + '</b><small>' + a.d + '</small><div class="prog"><i style="width:' + (v / a.goal * 100) + '%"></i></div><small dir="ltr" style="text-align:right">' + fmt(v) + ' / ' + fmt(a.goal) + '</small></div><em dir="ltr">+' + a.r + '</em>';
+  const tabs = $('#aTabs'); tabs.innerHTML = '';
+  [['all', 'הכל']].concat(CATS).forEach(([k, n]) => {
+    const t = document.createElement('button'); t.className = 'atab' + (achTab === k ? ' sel' : ''); t.textContent = n;
+    t.addEventListener('click', () => { achTab = k; Sfx.ui(); renderAch(); $('#ach').scrollTop = 0; }); tabs.appendChild(t);
+  });
+  const ladders = [], seen = {};
+  for (const a of ACH) { if (!seen[a.lad]) { seen[a.lad] = []; ladders.push(seen[a.lad]); } seen[a.lad].push(a); }
+  ladders.forEach((tiers) => {
+    const first = tiers[0]; if (achTab !== 'all' && first.cat !== achTab) return;
+    const got = tiers.filter((t) => save.ach[t.id]).length, all = got === tiers.length, cur = tiers[Math.min(got, tiers.length - 1)];
+    const v = Math.min(cur.goal, cur.v()), pct = Math.round(v / cur.goal * 100), last = tiers[got - 1];
+    const gifts = unlocksOf(cur.id), row = document.createElement('div');
+    row.className = 'ac' + (all ? ' on done' : '');
+    const mcls = got ? ' t' + Math.min(4, got + (tiers.length === 3 ? 1 : 0)) : '';
+    row.innerHTML = '<div class="medal' + mcls + '">' + (got ? last.medal : first.ico) + '</div><div class="info"><b>' + first.lname + (all ? ' · הושלם' : '') + '</b><small>' + cur.d + '</small>'
+      + '<div class="prog"><i style="width:' + pct + '%"></i></div>'
+      + '<div class="pips">' + tiers.map((t) => '<i class="' + (save.ach[t.id] ? 'on' : '') + '"></i>').join('') + '</div>'
+      + (gifts.length && !save.ach[cur.id] ? '<small class="gift">🎁 ' + gifts.join(' · ') + '</small>' : '') + '</div>'
+      + '<em dir="ltr">' + (save.ach[cur.id] ? '✓' : fmt(Math.min(v, 1e9)) + '/' + fmt(cur.goal)) + '<br><span style="font-size:11px">' + (save.ach[cur.id] ? '' : '+' + cur.r) + '</span></em>';
     host.appendChild(row);
   });
   $('#ach').scrollTop = keep;
@@ -3744,9 +3858,10 @@ function renderGarage() {
     list.forEach((it, i) => {
       const own = save[ownKey].includes(i), b = document.createElement('button');
       b.className = 'sw' + (save[selKey] === i ? ' sel' : '') + (own ? '' : ' lock');
-      const hex = '#' + it.c.toString(16).padStart(6, '0');
-      b.innerHTML = `<span class="dot" style="background:${it.css || hex};color:${hex}"></span><span>${it.n}</span><span class="pr">${own ? (save[selKey] === i ? 'נבחר' : '') : '<span class="coin"></span> ' + priceHtml(it.cost)}</span>`;
+      const hex = '#' + it.c.toString(16).padStart(6, '0'), need = it.ach && achById(it.ach);
+      b.innerHTML = `<span class="dot" style="background:${it.css || hex};color:${hex}"></span><span>${it.n}</span><span class="pr">${own ? (save[selKey] === i ? 'נבחר' : '') : need ? '🔒 הישג' : '<span class="coin"></span> ' + priceHtml(it.cost)}</span>`;
       b.addEventListener('click', () => {
+        if (!own && need) { toast('נפתח בהישג: ' + need.n + ' (' + need.d + ')'); return; }
         if (!own) { if (save.coins < price(it.cost)) { toast('אין מספיק צ׳וריסו'); return; } save.coins -= price(it.cost); save[ownKey].push(i); }
         save[selKey] = i; persist(); apply(); Sfx.ui(); renderGarage();
       });
@@ -3788,6 +3903,15 @@ function renderGarage() {
   build($('#gFlame'), FLAMES, 'ownFlame', 'flame', refreshPlayerLook);
   build($('#gStripe'), STRIPES, 'ownStripe', 'stripe', refreshPlayerLook);
   build($('#gGlowU'), UNDERGLOWS, 'ownGlowU', 'glowU', refreshPlayerLook);
+  const tg = $('#gTitle'); tg.innerHTML = '';
+  $('#gTitleCnt').textContent = '(' + save.ownTitle.length + '/' + TITLES.length + ' נפתחו בהישגים)';
+  const none = document.createElement('button'); none.className = 'sw' + (save.title < 0 ? ' sel' : ''); none.innerHTML = '<span>ללא</span><span class="pr">' + (save.title < 0 ? 'נבחר' : '') + '</span>';
+  none.addEventListener('click', () => { save.title = -1; persist(); Sfx.ui(); syncUser(); renderGarage(); }); tg.appendChild(none);
+  save.ownTitle.forEach((ti) => {
+    const t = TITLES[ti]; if (!t) return;
+    const b = document.createElement('button'); b.className = 'sw' + (save.title === ti ? ' sel' : ''); b.innerHTML = '<span>' + t.n + '</span><span class="pr">' + (save.title === ti ? 'נבחר' : '') + '</span>';
+    b.addEventListener('click', () => { save.title = ti; persist(); Sfx.ui(); syncUser(); renderGarage(); }); tg.appendChild(b);
+  });
   pan.scrollTop = keepScroll;
 }
 
@@ -3805,6 +3929,11 @@ function setTrack(i) {
    ===================================================================== */
 resize();
 refreshPlayerLook();
+if (!save.migAch2) { /* the achievement system grew: grant whatever the existing progress already earned, without a toast storm */
+  const n = checkAch(true); save.migAch2 = true; persist();
+  if (n) setTimeout(() => toast('🎁 נפתחו ' + n + ' הישגים לפי ההתקדמות שלך'), 900);
+}
+syncUser();
 toMenu();
 requestAnimationFrame(frame);
 try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch (e) {}
@@ -3822,7 +3951,7 @@ window.RingRush = {
   coinsNear: () => coins.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),
   setTrack, tracks: () => TRACKS.map((t) => ({ id: t.id, n: t.n })), trackInfo: () => ({ id: TR.id, L }), dbg: { scene, camera, get road() { return roadMesh; }, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo) * COIN_SCALE, coinGlow: footprint(sausageCoinGeo) * COIN_GLOW * COIN_SCALE, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, topSpeed: curVeh().topSpeed, len: P.len, wid: P.wid, shield: P.shield, maxHp: P.maxHp }), setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setHp(v) { P.hp = Math.min(P.maxHp, v); hc.hp = null; }, giveKits(n) { P.kits = n; hc.ammo = null; }, kit() { useKit(); }, poison() { return { t: P.poisonT, regen: P.regenT }; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
   cops: () => cops.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, speed: c.speed, stun: c.stunT })),
-  noCops(v) { G.noCops = !!v; }, rivalsOff() { rivals.forEach((r) => { r.active = false; r.g.visible = false; }); }, noRivalHits(v) { G.noRivalHits = !!v; }, homeShare: () => homeShareText(), rivalTags: () => rivals.map((r) => ({ tag: r.tag.sp.visible, ring: r.tag.ring.visible })), ramLoot: (t) => ramLoot(t), rivalHit: (i, d) => rivalDamage(rivals[i], d), setRivalHp(i, v) { rivals[i].hp = v; }, rivalHitMe(i) { const r = rivals[i]; r.atkT = 1; r.atkCd = 99; G.rivalHitCd = 0; },  setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p, k) => price(p, k), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
+  noCops(v) { G.noCops = !!v; }, rivalsOff() { rivals.forEach((r) => { r.active = false; r.g.visible = false; }); }, noRivalHits(v) { G.noRivalHits = !!v; }, homeShare: () => homeShareText(), unlockAll() { for (const a of ACH) { if (!save.ach[a.id]) { save.ach[a.id] = Date.now(); grantUnlocks(a.id); } } applyVehicle(); persist(); }, achTotal: () => ACH.length, badAchRefs: () => COSMETIC_LISTS.flatMap(([l]) => l.filter((x) => x.ach && !achById(x.ach)).map((x) => x.n)), owned: () => ({ paint: save.ownPaint.length, stripe: save.ownStripe.length, flame: save.ownFlame.length, glow: save.ownGlowU.length, title: save.ownTitle.length, titles: TITLES.length }), setTitle(i) { save.title = i; syncUser(); },  rivalTags: () => rivals.map((r) => ({ tag: r.tag.sp.visible, ring: r.tag.ring.visible })), ramLoot: (t) => ramLoot(t), rivalHit: (i, d) => rivalDamage(rivals[i], d), setRivalHp(i, v) { rivals[i].hp = v; }, rivalHitMe(i) { const r = rivals[i]; r.atkT = 1; r.atkCd = 99; G.rivalHitCd = 0; },  setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p, k) => price(p, k), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
   ammo: () => ({ magnet: P.magnetT, hp: P.hp, kits: P.kits, missiles: P.missiles, shocks: P.shocks, warhead: warhead(), kills: P.kills, maxHp: P.maxHp, turbo: P.turboT, power: P.powerT, food: R.food }),
   setLaps(n) { P.dist = n * L; P.pd = P.dist; P.lapsDone = n; }
 };

@@ -92,8 +92,8 @@ async function main() {
     // ---- back to the menu, then the achievements panel by touch
     await reachAndTap('#btnGarageBack', 'back from garage (before achievements)');
     await reachAndTap('#btnAch', 'achievements button');
-    const ah = await page.evaluate(() => { const a = document.getElementById('ach'); const t = a.querySelector('.ghead').getBoundingClientRect(); return { top: t.top, hidden: a.classList.contains('hidden'), rows: a.querySelectorAll('.ac').length, scrollable: a.scrollHeight > a.clientHeight + 4 }; });
-    check('achievements panel opens with all rows, header not clipped', !ah.hidden && ah.rows >= 15 && ah.top >= -1, JSON.stringify(ah));
+    const ah = await page.evaluate(() => { const a = document.getElementById('ach'); const t = a.querySelector('.ghead').getBoundingClientRect(); return { top: t.top, hidden: a.classList.contains('hidden'), rows: a.querySelectorAll('.ac').length, tabs: a.querySelectorAll('.atab').length, scrollable: a.scrollHeight > a.clientHeight + 4 }; });
+    check('achievements panel opens with 40+ ladders and category tabs, header not clipped', !ah.hidden && ah.rows >= 40 && ah.tabs === 6 && ah.top >= -1, JSON.stringify(ah));
     if (ah.scrollable) { await swipeUp(220); const sc = await page.evaluate(() => document.getElementById('ach').scrollTop); check('achievements scroll with a real touch swipe', sc > 20, 'scrollTop=' + Math.round(sc)); }
     await reachAndTap('#btnAchBack', 'back from achievements');
     check('back from achievements returns to the menu', await page.evaluate(() => document.getElementById('ach').classList.contains('hidden') && !document.getElementById('menu').classList.contains('hidden')));

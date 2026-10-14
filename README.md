@@ -31,3 +31,6 @@ Open `index.html` in a browser. Tests (Playwright + Chromium, real touch events)
 ## Health
 - Lives are gone: a Tekken-style health bar (100 base; jeep and each armor level add +33%). Crash = -34 (truck/bus -44, rival shunt -24, lettuce -26, boss -44). The yellow trail catches up after a short pause.
 - Salami and the chorizo queen heal over time; poison bottles drain health (never below 1); first aid kits go into a bag (button, key H), heal 45+ and cure poison. Upgrade "ערכות עזרה ראשונה" gives starting kits, a bigger bag and stronger healing.
+
+## Achievements and unlockables
+- 134 achievements in 42 ladders (bronze/silver/gold/platinum) across fight, drive, race, collect and survive; each tier pays chorizo, the last tier of a ladder gives a title. 21 cosmetics (6 paints with new shader patterns, 5 stripes, 5 nitro flames, 5 underglows) and 40 titles open only through achievements; the crown opens with "king". Existing saves are caught up silently on first load (`migAch2`).

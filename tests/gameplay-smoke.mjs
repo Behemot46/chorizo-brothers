@@ -513,7 +513,7 @@ const war = await page.evaluate(async () => {
 check('a ram pays chorizo by car size (sedan 2, truck 10) and double on the chorizo truck', war.lootSedan === 2 && war.lootTruck === 10 && war.lootBusTruckCar === 12, JSON.stringify(war));
 check('a real ram pays more than the old flat reward', war.realRam >= 5, 'got ' + war.realRam);
 check('rivals are sturdy (24+ hp), survive a hit, and a wreck pays 20 chorizo', war.hp >= 24 && war.afterHit === war.hp - 5 && war.alive && war.wreck && war.wreckLoot >= 20, JSON.stringify(war));
-check('a rival that lunges at the player takes 24 off the health bar', war.livesAfter === war.livesBefore - 24, JSON.stringify([war.livesBefore, war.livesAfter]));
+check('a rival that lunges at the player takes the rival\'s own damage (brawler: 30) off the health bar', war.livesAfter === war.livesBefore - 30, JSON.stringify([war.livesBefore, war.livesAfter]));
 check('ramming a slow rival from behind damages it', war.frontDmg >= 5, 'dmg ' + war.frontDmg);
 check('every rival wears a name tag and a ring while racing', war.tags && war.tags.tag && war.tags.ring, JSON.stringify(war.tags));
 check('missile level 4 is the chorizo warhead: a wide blast, no separate chorizo weapon', war.warhead === 1 && war.blastKills >= 2 && war.plain === 0, JSON.stringify([war.warhead, war.blastKills, war.plain]));
@@ -591,6 +591,47 @@ check('XP levels up (100 XP = level 2 with coins and a plate frame)', lv.l1 === 
 check('30,000 XP is a high level and 400,000 XP caps at level 100', lv.big > 30 && lv.cap && lv.lv === 100, JSON.stringify([lv.big, lv.lv]));
 check('prestige resets to level 1, adds a star, pays 5,000 and opens the prestige frame; it is refused below level 100', lv.pres && lv.afterPres.level === 1 && lv.afterPres.prestige === 1 && lv.presCoins >= 5000 && lv.presItem && !lv.prestigeBlocked, JSON.stringify([lv.afterPres, lv.presCoins]));
 check('the plate shows emblem, name and level', /plate/.test(lv.html) && /🌭/.test(lv.html) && /plv/.test(lv.html));
+
+console.log('\n== rivals: pace relative to the player and real fighting ==');
+const pace = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  const run = (car, track, secs) => {
+    R.setUp('armor', 0); R.setCar(car); R.startRace(track); R.step(60 * 4.4); R.clearTraffic(); R.noRivalHits(true);
+    let pmax = 0, psum = 0, n = 0, rmax = 0, rsum = 0, rn = 0, nitro = 0;
+    for (let i = 0; i < 60 * secs; i++) { R.step(1); if (i % 20 === 0) R.clearTraffic(); const s = R.state(); pmax = Math.max(pmax, s.speed); psum += s.speed; n++; for (const q of R.rivalAi()) { rmax = Math.max(rmax, q.speed); rsum += q.speed; rn++; if (q.nitro > 0) nitro++; } }
+    R.noRivalHits(false);
+    return { pmax, pavg: psum / n, rmax, ravg: rsum / rn, nitro };
+  };
+  out.sport = run('sport', 0, 45); out.armored = run('armored', 1, 45); out.truck = run('chorizotruck', 2, 45);
+  R.setCar('sport'); return out;
+});
+const ratio = (x) => `avg ${(x.ravg / x.pavg).toFixed(2)} max ${(x.rmax / x.pmax).toFixed(2)}`;
+check('rivals never out-run the player\'s own car: average under his, peak within +8% (nitro burst) on sport, armored and the chorizo truck',
+  [pace.sport, pace.armored, pace.truck].every((x) => x.ravg < x.pavg * 1.0 && x.rmax <= x.pmax * 1.08), `${ratio(pace.sport)} | ${ratio(pace.armored)} | ${ratio(pace.truck)}`);
+check('rivals use their nitro bursts during a race', pace.sport.nitro > 20, 'nitro ticks=' + pace.sport.nitro);
+const rfight = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  const fresh = () => { R.setCar('sport'); R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setHp(999); R.rivalsOff(); R.noCops(true); };
+  /* duelist: warns (tele), then lunges, and the hit takes 24 */
+  fresh(); const sp = R.state().speed; R.placeRival(0, 0, 2.2, sp); R.forceTele(0); let sawTele = false, sawAtk = false; const h0 = R.state().hp;
+  for (let i = 0; i < 60 * 4; i++) { R.step(1); R.clearTraffic(); const a = R.rivalAi()[0]; if (a.tele > 0) sawTele = true; if (a.atk > 0) sawAtk = true; }
+  out.tele = sawTele; out.atk = sawAtk; out.lungeDmg = h0 - R.state().hp;
+  /* blocker: gets in front of the player's lane */
+  fresh(); R.placeRival(2, 18, 3.4, R.state().speed); R.forceBlock(2); let blocked = false, minGap = 99;
+  for (let i = 0; i < 60 * 4; i++) { R.step(1); R.clearTraffic(); const a = R.rivalAi()[2]; if (a.block > 0) blocked = true; if (a.block > 0) minGap = Math.min(minGap, Math.abs(a.lat - R.state().lat)); }
+  out.blocked = blocked; out.blockGap = minGap;
+  /* trapper: drops a mine behind itself when the player tails it, and the mine hurts */
+  fresh(); R.placeRival(4, 14, R.state().lat, R.state().speed); R.forceTrap(4); R.step(6); out.trapMine = R.mineOwners().includes('r');
+  R.rivalsOff(); const t0 = R.state().hp; for (let i = 0; i < 60 * 3; i++) { R.step(1); R.clearTraffic(); } out.mineDmg = t0 - R.state().hp;
+  /* tank takes 30% less damage; the brawler is sturdier */
+  fresh(); R.placeRival(3, 30, 0, 20); const t1 = R.rivalAi()[3].hp; R.rivalHit(3, 10); out.tankTook = t1 - R.rivalAi()[3].hp;
+  out.hp = R.rivalAi().map((r) => r.maxHp);
+  return out;
+});
+check('a rival lunge is telegraphed first, then hits the player for the rival\'s own damage', rfight.tele && rfight.lungeDmg === 24, JSON.stringify([rfight.tele, rfight.lungeDmg]));
+check('the blocker weaves into the player\'s lane', rfight.blocked && rfight.blockGap < 2.5, JSON.stringify([rfight.blocked, rfight.blockGap]));
+check('the trapper drops a mine behind it and driving into it costs 22 health', rfight.trapMine && rfight.mineDmg === 22, JSON.stringify([rfight.trapMine, rfight.mineDmg]));
+check('the armored rival takes 30% less damage (10 -> 7) and the roster has different toughness', rfight.tankTook === 7 && new Set(rfight.hp).size >= 3, JSON.stringify([rfight.tankTook, rfight.hp]));
 
 check('no page errors / shader errors', errors.length === 0, errors.slice(0, 3).join(' / '));
 await browser.close();

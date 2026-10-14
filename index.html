@@ -532,7 +532,7 @@ const mkTod = (rows) => rows.map((r) => ({ top: r[0], bot: r[1], hs: r[2], hg: r
 const TRACKS = [
   {
     id: 'ring', n: 'טבעת הניאון', d: 'סביב העיר בלילה: מהירה, זורמת, בלי הפתעות', tag: 'קל',
-    vTop: 64, rival: 0.96, gap: 66, pay: 1, boss: false, pickRate: 1, fogFar: 420, ground: 0x343b38, tod: TOD_RING,
+    vTop: 64, rival: 0.94, gap: 66, pay: 1, boss: false, pickRate: 1, fogFar: 420, ground: 0x343b38, tod: TOD_RING,
     railL: 0x19e3ff, railR: 0xff2e93, signCol: 0x127a4a,
     win: ['#ffd98a', '#fff2c4', '#9fe8ff', '#ffb36b'], neon: [0xff2e93, 0x19e3ff, 0x9b5cff, 0x39ff88, 0xffc83d],
     dims: [[18, 50, 18], [24, 90, 20], [16, 34, 26], [30, 120, 22]], decor: 'none',
@@ -547,7 +547,7 @@ const TRACKS = [
   },
   {
     id: 'sausage', n: 'הנקניק הגדול', d: 'שוק הבשר: שני ישרים ארוכים, מתפרקים בקשתות הפיתול. נקניקים ענקיים מרחפים מעל', tag: 'בינוני',
-    vTop: 66, rival: 0.98, gap: 60, pay: 1.3, boss: false, pickRate: 2, fogFar: 420, ground: 0x3a2a26,
+    vTop: 66, rival: 0.96, gap: 60, pay: 1.3, boss: false, pickRate: 2, fogFar: 420, ground: 0x3a2a26,
     tod: mkTod([['#1a0408', '#8a2410', '#ff8a50', '#2a0e0a', 0.85, '#ffb070', 0.55], ['#240612', '#c0391e', '#ff9a60', '#2e1210', 0.85, '#ffc080', 0.5], ['#12041f', '#ff5a2a', '#ffb070', '#2a1010', 0.9, '#ffa060', 0.55]]),
     railL: 0xff7a2a, railR: 0xffc83d, signCol: 0x8a1c10,
     win: ['#ffb36b', '#ff8a4a', '#ffd98a', '#ff6a3a'], neon: [0xff3a2a, 0xff8a2a, 0xffc83d, 0xff2e93],
@@ -568,7 +568,7 @@ const TRACKS = [
   },
   {
     id: 'clover', n: 'התלתן', d: 'ארבעה עלים, אפס ישרים: סיבוב רצוף שבו כל עיקול מוביל לבא', tag: 'קשה',
-    vTop: 68, rival: 1.0, gap: 56, pay: 1.6, boss: false, pickRate: 1, fogFar: 250, ground: 0x1d3a2e,
+    vTop: 68, rival: 0.98, gap: 56, pay: 1.6, boss: false, pickRate: 1, fogFar: 250, ground: 0x1d3a2e,
     tod: mkTod([['#021a14', '#0a6a4a', '#5af0b0', '#06201a', 0.85, '#8affd0', 0.5], ['#0a0a2a', '#1a8a6a', '#7affc8', '#0a1a22', 0.8, '#a0ffe0', 0.5], ['#1a0a2a', '#b03a9a', '#ff8ad8', '#201028', 0.85, '#ffa0e8', 0.5]]),
     railL: 0x39ff88, railR: 0xff5ad0, signCol: 0x0a6a4a,
     win: ['#9fffd0', '#ff9ae0', '#9fe8ff', '#fff2c4'], neon: [0x39ff88, 0xff5ad0, 0x19e3ff, 0xffe14a],
@@ -581,7 +581,7 @@ const TRACKS = [
   },
   {
     id: 'zigzag', n: 'הברק', d: 'סערה חשמלית: אובל רחב עם שני קטעי זיגזג חדים. בסוף ההקפה השנייה מחכה הבוס הצמחוני', tag: 'מומחים',
-    vTop: 70, rival: 1.02, gap: 52, pay: 2, boss: true, pickRate: 1, fogFar: 420, storm: true, ground: 0x222a3a,
+    vTop: 70, rival: 1.0, gap: 52, pay: 2, boss: true, pickRate: 1, fogFar: 420, storm: true, ground: 0x222a3a,
     tod: mkTod([['#02041a', '#1a2a6a', '#7a8aff', '#0c1030', 0.8, '#a0b0ff', 0.55], ['#05021a', '#3a1a8a', '#a07aff', '#10082e', 0.8, '#c0a0ff', 0.5], ['#020a14', '#0a5a7a', '#5ad0ff', '#08181e', 0.85, '#a0e8ff', 0.55]]),
     railL: 0x9fb0ff, railR: 0xffe14a, signCol: 0x2a2a8a,
     win: ['#ffffff', '#9fe8ff', '#c0a0ff', '#fff2c4'], neon: [0x19e3ff, 0xc0a0ff, 0xffe14a, 0xffffff],
@@ -647,14 +647,14 @@ const MISSION_POOL = [
 ];
 const MISSION_REWARD = 80;
 const UPGRADES = [
-  { id: 'sight', n: 'כוונת', d: ['נועלת על המכונית שלפניך ומנווטת אליה את הטיל', 'נועלת גם על הנתיבים הסמוכים', 'נועלת על כל הכביש, טילים מהירים יותר'], cost: [300, 900, 2200] },
-  { id: 'ramF', n: 'פרונט ניגוח', d: ['מנפץ רכבים קטנים בהתנגשות חזיתית, בלי נזק', 'מנפץ גם אוטובוסים', 'מנפץ גם משאיות'], cost: [400, 1100, 2600] },
-  { id: 'ramS', n: 'להבי צד', d: ['הקשה על צד המסך מזנקת הצידה עם להבים רחבים שמנפצים רכבים קטנים (וגם רכבים שנוגעים בצד)', 'מנפצים גם ואנים, והזינוק חזק יותר', 'מנפצים גם אוטובוסים ומשאיות'], cost: [400, 1100, 2600] },
-  { id: 'missiles', n: 'מחסנית טילים', d: ['מתחילים עם 5 טילים', 'מתחילים עם 7 טילים', 'מתחילים עם 9 טילים', 'ראש נפץ צ׳וריסו: כל טיל מתפוצץ בפיצוץ רחב ומשמיד כל מה שסביבו', 'ראש נפץ ענק: נועל לבד על מטרה (גם בלי כוונת), פיצוץ גדול יותר ופוגע גם ביריבים'], cost: [100, 300, 700, 1800, 3600] },
-  { id: 'shock', n: 'מכת חשמל', d: ['פריקה לטווח קרוב ובינוני: מחסלת רכבים קטנים, מאטה גדולים ומפילה שוטרים. 5 מטענים', '7 מטענים, וגם אוטובוסים נופלים', '9 מטענים, וגם משאיות נופלות'], cost: [200, 600, 1500] },
-  { id: 'mines', n: 'מוקשים', d: ['מוקש נפץ במקום פנצ׳ר: משמיד רודפים ויריבים. מתחילים עם 6 מוקשים', 'פיצוץ רחב ב-30% ו-8 מוקשים', 'פיצוץ רחב ב-60% ו-10 מוקשים'], cost: [150, 450, 1200] },
-  { id: 'armor', n: 'שריון', d: ['+33% חיים בכל מירוץ', 'עוד +33% חיים'], cost: [600, 1800] },
-  { id: 'medic', n: 'ערכות עזרה ראשונה', d: ['מתחילים עם ערכה אחת (מרפאה 55) ואפשר לשאת 3', 'מתחילים עם 2 ערכות, מרפאות 65, נושאים 4', 'מתחילים עם 3 ערכות, מרפאות 75, נושאים 5'], cost: [300, 900, 2200] }
+  { id: 'sight', n: 'כוונת', d: ['נועלת על המכונית שלפניך ומנווטת אליה את הטיל', 'נועלת גם על הנתיבים הסמוכים', 'נועלת על כל הכביש, טילים מהירים יותר'], cost: [400, 1100, 2600] },
+  { id: 'ramF', n: 'פרונט ניגוח', d: ['מנפץ רכבים קטנים בהתנגשות חזיתית, בלי נזק', 'מנפץ גם אוטובוסים', 'מנפץ גם משאיות'], cost: [500, 1400, 3200] },
+  { id: 'ramS', n: 'להבי צד', d: ['הקשה על צד המסך מזנקת הצידה עם להבים רחבים שמנפצים רכבים קטנים (וגם רכבים שנוגעים בצד)', 'מנפצים גם ואנים, והזינוק חזק יותר', 'מנפצים גם אוטובוסים ומשאיות'], cost: [500, 1400, 3200] },
+  { id: 'missiles', n: 'מחסנית טילים', d: ['מתחילים עם 5 טילים', 'מתחילים עם 7 טילים', 'מתחילים עם 9 טילים', 'ראש נפץ צ׳וריסו: כל טיל מתפוצץ בפיצוץ רחב ומשמיד כל מה שסביבו', 'ראש נפץ ענק: נועל לבד על מטרה (גם בלי כוונת), פיצוץ גדול יותר ופוגע גם ביריבים'], cost: [150, 400, 900, 2200, 4500] },
+  { id: 'shock', n: 'מכת חשמל', d: ['פריקה לטווח קרוב ובינוני: מחסלת רכבים קטנים, מאטה גדולים ומפילה שוטרים. 5 מטענים', '7 מטענים, וגם אוטובוסים נופלים', '9 מטענים, וגם משאיות נופלות'], cost: [300, 800, 1800] },
+  { id: 'mines', n: 'מוקשים', d: ['מוקש נפץ במקום פנצ׳ר: משמיד רודפים ויריבים. מתחילים עם 6 מוקשים', 'פיצוץ רחב ב-30% ו-8 מוקשים', 'פיצוץ רחב ב-60% ו-10 מוקשים'], cost: [250, 700, 1500] },
+  { id: 'armor', n: 'שריון', d: ['+33% חיים בכל מירוץ', 'עוד +33% חיים'], cost: [800, 2400] },
+  { id: 'medic', n: 'ערכות עזרה ראשונה', d: ['מתחילים עם ערכה אחת (מרפאה 55) ואפשר לשאת 3', 'מתחילים עם 2 ערכות, מרפאות 65, נושאים 4', 'מתחילים עם 3 ערכות, מרפאות 75, נושאים 5'], cost: [400, 1100, 2600] }
 ];
 const upLvl = (id) => (save.up && save.up[id]) | 0;
 const missileAmmo = () => 3 + 2 * Math.min(3, upLvl('missiles'));
@@ -1891,18 +1891,20 @@ reticle.renderOrder = 6; reticle.visible = false; scene.add(reticle);
 /* =====================================================================
    Race: rivals (cheap scripted drivers), standings, ram markers
    ===================================================================== */
+/* each rival fights in its own way: duelist (sticks close, side lunges), brawler (heavy, rear bumps), blocker (weaves in front and slows the player),
+   tank (armored, takes 30% less damage, hits hard), trapper (drops mines behind it when the player tails it) */
 const RIVAL_DEFS = [
-  { n: 'פפרוני', spec: 'sport', c: 0xff3a5c, skill: 1.0 },
-  { n: 'מרגז', spec: 'jeep', c: 0xff9a2a, skill: 0.97 },
-  { n: 'הטקסי', spec: 'taxi', c: 0xffd32a, skill: 0.95 },
-  { n: 'שריון', spec: 'armored', c: 0xb07aff, skill: 0.93 },
-  { n: 'סלמי', spec: 'sport', c: 0x7dff7a, skill: 0.91 }
+  { n: 'פפרוני', spec: 'sport', c: 0xff3a5c, skill: 1.0, role: 'duelist', hpMul: 1, dmg: 24, armor: 1 },
+  { n: 'מרגז', spec: 'jeep', c: 0xff9a2a, skill: 0.97, role: 'brawler', hpMul: 1.3, dmg: 30, armor: 1 },
+  { n: 'הטקסי', spec: 'taxi', c: 0xffd32a, skill: 0.95, role: 'blocker', hpMul: 1, dmg: 20, armor: 1 },
+  { n: 'שריון', spec: 'armored', c: 0xb07aff, skill: 0.93, role: 'tank', hpMul: 1.6, dmg: 28, armor: 0.7 },
+  { n: 'סלמי', spec: 'sport', c: 0x7dff7a, skill: 0.91, role: 'trapper', hpMul: 1, dmg: 22, armor: 1 }
 ];
 const rivals = RIVAL_DEFS.map((d) => {
   const car = buildCar(d.spec, d.c);
   const blob = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 6.4).rotateX(-Math.PI / 2), sharedBlob); blob.position.y = 0.05; car.g.add(blob);
   car.g.visible = false; scene.add(car.g);
-  return Object.assign({ g: car.g, len: SPEC[d.spec].len, wid: SPEC[d.spec].wid, active: false, dist: 0, pd: 0, lat: 0, plat: 0, latT: 0, speed: 0, stunT: 0, fin: false, finT: 0, laneCd: 0, spinA: 0, hp: 24, maxHp: 24, wreckT: 0, hitCd: 0, atkCd: 8, atkT: 0, hitT: 0 }, d);
+  return Object.assign({ g: car.g, len: SPEC[d.spec].len, wid: SPEC[d.spec].wid, active: false, dist: 0, pd: 0, lat: 0, plat: 0, latT: 0, speed: 0, stunT: 0, fin: false, finT: 0, laneCd: 0, spinA: 0, hp: 24, maxHp: 24, wreckT: 0, hitCd: 0, atkCd: 8, atkT: 0, hitT: 0, tele: 0, nitroT: 0, nitroCd: 6, blockT: 0, blockCd: 4, trapCd: 6 }, d);
 });
 const RIVAL_HP = 24; /* a traffic car dies in one hit; a rival takes several */
 const RACE = { grid: 0, lastCount: 99, t: 0, finished: false, finT: 0, endT: 0, place: 1, dnf: false, results: null, reward: null, goFlash: 0 };
@@ -1912,8 +1914,8 @@ function placeOnGrid() {
   const order = [0, 1, 2, 3, 4];
   rivals.forEach((r, i) => {
     const sl = GRID_SLOTS[order[i]];
-    const hp = RIVAL_HP + 4 * Math.max(0, TRACKS.indexOf(TR));
-    Object.assign(r, { active: true, dist: sl[0], pd: sl[0], lat: sl[1], plat: sl[1], latT: sl[1], speed: 0, stunT: 0, fin: false, finT: 0, laneCd: 0, spinA: 0, hp, maxHp: hp, wreckT: 0, hitCd: 0, atkCd: rnd(7, 13), atkT: 0, hitT: 0, tagHp: -1 });
+    const hp = Math.round((RIVAL_HP + 4 * Math.max(0, TRACKS.indexOf(TR))) * r.hpMul);
+    Object.assign(r, { active: true, dist: sl[0], pd: sl[0], lat: sl[1], plat: sl[1], latT: sl[1], speed: 0, stunT: 0, fin: false, finT: 0, laneCd: 0, spinA: 0, hp, maxHp: hp, wreckT: 0, hitCd: 0, atkCd: rnd(6, 11), atkT: 0, hitT: 0, tagHp: -1, tele: 0, nitroT: 0, nitroCd: rnd(5, 10), blockT: 0, blockCd: rnd(3, 6), trapCd: rnd(6, 10) });
     r.g.visible = true;
   });
   return GRID_SLOTS[PLAYER_SLOT];
@@ -1935,9 +1937,14 @@ function rivalTick(r, dt, dying) {
   if (r.atkT > 0) r.atkT -= dt;
   if (r.wreckT > 0) { r.wreckT -= dt; if (r.wreckT <= 0) { r.hp = Math.ceil(r.maxHp * 0.5); r.stunT = 0; r.tagHp = -1; } }
   const rs = mod(r.dist, L), ps = pS();
-  let want = TR.vTop * TR.rival * r.skill;
-  const gap = r.dist - P.dist;
-  if (gap > 120) want *= 0.9; else if (gap < -120) want *= 1.07;
+  /* pace: the player's own car sets the top speed, so a rival is never faster than the player's car can go (nitro bursts stay under +6%) */
+  const refTop = TR.vTop * clamp(curVeh().topSpeed, 0.9, 1.1);
+  let want = refTop * TR.rival * r.skill;
+  const gap = r.dist - P.dist, relA = signedRel(rs, ps), dl0 = r.lat - P.lat, alive = !dying && P.alive && !RACE.finished && r.wreckT <= 0 && r.stunT <= 0;
+  if (gap > 140) want *= 0.92; else if (gap < -140) want *= 1.04;
+  if (r.nitroT > 0) { r.nitroT -= dt; want = Math.min(want * 1.1, refTop * 1.05); }
+  else if (r.nitroCd > 0) r.nitroCd -= dt;
+  else if (alive && ((gap < -30 && gap > -260) || r.tele > 0 || Math.random() < 0.01)) { r.nitroT = 1.6; r.nitroCd = rnd(11, 17); }
   let blocker = null, bd = 1e9;
   for (const c of traffic) {
     if (!c.active || c.state !== 0) continue;
@@ -1960,18 +1967,38 @@ function rivalTick(r, dt, dying) {
     }
     if (bd < 26) want = Math.min(want, blocker.speed * (bd < 12 ? 0.85 : 0.97));
   }
-  /* rivals fight back: now and then one lunges at the player when they are side by side */
-  if (!dying && P.alive && !RACE.finished && r.wreckT <= 0 && r.stunT <= 0 && !G.noRivalHits) {
-    r.atkCd -= dt;
-    const relA = signedRel(rs, ps);
-    if (r.atkCd <= 0 && Math.abs(relA) < 12 && Math.abs(r.lat - P.lat) < 6.5 && (G.rivalHitCd || 0) <= 0) { r.atkT = 0.9; r.atkCd = rnd(9, 15); }
-    if (r.atkT > 0) { r.latT = clamp(P.lat, -LAT_MAX, LAT_MAX); want *= 1.05; }
+  if (alive && !G.noRivalHits) {
+    /* --- engage: the duelist and the brawler hang around the player (wait for him when ahead, close in from behind) --- */
+    if ((r.role === 'duelist' || r.role === 'brawler') && !blocker) {
+      if (relA > 4 && relA < 45) want *= 0.97; else if (relA < -4 && relA > -60) want *= 1.02;
+    }
+    /* --- blocker: weaves in front of the player and eases off a little (never more than -4% of his speed) --- */
+    if (r.role === 'blocker') {
+      if (r.blockT > 0) { r.blockT -= dt; if (relA < 3 || relA > 45) r.blockT = 0; else { r.latT = clamp(P.lat * 0.9, -LAT_MAX, LAT_MAX); want = Math.min(want, Math.max(P.speed * 0.96, want * 0.85)); if (r.blockT <= 0) r.blockCd = rnd(7, 11); } }
+      else { r.blockCd -= dt; if (r.blockCd <= 0 && relA > 6 && relA < 38 && Math.abs(dl0) < 6) { r.blockT = rnd(3.5, 5.5); banner(r.n + ' חוסם אותך!', 'nm'); } }
+    }
+    /* --- trapper: drops a mine behind it when the player tails it in the same lane --- */
+    if (r.role === 'trapper') {
+      r.trapCd -= dt;
+      if (r.trapCd <= 0 && relA > 6 && relA < 30 && Math.abs(dl0) < 3.6) { dropRivalMine(r, rs); r.trapCd = rnd(10, 15); }
+    }
+    /* --- lunge: a 0.5 s warning (the ring flashes red) and then a dash into the player's lane --- */
+    if (!blocker || bd > 14) {
+      if (r.tele > 0) { r.tele -= dt; if (r.tele <= 0) { r.atkT = r.role === 'brawler' ? 1.0 : 0.85; } }
+      else {
+        r.atkCd -= dt;
+        const near = Math.abs(relA) < (r.role === 'brawler' ? 16 : 13) && Math.abs(dl0) < 7 && (G.rivalHitCd || 0) <= 0;
+        if (r.atkCd <= 0 && near && r.role !== 'trapper') { r.tele = 0.5; r.atkCd = rnd(8, 13); }
+      }
+    }
+    if (r.atkT > 0) { r.latT = clamp(P.lat, -LAT_MAX, LAT_MAX); want *= 1.04; }
   }
   if (r.stunT > 0) want *= 0.3;
   if (r.wreckT > 0) want = 0;
+  want = Math.min(want, refTop * 1.06); /* hard ceiling: never above 106% of the player's own top speed */
   const acc = r.stunT > 0 ? 8 : 14;
   r.speed += clamp(want - r.speed, -24 * dt, acc * dt);
-  r.lat = clamp(damp(r.lat, r.latT, r.atkT > 0 ? 6 : 2.6, dt), -LAT_MAX, LAT_MAX);
+  r.lat = clamp(damp(r.lat, r.latT, r.atkT > 0 ? 6.5 : r.blockT > 0 ? 4 : 2.6, dt), -LAT_MAX, LAT_MAX);
   r.dist += r.speed * dt;
   r.spinA = r.stunT > 0 ? r.spinA + dt * 9 : r.spinA * (1 - Math.min(1, dt * 6));
   if (!r.fin && r.dist >= RACE_LAPS * L) { r.fin = true; r.finT = RACE.t; }
@@ -1985,7 +2012,7 @@ function rivalTick(r, dt, dying) {
       else if (P.powerT > 0) rivalKnock(r, sg, 14);
       else if (P.slamT > 0) rivalKnock(r, sg, 5 + 2 * ramS());
       else if (!G.noRivalHits && (r.atkT > 0 || (rel < -0.5 && r.speed > P.speed + 2))) {
-        if (P.inv <= 0 && (G.rivalHitCd || 0) <= 0) { G.rivalHitBy = r.n; G.rivalHitCd = 5; r.atkT = 0; crash(null, 'rival'); rivalDamage(r, 2); r.speed *= 0.8; }
+        if (P.inv <= 0 && (G.rivalHitCd || 0) <= 0) { G.rivalHitBy = r.n; G.rivalHitCd = 5; r.atkT = 0; crash(null, 'rival', r.dmg); rivalDamage(r, 2); r.speed *= 0.8; }
         else { P.speed *= 0.985; r.speed *= 0.985; }
       }
       else if (rel > 0.3 && P.speed > r.speed + 3) rivalKnock(r, sg, 3 + 2 * ramF());
@@ -1996,6 +2023,7 @@ function rivalTick(r, dt, dying) {
 }
 function rivalDamage(r, dmg) {
   if (!r.active || r.wreckT > 0 || dmg <= 0) return;
+  dmg = Math.max(1, Math.round(dmg * (r.armor || 1)));
   r.hp = Math.max(0, r.hp - dmg); r.hitT = 0.35; r.tagHp = -1; bump('rivalHits');
   frameOf(mod(r.dist, L), r.lat, F2); emitSparks(F2.px, 1, F2.pz, 10 + Math.round(dmg));
   if (r.hp <= 0) {
@@ -2072,7 +2100,9 @@ function updateRivalTags() {
     t.sp.position.set(F3.px, SPEC[r.spec].len > 8 ? 4.6 : 3.7, F3.pz); t.sp.scale.set(k * 3.37, k, 1); t.sp.visible = true;
     t.ring.position.set(F3.px, 0.16, F3.pz); t.ring.rotation.set(-Math.PI / 2, Math.atan2(F3.tx, F3.tz), 0);
     const pulse = 1 + Math.sin(camT * 7 + r.hp) * 0.05;
-    t.ring.scale.set((r.wid + 3.4) * pulse, (r.len + 3.4) * pulse, 1); t.ring.material.opacity = r.wreckT > 0 ? 0.25 : 0.95; t.ring.visible = true;
+    const warn = r.tele > 0, flash = warn && Math.sin(camT * 40) > 0;
+    t.ring.material.color.setHex(flash ? 0xff1a1a : warn ? 0xffffff : r.c);
+    t.ring.scale.set((r.wid + 3.4) * pulse * (warn ? 1.35 : 1), (r.len + 3.4) * pulse * (warn ? 1.35 : 1), 1); t.ring.material.opacity = r.wreckT > 0 ? 0.25 : 0.95; t.ring.visible = true;
   }
 }
 const ramOK = (c, kind) => P.powerT > 0 || (kind === 'front' ? ramF() >= RAM_F[c.type] : ramS() >= RAM_S[c.type]);
@@ -2757,7 +2787,7 @@ function boomAt(s, lat) { frameOf(s, lat, F2); explode(F2.px, 0.8, F2.pz, 1.1); 
 /* damage out of 100 base health: a normal crash takes about a third, a rival's shunt less, a truck more */
 const HIT_DMG = { rival: 24, lettuce: 26, boss: 44, cop: 34 };
 const heal = (n) => { const b = P.hp; P.hp = Math.min(P.maxHp, P.hp + n); return P.hp - b; };
-function crash(c, cause) {
+function crash(c, cause, dmgOverride) {
   if (P.shield > 0) {
     P.shield = 0; P.inv = 1.2; G.shake = Math.max(G.shake, 0.7);
     if (c) destroyCar(c, 'hit', false);
@@ -2765,13 +2795,13 @@ function crash(c, cause) {
     Sfx.crash(); vib(40); banner('המגן נשבר!', 'nm');
     return;
   }
-  P.hurt = true; P.hp -= HIT_DMG[cause] || (c && (c.type === 'bus' || c.type === 'truck') ? 44 : 34); G.hpHold = 0.55; P.inv = 2.0; P.combo = 0; P.comboT = 0; P.lapClean = false;
+  P.hurt = true; P.hp -= dmgOverride || HIT_DMG[cause] || (c && (c.type === 'bus' || c.type === 'truck') ? 44 : 34); G.hpHold = 0.55; P.inv = 2.0; P.combo = 0; P.comboT = 0; P.lapClean = false;
   P.speed *= 0.55; P.nitroOn = false; G.shake = 1;
   if (c) destroyCar(c, 'hit', false);
   frameOf(pS(), P.lat, F1); emitSparks(F1.px, 1, F1.pz, 40); FX.burst(F1.px, 1, F1.pz, 1.3, PAINTS[save.paint].c);
   Sfx.crash(); vib([70, 40, 90]);
   if (!save.calm) { el.flash.classList.remove('hit'); void el.flash.offsetWidth; el.flash.classList.add('hit'); }
-  banner(cause === 'rival' ? (G.rivalHitBy || 'יריב') + ' פגע בך!' : cause === 'cop' ? 'השוטר פגע בך!' : cause === 'lettuce' ? 'חסה בפרצוף!' : cause === 'boss' ? 'הבוס דרס אותך!' : 'פגיעה!', 'bad');
+  banner(cause === 'rival' ? (G.rivalHitBy === 'המוקש' ? 'פגעת במוקש של יריב!' : (G.rivalHitBy || 'יריב') + ' פגע בך!') : cause === 'cop' ? 'השוטר פגע בך!' : cause === 'lettuce' ? 'חסה בפרצוף!' : cause === 'boss' ? 'הבוס דרס אותך!' : 'פגיעה!', 'bad');
   if (P.hp <= 0) {
     P.hp = 0; P.alive = false; G.state = 'dying'; G.dyingT = 0;
     Sfx.crash();
@@ -3040,7 +3070,7 @@ function spawnCop() {
   cp.g.visible = true; banner('שוטר רודף!', 'bad');
 }
 /* ---- mines: puncture strips slow pursuers, explosive mines (upgrade) destroy them ---- */
-const MINE_N = 8;
+const MINE_N = 12;
 const mineGeoP = bakeGeo([{ geo: new THREE.BoxGeometry(3.2, .08, .55), y: .06, c: 0xffe14a }, ...[-1.3, -.65, 0, .65, 1.3].map((x) => ({ geo: new THREE.ConeGeometry(.12, .4, 5), x, y: .28, c: 0xffffff }))]);
 const mineGeoX = bakeGeo([{ geo: new THREE.CylinderGeometry(.95, 1.05, .3, 12), y: .17, c: 0xff3a2a }, { geo: new THREE.CylinderGeometry(.3, .3, .35, 8), y: .42, c: 0xffe14a }, { geo: new THREE.CylinderGeometry(1.06, 1.06, .06, 12), y: .08, c: 0x1a0a08 }]);
 const mineMat = glowify(new THREE.MeshLambertMaterial({ vertexColors: true }), 0.9);
@@ -3052,12 +3082,19 @@ const mines = Array.from({ length: MINE_N }, () => {
 /* one mine button: the mine you drop follows the mine upgrade (level 0 = puncture strip that slows chasers, level 1+ = explosive mine; bigger blast and more mines with the level) */
 const mineStock = () => 4 + 2 * upLvl('mines');
 const mineKind = () => (upLvl('mines') >= 1 ? 'x' : 'p');
+/* the trapper's mines: they hurt the player only (they are marked own = 'r') */
+function dropRivalMine(r, rs) {
+  const m = mines.find((q) => !q.active); if (!m) return;
+  Object.assign(m, { active: true, kind: 'x', own: 'r', s: mod(rs - r.len / 2 - 2.5, L), lat: r.lat, age: 0 });
+  m.a.visible = false; m.b.visible = true; m.g.visible = true;
+  if (Math.abs(signedRel(rs, pS())) < 60) banner(r.n + ' הפיל מוקש!', 'nm');
+}
 function dropMine() {
   if (G.state !== 'play' || RACE.grid > 0 || RACE.finished || G.mineCd > 0) return;
   if (P.mines <= 0) { Sfx.fizzle(); return; }
   const m = mines.find((q) => !q.active); if (!m) return;
   const kind = mineKind();
-  Object.assign(m, { active: true, kind, s: mod(pS() - P.len / 2 - 2, L), lat: P.lat, age: 0 });
+  Object.assign(m, { active: true, kind, own: 'p', s: mod(pS() - P.len / 2 - 2, L), lat: P.lat, age: 0 });
   m.a.visible = kind === 'p'; m.b.visible = kind === 'x'; m.g.visible = true;
   P.mines--; G.mineCd = 0.45; hc.ammo = null; Sfx.mine(); vib(15);
 }
@@ -3074,11 +3111,18 @@ function mineBlast(s, lat) {
 }
 function minesTick(dt) {
   if (G.mineCd > 0) G.mineCd -= dt;
-  const ps = pS();
+  const ps = pS(), dying0 = G.state === 'dying' || RACE.finished;
   for (const m of mines) {
     if (!m.active) continue;
     m.age += dt;
     if (m.age > 16 || signedRel(ps, m.s) > 260) { m.active = false; m.g.visible = false; continue; }
+    if (m.own === 'r') { /* a rival's mine: it only hurts the player */
+      if (!dying0 && P.alive && P.inv <= 0 && Math.abs(signedRel(ps, m.s)) < P.len / 2 + 0.8 && Math.abs(P.lat - m.lat) < P.wid / 2 + 1.3) {
+        m.active = false; m.g.visible = false; frameOf(m.s, m.lat, F2); explode(F2.px, 0.8, F2.pz, 1.6); Sfx.boom();
+        G.rivalHitBy = 'המוקש'; crash(null, 'rival', 22); P.speed *= 0.75;
+      }
+      continue;
+    }
     const hitR = m.kind === 'p' ? 1.9 : 1.3; let hit = false;
     for (const cp of cops) {
       if (!cp.active || Math.abs(signedRel(cp.s, m.s)) > cp.len / 2 + 0.8 || Math.abs(cp.lat - m.lat) > cp.wid / 2 + hitR) continue;
@@ -4160,7 +4204,7 @@ window.RingRush = {
   coinsNear: () => coins.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),
   setTrack, tracks: () => TRACKS.map((t) => ({ id: t.id, n: t.n })), trackInfo: () => ({ id: TR.id, L }), dbg: { scene, camera, get road() { return roadMesh; }, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo) * COIN_SCALE, coinGlow: footprint(sausageCoinGeo) * COIN_GLOW * COIN_SCALE, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, topSpeed: curVeh().topSpeed, len: P.len, wid: P.wid, shield: P.shield, maxHp: P.maxHp }), setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setHp(v) { P.hp = Math.min(P.maxHp, v); hc.hp = null; }, giveKits(n) { P.kits = n; hc.ammo = null; }, kit() { useKit(); }, poison() { return { t: P.poisonT, regen: P.regenT }; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
   cops: () => cops.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, speed: c.speed, stun: c.stunT })),
-  noCops(v) { G.noCops = !!v; }, rivalsOff() { rivals.forEach((r) => { r.active = false; r.g.visible = false; }); }, noRivalHits(v) { G.noRivalHits = !!v; }, homeShare: () => homeShareText(), prep(o) { Object.assign(save, o); persist(); }, xpInfo: () => levelInfo(), addXp: (n) => addXp(n), setXp(n) { save.xp = n; }, prestige: () => prestigeNow(), plateOf: () => ({ plate: save.plate, own: save.ownPlate, card: plateCard() }), plateHtmlTest: () => plateHtml(plateCard(), 'T'), lastXp: () => RACE.xp, fbPayload: () => fbPayload(), fbOpen: (from, auto) => openFeedback(from, auto), fbDue: (runs, last, sent) => fbDueCalc(runs, last, sent), fbQueue: () => (save.fbQueue || []).length, fbSend, fbState, key(k, down) { if (k === 'ArrowLeft') kbd.l = down; if (k === 'ArrowRight') kbd.r = down; }, kbdV: () => kbd.v, unlockAll() { for (const a of ACH) { if (!save.ach[a.id]) { save.ach[a.id] = Date.now(); grantUnlocks(a.id); } } applyVehicle(); persist(); }, achTotal: () => ACH.length, badAchRefs: () => COSMETIC_LISTS.flatMap(([l]) => l.filter((x) => x.ach && !achById(x.ach)).map((x) => x.n)), owned: () => ({ paint: save.ownPaint.length, stripe: save.ownStripe.length, flame: save.ownFlame.length, glow: save.ownGlowU.length, title: save.ownTitle.length, titles: TITLES.length }), setTitle(i) { save.title = i; syncUser(); },  rivalTags: () => rivals.map((r) => ({ tag: r.tag.sp.visible, ring: r.tag.ring.visible })), ramLoot: (t) => ramLoot(t), rivalHit: (i, d) => rivalDamage(rivals[i], d), setRivalHp(i, v) { rivals[i].hp = v; }, rivalHitMe(i) { const r = rivals[i]; r.atkT = 1; r.atkCd = 99; G.rivalHitCd = 0; },  setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p, k) => price(p, k), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
+  noCops(v) { G.noCops = !!v; }, rivalsOff() { rivals.forEach((r) => { r.active = false; r.g.visible = false; }); }, noRivalHits(v) { G.noRivalHits = !!v; }, homeShare: () => homeShareText(), rivalAi: () => rivals.map((r) => ({ n: r.n, role: r.role, tele: r.tele, atk: r.atkT, nitro: r.nitroT, block: r.blockT, hp: r.hp, maxHp: r.maxHp, speed: r.speed, lat: r.lat, dist: r.dist })), forceTele(i) { const r = rivals[i]; r.atkCd = 0; r.tele = 0; }, forceBlock(i) { rivals[i].blockCd = 0; }, forceTrap(i) { rivals[i].trapCd = 0; }, placeRival(i, ahead, lat, speed) { const r = rivals[i]; r.active = true; r.g.visible = true; r.dist = r.pd = P.dist + ahead; r.lat = r.plat = r.latT = lat; r.stunT = 0; r.wreckT = 0; r.speed = speed; }, mineOwners: () => mines.filter((m) => m.active).map((m) => m.own), prep(o) { Object.assign(save, o); persist(); }, xpInfo: () => levelInfo(), addXp: (n) => addXp(n), setXp(n) { save.xp = n; }, prestige: () => prestigeNow(), plateOf: () => ({ plate: save.plate, own: save.ownPlate, card: plateCard() }), plateHtmlTest: () => plateHtml(plateCard(), 'T'), lastXp: () => RACE.xp, fbPayload: () => fbPayload(), fbOpen: (from, auto) => openFeedback(from, auto), fbDue: (runs, last, sent) => fbDueCalc(runs, last, sent), fbQueue: () => (save.fbQueue || []).length, fbSend, fbState, key(k, down) { if (k === 'ArrowLeft') kbd.l = down; if (k === 'ArrowRight') kbd.r = down; }, kbdV: () => kbd.v, unlockAll() { for (const a of ACH) { if (!save.ach[a.id]) { save.ach[a.id] = Date.now(); grantUnlocks(a.id); } } applyVehicle(); persist(); }, achTotal: () => ACH.length, badAchRefs: () => COSMETIC_LISTS.flatMap(([l]) => l.filter((x) => x.ach && !achById(x.ach)).map((x) => x.n)), owned: () => ({ paint: save.ownPaint.length, stripe: save.ownStripe.length, flame: save.ownFlame.length, glow: save.ownGlowU.length, title: save.ownTitle.length, titles: TITLES.length }), setTitle(i) { save.title = i; syncUser(); },  rivalTags: () => rivals.map((r) => ({ tag: r.tag.sp.visible, ring: r.tag.ring.visible })), ramLoot: (t) => ramLoot(t), rivalHit: (i, d) => rivalDamage(rivals[i], d), setRivalHp(i, v) { rivals[i].hp = v; }, rivalHitMe(i) { const r = rivals[i]; r.atkT = 1; r.atkCd = 99; G.rivalHitCd = 0; },  setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p, k) => price(p, k), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
   ammo: () => ({ magnet: P.magnetT, hp: P.hp, kits: P.kits, missiles: P.missiles, shocks: P.shocks, warhead: warhead(), kills: P.kills, maxHp: P.maxHp, turbo: P.turboT, power: P.powerT, food: R.food }),
   setLaps(n) { P.dist = n * L; P.pd = P.dist; P.lapsDone = n; }
 };

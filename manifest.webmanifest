@@ -1,0 +1,16 @@
+{
+  "name": "Chorizo Chase",
+  "short_name": "Chorizo Chase",
+  "description": "מרוץ ארקייד: גבי ושחר, האחים צ'וריסו",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0b0d1a",
+  "theme_color": "#0b0d1a",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

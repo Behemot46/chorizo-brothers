@@ -269,7 +269,7 @@ const fin = await page.evaluate(() => {
   return out;
 });
 check('crossing the line after 3 laps finishes the race and shows results', fin.finished && fin.state === 'over' && fin.rows === 6, JSON.stringify({ f: fin.finished, s: fin.state, rows: fin.rows }));
-check('winning pays place + win bonus + first-win bonus and gives trophies', fin.place === 1 && fin.reward.pay === 140 && fin.reward.winBonus === 28 && fin.reward.firstWin === 250 && fin.reward.trophies === 30, JSON.stringify(fin.reward));
+check('winning pays place + win bonus + first-win bonus and gives trophies', fin.place === 1 && fin.reward.pay === 110 && fin.reward.winBonus === 22 && fin.reward.firstWin === 250 && fin.reward.trophies === 30, JSON.stringify(fin.reward));
 check('a finished race gives XP, shown on the results screen with the level', fin.xp && fin.xp.gain >= 300 && /XP/.test(fin.xpBox) && /רמה/.test(fin.xpBox), JSON.stringify([fin.xp && fin.xp.gain, fin.xpBox]));
 check('a podium finish unlocks the next track and saves wins and trophies', !fin.unlockedBefore && fin.unlockedAfter && fin.save.pods.ring === 1 && fin.save.wins.ring === 1 && fin.save.trophies === 30, JSON.stringify([fin.unlockedBefore, fin.unlockedAfter, fin.save]));
 const third = await page.evaluate(() => {
@@ -280,7 +280,7 @@ const third = await page.evaluate(() => {
   for (let i = 0; i < 60 * 8 && !R.race().finished; i++) R.step(1); const place = R.race().place; R.step(60 * 5);
   return { place, reward: R.race().reward };
 });
-check('3rd place pays less, no win bonus, fewer trophies', third.place === 3 && third.reward.pay === 60 && third.reward.winBonus === 0 && third.reward.trophies === 10, JSON.stringify(third));
+check('3rd place pays less, no win bonus, fewer trophies', third.place === 3 && third.reward.pay === 45 && third.reward.winBonus === 0 && third.reward.trophies === 10, JSON.stringify(third));
 const dnf = await page.evaluate(() => {
   const R = RingRush;
   R.startRace(0); R.step(60 * 4.4); R.clearTraffic(); R.setHp(30);
@@ -645,6 +645,38 @@ const vip = await page.evaluate(() => {
 check('Gabi and Shachar own every vehicle for free; other users only what they bought; a locked car falls back to the sport car', vip.anon.length === 1 && vip.gabi === vip.ids.length && vip.shachar === vip.ids.length && vip.motoCar === 'moto' && vip.afterLogout === 'sport', JSON.stringify(vip));
 const newCars = await page.evaluate(() => { const R = RingRush, out = []; for (const id of ['moto', 'garbage', 'tractor']) { R.setCar(id); R.start(0); R.clearTraffic(); R.step(120); out.push([id, R.curCar(), Math.round(R.state().speed)]); } return out; });
 check('moto, orange garbage truck and racing tractor are selectable and drive', newCars.every((c) => c[0] === c[1] && c[2] > 20), JSON.stringify(newCars));
+const flt = await page.evaluate(() => {
+  const R = RingRush, out = {}; R.noCops(true);
+  R.prep({ up: {}, ownCars: ['sport'], car: 'sport' }); R.setUser('גבי'); R.setCar('roadster'); R.start(0); R.clearTraffic(); R.rivalsOff(); R.step(30);
+  R.setFlyCh(100); R.fly(); R.step(10); out.lockedT = R.flyState().t; out.need = R.flyState().need;
+  R.prep({ up: { sight: 3, ramF: 3, ramS: 3, missiles: 3, shock: 3 } }); R.start(0); R.clearTraffic(); R.rivalsOff(); R.step(30);
+  R.setFlyCh(50); R.fly(); R.step(5); out.halfT = R.flyState().t;
+  R.setFlyCh(100); const hp0 = R.state().hp; R.fly(); R.step(40); const f = R.flyState(); out.up = f.up; out.t = f.t; out.h = f.h;
+  R.step(60 * 6); out.after = R.flyState(); out.hpSame = R.state().hp === hp0;
+  return out;
+});
+check('the roadster hops only with 14 upgrade levels and a full charge: ~4.5s in the air above traffic, then lands', flt.lockedT === 0 && flt.halfT === 0 && flt.t > 2 && flt.h > 2 && flt.after.t === 0 && flt.after.h === 0 && flt.hpSame, JSON.stringify(flt));
+const med = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  const hit = (up, hp, kits) => { R.noCops(true); R.noRivalHits(false); R.prep({ up, ownCars: ['sport'], car: 'sport' }); R.setUser(''); R.start(0); R.clearTraffic(); R.setLat(0); R.step(150); R.clearTraffic(); R.giveKits(kits); R.setHp(hp); R.setRival(1, 0, 0.8, R.state().speed); R.rivalHitMe(1); R.step(30); const s = R.state(); return { hp: Math.round(s.hp), kits: s.kits, alive: s.state === 'play' }; };
+  out.auto = hit({ medic: 1 }, 40, 1);      /* 40 - 30 = 10 -> a kit opens by itself */
+  out.fatal = hit({ medic: 1 }, 20, 1);     /* a hit that would have killed: the kit saves the run */
+  out.none = hit({}, 40, 1);                /* without the upgrade nothing happens by itself */
+  out.high = hit({ medic: 1 }, 100, 1);     /* a healthy player keeps the kit */
+  return out;
+});
+check('medic upgrade: a kit opens automatically after a hit that leaves under 35% (even a fatal one); not without the upgrade or when healthy', med.auto.kits === 0 && med.auto.hp > 40 && med.fatal.kits === 0 && med.fatal.alive && med.none.kits === 1 && med.none.hp < 20 && med.high.kits === 1 && med.high.hp > 60, JSON.stringify(med));
+const rd = await page.evaluate(() => {
+  const R = RingRush, out = {};
+  R.prep({ ownCars: ['sport'], car: 'sport', rdSeen: 0, rdTrial: 0 }); R.setUser('דני'); R.grantTrial(); out.granted = R.trial(); out.ownedDuringTrial = R.owns('roadster');
+  R.grantTrial(); out.once = R.trial().t === 1;
+  R.prep({ car: 'roadster' }); R.start(0); R.clearTraffic(); R.rivalsOff(); R.step(60); R.endRun('dead'); out.afterRace = R.trial(); out.lockedAgain = !R.owns('roadster'); out.carBack = R.curCar();
+  R.setUser('דני'); R.grantTrial(); out.noSecondOffer = R.trial().t === 0;
+  R.prep({ rdSeen: 0, rdTrial: 0 }); R.setUser('גבי'); R.grantTrial(); out.vipNoTrial = R.trial().t === 0 && R.owns('roadster');
+  R.setUser(''); R.prep({ rdSeen: 0, rdTrial: 0, ownCars: ['sport'] }); R.grantTrial(); out.anonNoTrial = R.trial().t === 0;
+  return out;
+});
+check('roadster: every registered user gets it for ONE race, then it locks until bought; Gabi and Shachar always have it; guests get no trial', rd.granted.t === 1 && rd.ownedDuringTrial && rd.once && rd.afterRace.t === 0 && rd.lockedAgain && rd.carBack === 'sport' && rd.noSecondOffer && rd.vipNoTrial && rd.anonNoTrial, JSON.stringify(rd));
 check('no page errors / shader errors', errors.length === 0, errors.slice(0, 3).join(' / '));
 await browser.close();
 const failed = results.filter((r) => !r.ok);

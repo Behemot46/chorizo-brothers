@@ -847,7 +847,7 @@ const VEHICLES = [
   { id: 'armored', n: 'שרד', d: 'מגן שסופג פגיעה אחת בכל הקפה. כבדה: האצה איטית ו-10% פחות מהירה', cost: 4500, spec: 'armored', crownY: 2.15, hearts: 0, ram: 0, steer: 0.85, topSpeed: 0.9, accel: 0.8, nitroRegen: 1, nearBonus: 1, shield: true, bars: [2, 3, 5] },
   { id: 'moto', n: 'אופנוע', d: 'הכי זריז ומהיר: היגוי חד, האצה +20%, מהירות +10%, נייטרו מהיר. שביר: 33% פחות חיים', cost: 5500, spec: 'bike', crownY: 2.45, hearts: -1, ram: 0, steer: 1.5, topSpeed: 1.1, accel: 1.2, nitroRegen: 1.3, nearBonus: 1.6, shield: false, bars: [5, 5, 1] },
   { id: 'garbage', n: 'משאית זבל כתומה', d: 'טנק של העיר: +66% חיים, מנפצת אוטובוסים כבר בהתחלה. איטית: האצה -30%, מהירות -12%', cost: 6500, spec: 'garbage', crownY: 3.7, hearts: 2, ram: 2, steer: 0.7, topSpeed: 0.88, accel: 0.7, nitroRegen: 1, nearBonus: 1, shield: false, bars: [2, 2, 5] },
-  { id: 'roadster', n: 'רודסטר חשמלי', d: 'עתידני וחשמלי: האצה +30%, מהירות +10%. עם 14 רמות שדרוג, כפתור 🚀 מרים אותו לכמה שניות באוויר בלהבות כחולות. פתוח תמיד לגבי ולשחר', cost: 250000, spec: 'roadster', crownY: 1.9, hearts: 0, ram: 0, steer: 1.15, topSpeed: 1.1, accel: 1.3, nitroRegen: 1.2, nearBonus: 1, shield: false, fly: true, bars: [5, 4, 2] },
+  { id: 'roadster', n: 'רודסטר חשמלי', d: 'עתידני וחשמלי: האצה +30%, מהירות +10%. עם 14 רמות שדרוג, כפתור 🚀 משגר אותו בקפיצה עם סלטה באוויר מעל התנועה, בלהבות כחולות. פתוח תמיד לגבי ולשחר', cost: 250000, spec: 'roadster', crownY: 1.9, hearts: 0, ram: 0, steer: 1.15, topSpeed: 1.1, accel: 1.3, nitroRegen: 1.2, nearBonus: 1, shield: false, fly: true, bars: [5, 4, 2] },
   { id: 'tractor', n: 'טרקטור מירוץ', d: 'גלגלי ענק: האצה +30%, מהירות +5%, ניגוח ברמה אחת יותר, +33% חיים. היגוי כבד קצת', cost: 7500, spec: 'tractor', crownY: 3.0, hearts: 1, ram: 1, steer: 0.85, topSpeed: 1.05, accel: 1.3, nitroRegen: 1.1, nearBonus: 1, shield: false, bars: [4, 3, 4] }
 ];
 /* Gabi and Shachar (founder) can drive every vehicle for free */
@@ -2441,7 +2441,7 @@ const Sfx = (() => {
    Game state
    ===================================================================== */
 const P = {
-  flyCh: 0, flyT: 0, flyH: 0, dist: 0, pd: 0, lat: 0, plat: 0, lane: 0, vlat: 0, latB: 0, latT: 0, slamOff: 0, slamT: 0, slamCd: 0, slamDir: 1, thr: 1, mines: 0, minesX: 0, speed: 0, hp: 100, maxHp: 100, regenT: 0, regenRate: 0, poisonT: 0, poisonRate: 0, kits: 0, inv: 0, alive: true,
+  flip: 0, flyCh: 0, flyT: 0, flyH: 0, dist: 0, pd: 0, lat: 0, plat: 0, lane: 0, vlat: 0, latB: 0, latT: 0, slamOff: 0, slamT: 0, slamCd: 0, slamDir: 1, thr: 1, mines: 0, minesX: 0, speed: 0, hp: 100, maxHp: 100, regenT: 0, regenRate: 0, poisonT: 0, poisonRate: 0, kits: 0, inv: 0, alive: true,
   nitro: 100, nitroOn: false, brake: 0, combo: 0, comboT: 0, score: 0, coins: 0, lapsDone: 0, lapClean: true, missiles: 3, shocks: 3, kills: 0, turboT: 0, powerT: 0, magnetT: 0, len: 4.6, wid: 1.95, shield: 0, brakedLap: false
 };
 const R = { maxCombo: 0, coins: 0, cleanLaps: 0, laps: 0, maxKmh: 0, score: 0, nitroUses: 0, near: 0, kills: 0, food: 0 };
@@ -2820,7 +2820,7 @@ function spawnRow(ahead) {
 
 /* ---- player actions ---- */
 /* the roadster's thruster hop: needs enough shop upgrades, charges while racing, then lifts the car above the traffic for a few seconds */
-const FLY_NEED = 14, FLY_DUR = 4.5, FLY_CHARGE_S = 26;
+const FLY_NEED = 14, FLY_DUR = 3.4, FLY_CHARGE_S = 26;
 const flightReady = () => !!curVeh().fly && ownedUpLevels() >= FLY_NEED;
 const act = {
   fly() {
@@ -3369,7 +3369,7 @@ function runTick(dt) {
   else P.nitro = Math.min(100, P.nitro + 2.5 * VH.nitroRegen * dt);
 
   if (P.inv > 0) P.inv -= dt;
-  if (P.flyT > 0) { P.flyT -= dt; P.inv = Math.max(P.inv, 0.3); P.flyH = damp(P.flyH, 3.4, 6, dt); if (P.flyT <= 0) { P.flyT = 0; P.inv = Math.max(P.inv, 1.2); } }
+  if (P.flyT > 0) { P.flyT -= dt; P.inv = Math.max(P.inv, 0.3); { const u = clamp(1 - P.flyT / FLY_DUR, 0, 1); P.flyH = 5.2 * Math.sin(Math.PI * u); const e = clamp((u - 0.12) / 0.74, 0, 1); P.flip = (e * e * (3 - 2 * e)) * Math.PI * 2; } if (P.flyT <= 0) { P.flyT = 0; P.flip = 0; P.inv = Math.max(P.inv, 1.2); } }
   else { P.flyH = damp(P.flyH, 0, 5, dt); if (P.landing && P.flyH < 0.5) { P.landing = false; blueBurst(); } if (P.flyH < 0.02) P.flyH = 0; if (curVeh().fly && RACE.grid <= 0 && !RACE.finished && flightReady()) P.flyCh = Math.min(100, P.flyCh + dt * 100 / FLY_CHARGE_S); }
   if (P.turboT > 0) P.turboT -= dt;
   if (P.powerT > 0) P.powerT -= dt;
@@ -3536,9 +3536,9 @@ function render(alpha, dt) {
   const pg = player.g;
   Track.frame(sR, F1);
   pg.position.set(Track.worldX(F1, latR), P.flyH, Track.worldZ(F1, latR)); player.blob.position.y = 0.05 - P.flyH;
-  pg.rotation.set(0, Math.atan2(F1.tx, F1.tz) - clamp(vl * 0.012, -.2, .2), clamp(-vl * 0.02, -.2, .2)); pg.rotation.x = -P.flyH * 0.045;
+  pg.rotation.set(0, Math.atan2(F1.tx, F1.tz) - clamp(vl * 0.012, -.2, .2), clamp(-vl * 0.02, -.2, .2)); pg.rotation.x = P.flyT > 0 ? (P.flip || 0) : 0;
   { const up = P.flyH > 0.12; thrust.visible = up; flyGlow.visible = up;
-    if (up) { const f = 0.75 + Math.random() * 0.5, k = clamp(P.flyH / 3.4, 0.25, 1); thrust.scale.set(1, k * f, 1); flyGlow.position.set(pg.position.x, 0.09, pg.position.z); flyGlow.material.opacity = 0.85 * k * (0.8 + Math.random() * 0.2); }
+    if (up) { const f = 0.75 + Math.random() * 0.5, k = clamp(P.flyH / 5.2, 0.25, 1); thrust.scale.set(1, k * f, 1); flyGlow.position.set(pg.position.x, 0.09, pg.position.z); flyGlow.material.opacity = 0.85 * k * (0.8 + Math.random() * 0.2); }
     if (blueRing.userData.t > 0) { blueRing.userData.t -= dt; const q = clamp(blueRing.userData.t / 0.7, 0, 1); blueRing.position.set(pg.position.x, 0.12, pg.position.z); blueRing.scale.setScalar(2 + (1 - q) * 26); blueRing.material.opacity = q * 0.9; if (blueRing.userData.t <= 0) { blueRing.visible = false; blueRing.userData.t = -1; } }
     player.flameMat.color.setHex(P.flyT > 0 ? 0x3aa8ff : (FLAMES[save.flame] || FLAMES[0]).c); }
   let blink = P.inv > 0 && P.flyT <= 0 && G.state !== 'menu' ? (Math.floor(P.inv * 14) % 2 === 0) : true;

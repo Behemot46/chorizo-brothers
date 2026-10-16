@@ -655,7 +655,7 @@ const flt = await page.evaluate(() => {
   R.step(60 * 6); out.after = R.flyState(); out.hpSame = R.state().hp === hp0;
   return out;
 });
-check('the roadster hops only with 14 upgrade levels and a full charge: ~4.5s in the air above traffic, then lands', flt.lockedT === 0 && flt.halfT === 0 && flt.t > 2 && flt.h > 2 && flt.after.t === 0 && flt.after.h === 0 && flt.hpSame, JSON.stringify(flt));
+check('the roadster hops only with 14 upgrade levels and a full charge: a ~3.4s flip-jump above traffic, then lands', flt.lockedT === 0 && flt.halfT === 0 && flt.t > 2 && flt.h > 2 && flt.after.t === 0 && flt.after.h === 0 && flt.hpSame, JSON.stringify(flt));
 const med = await page.evaluate(() => {
   const R = RingRush, out = {};
   const hit = (up, hp, kits) => { R.noCops(true); R.noRivalHits(false); R.prep({ up, ownCars: ['sport'], car: 'sport' }); R.setUser(''); R.start(0); R.clearTraffic(); R.setLat(0); R.step(150); R.clearTraffic(); R.giveKits(kits); R.setHp(hp); R.setRival(1, 0, 0.8, R.state().speed); R.rivalHitMe(1); R.step(30); const s = R.state(); return { hp: Math.round(s.hp), kits: s.kits, alive: s.state === 'play' }; };

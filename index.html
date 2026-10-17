@@ -666,17 +666,17 @@ const MISSION_POOL = [
 ];
 const MISSION_REWARD = 60;
 const UPGRADES = [
-  { id: 'sight', n: 'כוונת', d: ['נועלת על המכונית שלפניך ומנווטת אליה את הטיל', 'נועלת גם על הנתיבים הסמוכים', 'נועלת על כל הכביש, טילים מהירים יותר'], cost: [400, 1100, 3400] },
-  { id: 'ramF', n: 'פרונט ניגוח', d: ['מנפץ רכבים קטנים בהתנגשות חזיתית, בלי נזק', 'מנפץ גם אוטובוסים', 'מנפץ גם משאיות'], cost: [500, 1400, 4200] },
-  { id: 'ramS', n: 'להבי צד', d: ['הקשה על צד המסך מזנקת הצידה עם להבים רחבים שמנפצים רכבים קטנים (וגם רכבים שנוגעים בצד)', 'מנפצים גם ואנים, והזינוק חזק יותר', 'מנפצים גם אוטובוסים ומשאיות'], cost: [500, 1400, 4200] },
-  { id: 'missiles', n: 'מחסנית טילים וטיל צ׳וריסו', d: ['מתחילים עם 5 טילים', 'מתחילים עם 7 טילים', 'מתחילים עם 9 טילים', 'ראש נפץ צ׳וריסו: כל טיל מתפוצץ בפיצוץ רחב ומשמיד כל מה שסביבו', 'ראש נפץ ענק: נועל לבד על מטרה (גם בלי כוונת), פיצוץ גדול יותר ופוגע גם ביריבים'], cost: [150, 400, 900, 3000, 6000] },
-  { id: 'shock', n: 'מכת חשמל', d: ['פריקה לטווח קרוב ובינוני: מחסלת רכבים קטנים, מאטה גדולים ומפילה שוטרים. 5 מטענים', '7 מטענים, וגם אוטובוסים נופלים', '9 מטענים, וגם משאיות נופלות'], cost: [300, 800, 2400] },
-  { id: 'mines', n: 'מוקשים', d: ['מוקש נפץ במקום פנצ׳ר: משמיד רודפים ויריבים. מתחילים עם 6 מוקשים', 'פיצוץ רחב ב-30% ו-8 מוקשים', 'פיצוץ רחב ב-60% ו-10 מוקשים'], cost: [250, 700, 2000] },
-  { id: 'armor', n: 'שריון', d: ['+33% חיים בכל מירוץ', 'עוד +33% חיים'], cost: [800, 3200] },
-  { id: 'medic', n: 'ערכות עזרה ראשונה', d: ['מתחילים עם ערכה אחת (מרפאה 55) ואפשר לשאת 3. שימוש אוטומטי: כשפגיעה מורידה אותך מתחת ל-35% חיים (או מרעילה), ערכה נפתחת לבד', 'מתחילים עם 2 ערכות, מרפאות 65, נושאים 4', 'מתחילים עם 3 ערכות, מרפאות 75, נושאים 5'], cost: [400, 1100, 3400] }
+  { id: 'sight', n: 'כוונת', d: ['נועלת על המכונית שלפניך ומנווטת אליה את הטיל', 'נועלת גם על הנתיבים הסמוכים', 'נועלת על כל הכביש, טילים מהירים יותר', 'רמת עילית: טילים מהירים עוד יותר וטווח נעילה מורחב עד 320 מטר'], cost: [400, 1100, 3400, 9000] },
+  { id: 'ramF', n: 'פרונט ניגוח', d: ['מנפץ רכבים קטנים בהתנגשות חזיתית, בלי נזק', 'מנפץ גם אוטובוסים', 'מנפץ גם משאיות', 'רמת עילית: פרונט טיטאן. אין האטה בניגוח, נייטרו +20 וכל ניגוח חזית מכפיל את השלל'], cost: [500, 1400, 4200, 12000] },
+  { id: 'ramS', n: 'להבי צד', d: ['הקשה על צד המסך מזנקת הצידה עם להבים רחבים שמנפצים רכבים קטנים (וגם רכבים שנוגעים בצד)', 'מנפצים גם ואנים, והזינוק חזק יותר', 'מנפצים גם אוטובוסים ומשאיות', 'רמת עילית: להבים כפולים. קירור קצר יותר לדחיפת הצד וכל ניגוח צד מכפיל את השלל'], cost: [500, 1400, 4200, 12000] },
+  { id: 'missiles', n: 'מחסנית טילים וטיל צ׳וריסו', d: ['מתחילים עם 5 טילים', 'מתחילים עם 7 טילים', 'מתחילים עם 9 טילים', 'ראש נפץ צ׳וריסו: כל טיל מתפוצץ בפיצוץ רחב ומשמיד כל מה שסביבו', 'ראש נפץ ענק: נועל לבד על מטרה (גם בלי כוונת), פיצוץ גדול יותר ופוגע גם ביריבים', 'רמת עילית: מחסנית אינסופית. 11 טילים וטיל חדש נטען לבד כל 10 שניות'], cost: [150, 400, 900, 3000, 6000, 15000] },
+  { id: 'shock', n: 'מכת חשמל', d: ['פריקה לטווח קרוב ובינוני: מחסלת רכבים קטנים, מאטה גדולים ומפילה שוטרים. 5 מטענים', '7 מטענים, וגם אוטובוסים נופלים', '9 מטענים, וגם משאיות נופלות', 'רמת עילית: 11 מטענים וטעינה עצמית: מטען חדש כל 12 שניות'], cost: [300, 800, 2400, 12000] },
+  { id: 'mines', n: 'מוקשים', d: ['מוקש נפץ במקום פנצ׳ר: משמיד רודפים ויריבים. מתחילים עם 6 מוקשים', 'פיצוץ רחב ב-30% ו-8 מוקשים', 'פיצוץ רחב ב-60% ו-10 מוקשים', 'רמת עילית: 12 מוקשים ופיצוץ רחב ב-90%'], cost: [250, 700, 2000, 9000] },
+  { id: 'armor', n: 'שריון', d: ['+33% חיים בכל מירוץ', 'עוד +33% חיים', 'רמת עילית: שריון על: עוד +33% חיים, פי 2 חיים בסך הכול'], cost: [800, 3200, 16000] },
+  { id: 'medic', n: 'ערכות עזרה ראשונה', d: ['מתחילים עם ערכה אחת (מרפאה 55) ואפשר לשאת 3. שימוש אוטומטי: כשפגיעה מורידה אותך מתחת ל-35% חיים (או מרעילה), ערכה נפתחת לבד', 'מתחילים עם 2 ערכות, מרפאות 65, נושאים 4', 'מתחילים עם 3 ערכות, מרפאות 75, נושאים 5', 'רמת עילית: צוות רפואי. 4 ערכות בהתחלה, מרפאות 85, נושאים 6, ושימוש אוטומטי כבר מתחת ל-50% חיים'], cost: [400, 1100, 3400, 12000] }
 ];
 const upLvl = (id) => (save.up && save.up[id]) | 0;
-const missileAmmo = () => 3 + 2 * Math.min(3, upLvl('missiles'));
+const missileAmmo = () => 3 + 2 * Math.min(3, upLvl('missiles')) + (upLvl('missiles') >= 6 ? 2 : 0);
 const warhead = () => Math.max(Math.max(0, upLvl('missiles') - 3), curVeh().warhead || 0); /* 0 = plain missile, 1 = chorizo warhead, 2 = giant warhead */
 /* discounts: the founder (Shachar / Shachar Grossman) pays 50% on every purchase; the user named Gabi pays 10% of the price on upgrades and look options */
 const FOUNDERS = ['שחר', 'שחר גרוסמן', 'shachar', 'shahar', 'shachar grossman', 'shahar grossman'];
@@ -2837,7 +2837,7 @@ const act = {
   },
   slam(dir) {
     if (G.state !== 'play' || RACE.grid > 0 || RACE.finished || P.slamCd > 0) return;
-    P.slamCd = 1.3; P.slamT = 0.34; P.slamDir = dir; P.slamOff = dir * 3.4; P.vlat += dir * 12;
+    P.slamCd = upLvl('ramS') >= 4 ? 0.8 : 1.3; P.slamT = 0.34; P.slamDir = dir; P.slamOff = dir * 3.4; P.vlat += dir * 12;
     frameOf(pS(), P.lat + dir * 1.2, F1); emitSparks(F1.px, 0.7, F1.pz, 10); Sfx.ram(); vib(15);
     if (ramS() > 0 || P.powerT > 0) banner(dir > 0 ? 'להבים ימינה!' : 'להבים שמאלה!', 'nm');
   },
@@ -2908,12 +2908,14 @@ function crash(c, cause, dmgOverride) {
 const RAM_F = { sedan: 1, moto: 1, van: 1, bus: 2, truck: 3 }, RAM_S = { sedan: 1, moto: 1, van: 2, bus: 3, truck: 3 };
 function ram(c, kind) {
   destroyCar(c, kind, true); bump('rams');
-  P.speed *= P.powerT > 0 ? 0.99 : kind === 'front' ? 0.94 : 0.975;
-  const pts = 200 * (c.len > 8 ? 2 : 1); P.score += pts; P.nitro = Math.min(100, P.nitro + 8);
+  const elite = kind === 'front' ? upLvl('ramF') >= 4 : upLvl('ramS') >= 4;
+  P.speed *= P.powerT > 0 || (elite && kind === 'front') ? 0.99 : kind === 'front' ? 0.94 : 0.975;
+  const pts = 200 * (c.len > 8 ? 2 : 1); P.score += pts; P.nitro = Math.min(100, P.nitro + (elite && kind === 'front' ? 20 : 8));
   G.shake = Math.max(G.shake, 0.5); Sfx.ram(); vib(25);
   if (c.len > 8) impact({ slow: 0.55, flash: 0.6, shake: 0.8, punch: 1 }); else impact({ punch: 0.55, shake: 0.5 });
   bump(kind === 'side' ? 'sideRams' : 'frontRams'); if (c.len > 8) bump('bigRams');
   const loot = ramLoot(c.type);
+  if (elite) { P.coins += loot.n; R.coins += loot.n; loot.n *= 2; }
   banner((kind === 'front' ? 'ניגוח חזית! ' : 'ניגוח צד! ') + ltr('+' + pts) + ' · ' + ltr('+' + loot.n) + ' צ׳וריסו', 'big');
 }
 function pickTarget(force) {
@@ -2923,7 +2925,7 @@ function pickTarget(force) {
   for (const c of traffic) {
     if (!c.active || c.state !== 0) continue;
     const rel = signedRel(c.s, ps);
-    if (rel < 8 || rel > 220 || Math.abs(c.lat - P.lat) > lim) continue;
+    if (rel < 8 || rel > (lv >= 4 ? 320 : 220) || Math.abs(c.lat - P.lat) > lim) continue;
     if (rel < bd) { bd = rel; best = c; }
   }
   return best;
@@ -2932,7 +2934,7 @@ function fireMissile() {
   if (G.state !== 'play' || P.missiles <= 0 || G.wCool > 0) return;
   const wh = warhead(), m = (wh ? chorizos : missiles).find((q) => !q.active); if (!m) return;
   const tgt = pickTarget(wh >= 2), s0 = pS() + 3.2;
-  Object.assign(m, { active: true, s: s0, ps: s0, lat: P.lat, speed: wh ? P.speed + 48 : P.speed + 55 + upLvl('sight') * 10, life: wh ? 3.6 : 3.2, target: tgt, wh });
+  Object.assign(m, { active: true, s: s0, ps: s0, lat: P.lat, speed: wh ? P.speed + 48 : P.speed + 55 + Math.min(4, upLvl('sight')) * 10, life: wh ? 3.6 : 3.2, target: tgt, wh });
   m.g.visible = true; P.missiles--; G.wCool = wh ? 0.32 : 0.22; hc.ammo = null; Sfx.missile(); vib(wh ? 25 : 15);
 }
 function chorizoBlast(s, lat, wh) {
@@ -3045,7 +3047,7 @@ function useKit(auto) {
 }
 /* the medic upgrade (any level) uses a first-aid kit by itself when a hit leaves you under 35% health, even a hit that would have finished you */
 function autoKit() {
-  if (upLvl('medic') < 1 || P.kits <= 0 || P.hp >= P.maxHp * 0.35 || (G.kitCd || 0) > 0) return false;
+  if (upLvl('medic') < 1 || P.kits <= 0 || P.hp >= P.maxHp * (upLvl('medic') >= 4 ? 0.5 : 0.35) || (G.kitCd || 0) > 0) return false;
   if (P.hp <= 0) P.hp = 1;
   useKit(true); return true;
 }
@@ -3369,6 +3371,9 @@ function runTick(dt) {
   else P.nitro = Math.min(100, P.nitro + 2.5 * VH.nitroRegen * dt);
 
   if (P.inv > 0) P.inv -= dt;
+  { const lm = upLvl('missiles') >= 6 && P.missiles < missileAmmo(), ls = upLvl('shock') >= 4 && P.shocks < 3 + 2 * upLvl('shock');
+    if (lm) { G.msRegen = (G.msRegen || 0) + dt; if (G.msRegen >= 10) { G.msRegen = 0; P.missiles++; hc.ammo = null; } } else G.msRegen = 0;
+    if (ls) { G.shRegen = (G.shRegen || 0) + dt; if (G.shRegen >= 12) { G.shRegen = 0; P.shocks++; hc.ammo = null; } } else G.shRegen = 0; }
   if (P.flyT > 0) { P.flyT -= dt; P.inv = Math.max(P.inv, 0.3); { const u = clamp(1 - P.flyT / FLY_DUR, 0, 1); P.flyH = 5.2 * Math.sin(Math.PI * u); const e = clamp((u - 0.12) / 0.74, 0, 1); P.flip = (e * e * (3 - 2 * e)) * Math.PI * 2; } if (P.flyT <= 0) { P.flyT = 0; P.flip = 0; P.inv = Math.max(P.inv, 1.2); } }
   else { P.flyH = damp(P.flyH, 0, 5, dt); if (P.landing && P.flyH < 0.5) { P.landing = false; blueBurst(); } if (P.flyH < 0.02) P.flyH = 0; if (curVeh().fly && RACE.grid <= 0 && !RACE.finished && flightReady()) P.flyCh = Math.min(100, P.flyCh + dt * 100 / FLY_CHARGE_S); }
   if (P.turboT > 0) P.turboT -= dt;
@@ -4337,7 +4342,7 @@ window.RingRush = {
   state: () => ({ state: G.state, dist: P.dist, speed: P.speed, hp: P.hp, maxHp: P.maxHp, kits: P.kits, score: P.score, lap: P.lapsDone, lane: P.lane, lat: P.lat, combo: P.combo, coins: P.coins, q: qLevel, near: R.near, inv: P.inv }),
   cars: () => traffic.filter((c) => c.active && c.state === 0).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, len: c.len, wid: c.wid, speed: c.speed, type: c.type, lane: c.lane })),
   coinsNear: () => coins.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat })),
-  setTrack, tracks: () => TRACKS.map((t) => ({ id: t.id, n: t.n })), trackInfo: () => ({ id: TR.id, L }), dbg: { scene, camera, get road() { return roadMesh; }, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo) * COIN_SCALE, coinGlow: footprint(sausageCoinGeo) * COIN_GLOW * COIN_SCALE, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, topSpeed: curVeh().topSpeed, len: P.len, wid: P.wid, shield: P.shield, maxHp: P.maxHp }), grantTrial: () => rdTrialGrant(), trial: () => ({ t: save.rdTrial | 0, seen: save.rdSeen | 0, own: save.ownCars.slice() }), endRun: (r) => endRun(r || 'dead'), fly: () => act.fly(), flyState: () => ({ ch: P.flyCh, t: P.flyT, h: P.flyH, ready: flightReady(), up: ownedUpLevels(), need: FLY_NEED }), setFlyCh(v) { P.flyCh = v; }, owns: (id) => ownsCar(id), vehicleIds: () => VEHICLES.map((v) => v.id), curCar: () => curVeh().id, setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setHp(v) { P.hp = Math.min(P.maxHp, v); hc.hp = null; }, giveKits(n) { P.kits = n; hc.ammo = null; }, kit() { useKit(); }, poison() { return { t: P.poisonT, regen: P.regenT }; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
+  setTrack, tracks: () => TRACKS.map((t) => ({ id: t.id, n: t.n })), trackInfo: () => ({ id: TR.id, L }), dbg: { scene, camera, get road() { return roadMesh; }, ground, roadTex }, footprints: () => ({ max: MAX_SAUSAGE_EXTENT, lane: LANE_W, coin: footprint(sausageCoinGeo) * COIN_SCALE, coinGlow: footprint(sausageCoinGeo) * COIN_GLOW * COIN_SCALE, pickups: pickups[0].models.map((m) => footprint(m.geometry) * m.scale.x), halo: 4.6 }), impact: (o) => impact(Object.assign({ force: true }, o)), fx: () => Object.assign({ timeScale: G.timeScale, slowT: G.slowT, punch: camera.userData.punch, back: camera.userData.back }, FX.live()), fxStep(sec) { for (let i = 0; i < sec * 60; i++) FX.update(1 / 60); }, audio: () => Sfx.debug(), audioReset: () => Sfx.resetDebug(), setCombo(n) { P.combo = n; P.comboT = 99; }, vehicle: () => ({ id: curVeh().id, topSpeed: curVeh().topSpeed, len: P.len, wid: P.wid, shield: P.shield, maxHp: P.maxHp }), setAmmo(m, s) { P.missiles = m; P.shocks = s; hc.ammo = null; }, grantTrial: () => rdTrialGrant(), trial: () => ({ t: save.rdTrial | 0, seen: save.rdSeen | 0, own: save.ownCars.slice() }), endRun: (r) => endRun(r || 'dead'), fly: () => act.fly(), flyState: () => ({ ch: P.flyCh, t: P.flyT, h: P.flyH, ready: flightReady(), up: ownedUpLevels(), need: FLY_NEED }), setFlyCh(v) { P.flyCh = v; }, owns: (id) => ownsCar(id), vehicleIds: () => VEHICLES.map((v) => v.id), curCar: () => curVeh().id, setCar(id) { if (!save.ownCars.includes(id)) save.ownCars.push(id); save.car = id; refreshPlayerLook(); }, spawnBoss, damageBoss, throwLettuce, boss: () => ({ active: BOSS.active, hp: BOSS.hp, maxHp: BOSS.maxHp, rel: bossRel(), lane: BOSS.lane, lat: BOSS.lat, fleeing: BOSS.fleeing }), lettuces: () => lettuces.filter((q) => q.state !== 0).map((q) => ({ state: q.state, lane: q.lane, rel: signedRel(q.sLand, pS()), lat: q.lat1 })), nearLap(n) { P.lapsDone = n - 1; P.dist = P.pd = n * L - 30; P.lapClean = true; }, stat: st, bump, bumpMax, checkAch, ach: () => Object.keys(save.ach), crown: () => crownMesh.visible, endRun, placeCoin(ahead, lane) { const co = coins[G.coinIdx++ % COIN_N]; co.active = true; co.s = mod(pS() + ahead, L); co.lat = lane * LANE_W; }, setHp(v) { P.hp = Math.min(P.maxHp, v); hc.hp = null; }, giveKits(n) { P.kits = n; hc.ammo = null; }, kit() { useKit(); }, poison() { return { t: P.poisonT, regen: P.regenT }; }, act, place(k, ahead, lane) { placePickup(pS() + ahead, lane * LANE_W, k); }, fire: fireMissile, boost(k) { collectPickup({ kind: k }); }, pickups: () => pickups.filter((q) => q.active).map((q) => ({ rel: signedRel(q.s, pS()), lat: q.lat, kind: q.kind })), shock: fireShock, spawnCop, setUp(k, v) { save.up[k] = v; refreshPlayerLook(); },
   cops: () => cops.filter((c) => c.active).map((c) => ({ rel: signedRel(c.s, pS()), lat: c.lat, speed: c.speed, stun: c.stunT })),
   noCops(v) { G.noCops = !!v; }, rivalsOff() { rivals.forEach((r) => { r.active = false; r.g.visible = false; }); }, noRivalHits(v) { G.noRivalHits = !!v; }, homeShare: () => homeShareText(), rivalAi: () => rivals.map((r) => ({ n: r.n, role: r.role, tele: r.tele, atk: r.atkT, nitro: r.nitroT, block: r.blockT, hp: r.hp, maxHp: r.maxHp, speed: r.speed, lat: r.lat, dist: r.dist })), forceTele(i) { const r = rivals[i]; r.atkCd = 0; r.tele = 0; }, forceBlock(i) { rivals[i].blockCd = 0; }, forceTrap(i) { rivals[i].trapCd = 0; }, placeRival(i, ahead, lat, speed) { const r = rivals[i]; r.active = true; r.g.visible = true; r.dist = r.pd = P.dist + ahead; r.lat = r.plat = r.latT = lat; r.stunT = 0; r.wreckT = 0; r.speed = speed; }, mineOwners: () => mines.filter((m) => m.active).map((m) => m.own), prep(o) { Object.assign(save, o); persist(); }, xpInfo: () => levelInfo(), addXp: (n) => addXp(n), setXp(n) { save.xp = n; }, prestige: () => prestigeNow(), plateOf: () => ({ plate: save.plate, own: save.ownPlate, card: plateCard() }), plateHtmlTest: () => plateHtml(plateCard(), 'T'), lastXp: () => RACE.xp, fbPayload: () => fbPayload(), fbOpen: (from, auto) => openFeedback(from, auto), fbDue: (runs, last, sent) => fbDueCalc(runs, last, sent), fbQueue: () => (save.fbQueue || []).length, fbSend, fbState, key(k, down) { if (k === 'ArrowLeft') kbd.l = down; if (k === 'ArrowRight') kbd.r = down; }, kbdV: () => kbd.v, unlockAll() { for (const a of ACH) { if (!save.ach[a.id]) { save.ach[a.id] = Date.now(); grantUnlocks(a.id); } } applyVehicle(); persist(); }, achTotal: () => ACH.length, badAchRefs: () => COSMETIC_LISTS.flatMap(([l]) => l.filter((x) => x.ach && !achById(x.ach)).map((x) => x.n)), owned: () => ({ paint: save.ownPaint.length, stripe: save.ownStripe.length, flame: save.ownFlame.length, glow: save.ownGlowU.length, title: save.ownTitle.length, titles: TITLES.length }), setTitle(i) { save.title = i; syncUser(); },  rivalTags: () => rivals.map((r) => ({ tag: r.tag.sp.visible, ring: r.tag.ring.visible })), ramLoot: (t) => ramLoot(t), rivalHit: (i, d) => rivalDamage(rivals[i], d), setRivalHp(i, v) { rivals[i].hp = v; }, rivalHitMe(i) { const r = rivals[i]; r.atkT = 1; r.atkCd = 99; G.rivalHitCd = 0; },  setLook(p, st, g) { save.paint = p; save.stripe = st | 0; save.glowU = g | 0; refreshPlayerLook(); }, setUser(n) { save.user = n; }, price: (p, k) => price(p, k), look: () => ({ pat: PU.uPat.value, st: PU.uSSt.value, marked: Array.from(player.body.geometry.attributes.aPaint.array).filter(Boolean).length }), orbit(a, d, y) { G.orbit = a; G.orbitD = d || 7; G.orbitY = y || 2.4; }, showroom() { P.dist = P.pd = 600; P.speed = 0; G.state = 'paused'; el.hud.classList.add('hidden'); el.siren.classList.remove('on'); }, mineList: () => mines.map((m) => ({ a: m.active, k: m.kind, rel: signedRel(m.s, pS()), lat: m.lat, age: m.age })), unlocked: (i) => trackUnlocked(i), saveState: () => JSON.parse(JSON.stringify(save)),
   ammo: () => ({ magnet: P.magnetT, hp: P.hp, kits: P.kits, missiles: P.missiles, shocks: P.shocks, warhead: warhead(), kills: P.kills, maxHp: P.maxHp, turbo: P.turboT, power: P.powerT, food: R.food }),

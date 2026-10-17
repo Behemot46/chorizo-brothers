@@ -237,8 +237,8 @@ const tilt = await page.evaluate(async () => {
   ori(60, -22); R.step(90); out.left = R.state().lat;
   ori(60, 0); R.step(90); out.level = R.state().lat;
   R.rivalsOff();
-  ori(42, 0); R.step(60 * 6); R.clearTraffic(); out.fast = R.state().speed;
-  ori(82, 0); R.step(60 * 6); R.clearTraffic(); out.slow = R.state().speed; R.noRivalHits(false);
+  ori(42, 0); for (let i = 0; i < 12; i++) { R.step(30); R.clearTraffic(); } out.fast = R.state().speed;
+  ori(82, 0); for (let i = 0; i < 12; i++) { R.step(30); R.clearTraffic(); } out.slow = R.state().speed; R.noRivalHits(false);
   return out;
 });
 check('without a sensor the game falls back to touch control', tilt.noSensor === 'touch');
@@ -677,6 +677,15 @@ const rd = await page.evaluate(() => {
   return out;
 });
 check('roadster: every registered user gets it for ONE race, then it locks until bought; Gabi and Shachar always have it; guests get no trial', rd.granted.t === 1 && rd.ownedDuringTrial && rd.once && rd.afterRace.t === 0 && rd.lockedAgain && rd.carBack === 'sport' && rd.noSecondOffer && rd.vipNoTrial && rd.anonNoTrial, JSON.stringify(rd));
+const elite = await page.evaluate(async () => {
+  const R = RingRush, out = {}; R.noCops(true); R.noRivalHits(true);
+  R.prep({ up: { sight: 4, ramF: 4, ramS: 4, missiles: 6, shock: 4, mines: 4, armor: 3, medic: 4 }, ownCars: ['sport'], car: 'sport' }); R.setUser('');
+  R.start(0); R.clearTraffic(); R.rivalsOff(); R.step(30);
+  const s = R.ammo(); out.maxHp = s.maxHp; out.kits = s.kits; out.missiles = s.missiles; out.shocks = s.shocks; out.mines = R.mines().n;
+  R.setAmmo(5, 5); R.step(60 * 13); out.afterWait = { missiles: R.ammo().missiles, shocks: R.ammo().shocks };
+  return out;
+});
+check('elite level of every upgrade: armor x2 health, 4 kits, 11 missiles, 11 shocks, 12 mines, and missiles/shocks recharge by themselves', elite.maxHp === 200 && elite.kits === 4 && elite.missiles === 11 && elite.shocks === 11 && elite.mines === 12 && elite.afterWait.missiles === 6 && elite.afterWait.shocks === 6, JSON.stringify(elite));
 check('no page errors / shader errors', errors.length === 0, errors.slice(0, 3).join(' / '));
 await browser.close();
 const failed = results.filter((r) => !r.ok);

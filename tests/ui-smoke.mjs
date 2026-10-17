@@ -42,10 +42,10 @@ async function main() {
     const swipeDown = async (dist = 160) => { const x = w / 2, y0 = h * 0.3; await touch('touchStart', x, y0); for (let i = 1; i <= 8; i++) { await touch('touchMove', x, y0 + (dist * i) / 8); await page.waitForTimeout(12); } await touch('touchEnd'); await page.waitForTimeout(350); };
     const scrollTop = () => page.evaluate(() => document.getElementById('garage').scrollTop);
     // a tap lands on the target only if it is on screen and nothing (e.g. a sticky bar) covers its centre
-    const hitInfo = (sel) => page.evaluate((s) => { const e = document.querySelector(s); if (!e) return null; const r = e.getBoundingClientRect(); const cx = r.x + r.width / 2, cy = r.y + r.height / 2; const top = document.elementFromPoint(cx, cy); return { cx, cy, onScreen: cx >= 0 && cx <= innerWidth && cy >= 0 && cy <= innerHeight, hit: !!top && (top === e || e.contains(top)) }; }, sel);
+    const hitInfo = (sel) => page.evaluate((s) => { const e = document.querySelector(s); if (!e) return null; const r = e.getBoundingClientRect(); const cx = r.x + r.width / 2, cy = r.y + r.height / 2; const top = document.elementFromPoint(cx, cy); return { cx, cy, onScreen: cx >= 0 && cx <= innerWidth && cy >= 0 && cy <= innerHeight, hit: !!top && (top === e || e.contains(top)), underHead: !!top && !!top.closest('.ghead') }; }, sel);
     let lastTapScroll = 0;
     const reachAndTap = async (sel, label) => {
-      for (let i = 0; i < 48; i++) { const hi = await hitInfo(sel); if (hi && hi.onScreen && hi.hit) { lastTapScroll = await scrollTop(); await touch('touchStart', hi.cx, hi.cy); await touch('touchEnd'); await page.waitForTimeout(250); return true; } if (hi && hi.cy < 60) await swipeDown(Math.min(h * 0.6, Math.max(120, -hi.cy * 0.8))); else await swipeUp(Math.min(h * 0.55, Math.max(120, hi ? (hi.cy - h) * 0.8 : 120))); }
+      for (let i = 0; i < 48; i++) { const hi = await hitInfo(sel); if (hi && hi.onScreen && hi.hit) { lastTapScroll = await scrollTop(); await touch('touchStart', hi.cx, hi.cy); await touch('touchEnd'); await page.waitForTimeout(250); return true; } if (hi && (hi.cy < 60 || hi.underHead)) await swipeDown(Math.min(h * 0.6, Math.max(120, hi.underHead ? 120 : -hi.cy * 0.8))); else await swipeUp(Math.min(h * 0.55, Math.max(120, hi ? (hi.cy - h) * 0.8 : 120))); }
       check('reachable by touch scrolling: ' + label, false); return false;
     };
     const coins = () => page.evaluate(() => JSON.parse(localStorage.getItem('ringrush.v1')).coins);
